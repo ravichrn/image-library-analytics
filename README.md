@@ -2,7 +2,7 @@
 
 Analyzes your photo library locally and creates an interactive HTML dashboard with deep metrics across composition, color, aesthetics, editing style, and shooting patterns. Supports local folders and Adobe Lightroom cloud.
 
-**[Live demo →](https://ravichrn.github.io/image-library-analytics/report.html)**
+**[Live report →](https://ravichrn.github.io/image-library-analytics/report.html)**
 
 ## Models (all local, ~5GB total)
 
@@ -20,37 +20,15 @@ MPS (Apple Silicon) or CUDA used automatically if available; falls back to CPU. 
 
 ## Report sections
 
-| Section | What it shows |
+| Category | Sections |
 |---|---|
-| Library Overview | Photo count, dominant scene, avg aesthetic, resolution, sharpness, exposure bias |
-| Scene Preferences | Doughnut chart with % breakdown of scene types |
-| Visual Attributes | BLIP VQA distributions — people, indoor/outdoor, time of day, weather, season |
-| Visual Similarity Map | UMAP scatter colored by scene type — shows which scenes cluster visually |
-| Focal Length / Aperture / ISO | Histograms of technical shooting choices |
-| Compositional Style | Named pattern detection: Rule of Thirds, Symmetry, Negative Space, Frame-filling, Subject Isolation, Foreground Interest, Centered |
-| Composition Grid | 3×3 avg edge density + RMBG-1.4 subject placement heatmap (where subjects actually land) |
-| Depth & Spatial Composition | Depth Anything v2 — depth range, complexity, subject-background separation by scene |
-| Sharpness & Exposure | Per-scene sharpness bars, highlight/shadow clipping %, exposure bias |
-| Editing Style Analysis | Multi-pattern detection (warm-toned, high contrast, muted, high-key, etc.) with confidence scores |
-| Aesthetic Quality | 10-bucket score histogram + avg/median/std |
-| Aesthetic Score by Scene | Dot-plot with ±1σ consistency bands — score position + volume per scene |
-| Color Grading | Tonal style, color temperature, tonal zone split (shadows/mids/highlights), color harmony distribution |
-| Color & Mood | Palette swatches, saturation/brightness stats, hue distribution, warm/cool split |
-| Signature Edit | Median Lightroom slider values across your library — the recipe behind your look |
-| Lightroom Develop Settings | Per-scene avg slider heatmap (scenes × sliders) — from Lightroom cloud metadata |
-| Editing DNA | Per-channel HSL fingerprint (8 colour channels × Hue/Sat/Lum) + editing intensity by scene |
-| Color Profile by Scene | Per-scene: saturation, brightness, warmth ratio, dominant tone |
-| Editing Trends Over Time | Monthly avg aesthetic score, saturation, and brightness |
-| Shooting Hours | 24-hour bar chart of when photos were taken |
-| Monthly Shooting | Monthly photo count stacked by golden hour vs. other times |
-| Quality Issues | Local rule engine: 10 compositional/technical checks with fix suggestions |
-| What You Keep vs. Discard | Picks vs. rejects comparison — avg aesthetic, sharpness, top scene per bucket; pick rate by scene |
-| Portfolio Albums | Lightroom album curation analysis — curation rate, AI aesthetic agreement, scene curation rates, per-album breakdown |
-| Burst & Near-Duplicates | DBSCAN on DINOv2 cosine distance ≤ 0.05 — groups of near-identical photos for culling |
-| Ratings, Labels & Keywords | Star rating distribution, color labels, top 20 keywords + per-scene keyword breakdown |
-| ELA Forensics | JPEG compression inconsistency analysis — suspicious photo count, avg max/mean error |
-| Smart Culling | Hero vs. redundant breakdown per DBSCAN cluster — redundancy %, top clusters with hero score |
-| Photo Events | Shooting sessions grouped by 4-hour time gaps — photo count, duration, top scene, auto-narrative from BLIP captions |
+| **Library overview** | Summary stats, scene preferences, visual attributes (BLIP VQA), visual similarity map (UMAP) |
+| **Composition & depth** | Compositional style patterns, 3×3 subject placement heatmap, depth range & complexity by scene |
+| **Technical** | Focal length / aperture / ISO histograms, sharpness & exposure, shooting hours, monthly shooting |
+| **Aesthetics & color** | Aesthetic score histogram + by-scene dot-plot, color grading, color & mood palette, color profile by scene |
+| **Editing style** | Editing style patterns, signature edit (median sliders), Lightroom develop heatmap, HSL DNA, trends over time |
+| **Curation & culling** | Quality issues, picks vs. rejects, portfolio albums, burst & near-duplicates, smart culling, ratings & keywords |
+| **Forensics & events** | ELA JPEG compression analysis, photo events with auto-narrative |
 
 ## Pipeline
 
