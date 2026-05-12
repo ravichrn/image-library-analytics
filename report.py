@@ -4,7 +4,7 @@ from pathlib import Path
 import jinja2
 from markupsafe import Markup
 
-OUTPUT_DIR = Path("output")
+OUTPUT_DIR = Path("docs")
 
 
 def generate_json(data: dict, path: Path = OUTPUT_DIR / "results.json") -> None:

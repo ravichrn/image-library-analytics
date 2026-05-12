@@ -107,7 +107,7 @@ uv run python main.py                    # full library
 uv run python main.py --sample 50        # quick test on 50 random photos
 uv run python main.py --batch-size 32    # larger batches if you have more VRAM
 uv run python main.py --prune            # remove cache entries for deleted photos
-open output/report.html
+open docs/report.html
 ```
 
 ### Cache pruning
@@ -135,8 +135,8 @@ When renditions are enabled, all missing files are downloaded in parallel (16 wo
 
 | File | Description |
 |---|---|
-| `output/report.html` | Interactive dashboard — open in any browser |
-| `output/results.json` | Raw per-photo metrics + all aggregations |
+| `docs/report.html` | Interactive dashboard — open in any browser |
+| `docs/results.json` | Raw per-photo metrics + all aggregations |
 | `cache/cache.db` | SQLite database — all per-photo results keyed by SHA-256 |
 | `cache/renditions/<hash>.jpg` | Downloaded Lightroom renditions (2048px, edits applied) |
 | `cache/.sync_state.json` | Last Lightroom sync timestamp — auto-managed |

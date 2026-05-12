@@ -412,8 +412,8 @@ def main() -> None:
     generate_html(data)
 
     console.print("\n[bold green]Done![/bold green]")
-    console.print("  [dim]JSON →[/dim] [cyan]output/results.json[/cyan]")
-    console.print("  [dim]HTML →[/dim] [cyan]output/report.html[/cyan]  ← open in your browser\n")
+    console.print("  [dim]JSON →[/dim] [cyan]docs/results.json[/cyan]")
+    console.print("  [dim]HTML →[/dim] [cyan]docs/report.html[/cyan]  ← open in your browser\n")
 
 
 if __name__ == "__main__":

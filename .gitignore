@@ -10,7 +10,7 @@ wheels/
 .venv
 
 # App outputs
-output/results.json
+docs/results.json
 cache/
 
 # Environment
