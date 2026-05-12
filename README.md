@@ -2,6 +2,8 @@
 
 Analyzes your photo library locally and creates an interactive HTML dashboard with deep metrics across composition, color, aesthetics, editing style, and shooting patterns. Supports local folders and Adobe Lightroom cloud.
 
+**[Live demo →](https://ravichrn.github.io/image-library-analytics/report.html)**
+
 ## Models (all local, ~5GB total)
 
 | Model | Purpose |
