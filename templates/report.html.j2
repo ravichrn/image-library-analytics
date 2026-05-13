@@ -967,7 +967,7 @@ canvas { max-height: 300px; }
 <!-- LR Develop Settings -->
 {% if develop_stats and develop_stats.total_with_develop > 0 %}
 <div class="card mb">
-  <div class="card-title">Lightroom Develop Settings <span style="color:#8080aa;font-weight:400;">{{ develop_stats.total_with_develop }} of {{ photo_count }} images with develop metadata</span></div>
+  <div class="card-title">Adobe Lightroom Develop Settings <span style="color:#8080aa;font-weight:400;">{{ develop_stats.total_with_develop }} of {{ photo_count }} images with develop metadata</span></div>
   <div class="card-desc" style="margin-bottom:0.9rem;">Avg slider positions across your library. Only images synced from Lightroom include develop settings — local folder imports don't carry this data. <strong style="color:#9090b8;">Lum. Noise</strong> = Luminance Smoothing, which reduces grain/texture noise in the brightness channel (high-ISO shots). <strong style="color:#9090b8;">Color NR</strong> = Color Noise Reduction, which removes coloured speckles (chroma noise) in shadow areas.</div>
   <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px;margin-top:4px;">
     {% for key, label in [("Contrast","Contrast"),("Shadows","Shadows"),("Vibrance","Vibrance"),("Saturation","Saturation"),("Sharpness","Sharpness"),("LuminanceSmoothing","Lum. Noise"),("ColorNoiseReduction","Color NR")] %}
@@ -1102,7 +1102,7 @@ canvas { max-height: 300px; }
 <!-- Portfolio Albums (moved before WHEN YOU SHOOT) -->
 {% if album_stats and album_stats.total_albums > 0 %}
 <div class="card mb">
-  <div class="card-title">Portfolio Albums <span style="color:#8080aa;font-weight:400;">Lightroom collections · curated selections</span></div>
+  <div class="card-title">Portfolio Albums <span style="color:#8080aa;font-weight:400;">Adobe Lightroom collections · curated selections</span></div>
   <div class="card-desc">Images you've placed in albums represent your curated portfolio — the subset you've actively chosen to showcase. Comparing album images against the rest of your library shows how well the AI aesthetic model aligns with your own taste.</div>
   <div class="strip mb">
     <div class="strip-item">

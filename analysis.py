@@ -1169,13 +1169,14 @@ def aggregate(records: list[dict]) -> dict:
 
         total_w_emb = len(dino_records)
         redundant_count = sum(g["size"] - 1 for g in groups_d)
+        _safe_keys = {"size", "best_score", "scene"}
         storage_tiers = {
             "cluster_count": len(groups_d),
             "hero_count": len(groups_d),
             "redundant_count": redundant_count,
             "unclustered_count": int(np.sum(labels_d == -1)),
             "redundancy_pct": round(redundant_count / total_w_emb * 100, 1) if total_w_emb else 0.0,
-            "tiers": groups_d[:10],
+            "tiers": [{k: v for k, v in g.items() if k in _safe_keys} for g in groups_d[:10]],
         }
 
     # ── Event grouping (time-gap > 4 h = new event) ──────────────────────────
@@ -1266,7 +1267,6 @@ def aggregate(records: list[dict]) -> dict:
                 "photo_count": len(ev_records),
                 "duration_mins": round(duration_mins, 1),
                 "top_scene": top_scene_ev[0][0] if top_scene_ev else "",
-                "hero_path": hero_r.get("path", ""),
                 "hero_score": round(float(hero_r.get("aesthetic_score") or 0), 2),
                 "narrative": _event_narrative(ev_records),
             })
