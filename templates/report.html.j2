@@ -6,6 +6,16 @@
 <title>Image Library Analytics</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
 <style>
+:root {
+  --fs-card-title: 0.76rem;
+  --fs-card-desc:  0.86rem;
+  --fs-label:      0.78rem;
+  --fs-body:       0.83rem;
+  --fs-sub:        0.75rem;
+  --fs-micro:      0.66rem;
+  --fs-stat-v:     1.3rem;
+  --fs-strip-v:    1.2rem;
+}
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 body {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
@@ -82,10 +92,11 @@ body {
   padding: 1.4rem 1.6rem;
 }
 .card-title {
-  font-size: 0.7rem; font-weight: 700; color: #7878a0;
+  font-size: var(--fs-card-title); font-weight: 700; color: #7878a0;
   text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 0.8rem;
 }
-.card-desc { font-size: 0.85rem; color: #7878a8; margin-top: -0.3rem; margin-bottom: 0.9rem; line-height: 1.55; }
+.card-title span { font-size: var(--fs-micro); font-weight: 400; }
+.card-desc { font-size: var(--fs-card-desc); color: #7878a8; margin-top: -0.3rem; margin-bottom: 0.9rem; line-height: 1.55; }
 .naked { background: transparent; border-color: transparent; padding: 0; }
 
 /* ── Accent cards ──────────────────────────────────────────────── */
@@ -111,41 +122,41 @@ body {
 /* ── Stats ─────────────────────────────────────────────────────── */
 .stat-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px,1fr)); gap: 0.75rem; }
 .stat { background: #16161f; border-radius: 8px; padding: 0.85rem 1rem; }
-.stat-l { font-size: 0.75rem; color: #8080aa; text-transform: uppercase; letter-spacing: 0.06em; }
-.stat-v { font-size: 1.3rem; font-weight: 700; color: #ddd8f0; margin-top: 0.15rem; }
-.stat-s { font-size: 0.75rem; color: #7878a0; margin-top: 0.1rem; }
+.stat-l { font-size: var(--fs-sub); color: #8080aa; text-transform: uppercase; letter-spacing: 0.06em; }
+.stat-v { font-size: var(--fs-stat-v); font-weight: 700; color: #ddd8f0; margin-top: 0.15rem; }
+.stat-s { font-size: var(--fs-sub); color: #7878a0; margin-top: 0.1rem; }
 
 /* Inline strip */
 .strip { display: flex; border: 1px solid #1c1c2e; border-radius: 10px; overflow: hidden; }
 .strip-item { flex: 1; padding: 0.85rem 1.1rem; border-right: 1px solid #1c1c2e; }
 .strip-item:last-child { border-right: none; }
-.strip-v { font-size: 1.2rem; font-weight: 700; color: #ddd8f0; }
-.strip-l { font-size: 0.65rem; color: #8080a8; text-transform: uppercase; letter-spacing: 0.05em; margin-top: 0.12rem; }
-.strip-s { font-size: 0.75rem; color: #7878a0; margin-top: 0.08rem; }
+.strip-v { font-size: var(--fs-strip-v); font-weight: 700; color: #ddd8f0; }
+.strip-l { font-size: var(--fs-sub); color: #8080a8; text-transform: uppercase; letter-spacing: 0.05em; margin-top: 0.12rem; }
+.strip-s { font-size: var(--fs-sub); color: #7878a0; margin-top: 0.08rem; }
 
 /* ── Bar lists ─────────────────────────────────────────────────── */
 .bar-list { display: flex; flex-direction: column; gap: 0.45rem; }
 .bar-row { display: flex; align-items: center; gap: 0.65rem; }
-.bar-lbl { font-size: 0.78rem; color: #8888aa; text-align: right; flex-shrink: 0; min-width: 0; }
+.bar-lbl { font-size: var(--fs-body); color: #8888aa; text-align: right; flex-shrink: 0; min-width: 0; }
 .bar-track { flex: 1; height: 7px; background: #1a1a28; border-radius: 4px; overflow: hidden; }
 .bar-fill { height: 100%; border-radius: 4px; }
-.bar-val { font-size: 0.75rem; color: #7878a8; min-width: 42px; text-align: right; flex-shrink: 0; }
+.bar-val { font-size: var(--fs-sub); color: #7878a8; min-width: 42px; text-align: right; flex-shrink: 0; }
 
 /* ── Small bar (dist) ───────────────────────────────────────────── */
 .dbar { margin-bottom: 0.45rem; }
-.dbar-row { display: flex; justify-content: space-between; font-size: 0.78rem; margin-bottom: 3px; }
+.dbar-row { display: flex; justify-content: space-between; font-size: var(--fs-body); margin-bottom: 3px; }
 .dbar-row span:first-child { color: #8888aa; }
 .dbar-row span:last-child { color: #7878a8; }
 .dbar-bg { height: 5px; background: #1a1a28; border-radius: 3px; }
 .dbar-fill { height: 5px; border-radius: 3px; }
 
 /* ── Table ─────────────────────────────────────────────────────── */
-table { width: 100%; border-collapse: collapse; font-size: 0.78rem; }
+table { width: 100%; border-collapse: collapse; font-size: var(--fs-body); }
 th { text-align: left; color: #7878a8; font-weight: 600; padding: 0.35rem 0.8rem;
-     border-bottom: 1px solid #1c1c2e; text-transform: uppercase; font-size: 0.68rem; letter-spacing: 0.06em; }
+     border-bottom: 1px solid #1c1c2e; text-transform: uppercase; font-size: var(--fs-sub); letter-spacing: 0.06em; }
 td { padding: 0.5rem 0.8rem; border-bottom: 1px solid #141420; color: #9090b8; }
 tr:last-child td { border-bottom: none; }
-.badge { display: inline-block; background: #1c1c2e; border-radius: 4px; padding: 3px 8px; font-size: 0.72rem; margin: 2px; color: #6a6a90; }
+.badge { display: inline-block; background: #1c1c2e; border-radius: 4px; padding: 3px 8px; font-size: var(--fs-label); margin: 2px; color: #6a6a90; }
 
 /* ── Chart wraps ───────────────────────────────────────────────── */
 .chart-h { position: relative; }
@@ -160,8 +171,8 @@ canvas { max-height: 300px; }
 .cp-row { display: flex; align-items: flex-start; gap: 0.6rem; }
 .cp-pct { font-size: 0.73rem; font-weight: 700; min-width: 35px; text-align: right; color: #7070901; flex-shrink: 0; padding-top: 1px; color: #6060881; }
 .cp-body {}
-.cp-name { font-size: 0.78rem; color: #c0c0d8; font-weight: 600; }
-.cp-desc { font-size: 0.75rem; color: #7878a8; line-height: 1.45; margin-top: 2px; }
+.cp-name { font-size: var(--fs-body); color: #c0c0d8; font-weight: 600; }
+.cp-desc { font-size: var(--fs-sub); color: #7878a8; line-height: 1.45; margin-top: 2px; }
 .cp-bar { height: 3px; background: #1a1a28; border-radius: 2px; margin-top: 4px; }
 .cp-bar-fill { height: 3px; border-radius: 2px; background: #10b981; }
 
@@ -196,8 +207,8 @@ canvas { max-height: 300px; }
   font-size: 2.4rem; font-weight: 900; letter-spacing: -0.03em;
   color: #7c6af7; line-height: 1.1; margin-bottom: 0.35rem;
 }
-.style-conf { font-size: 0.68rem; color: #8080aa; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 0.75rem; }
-.style-meaning { font-size: 0.78rem; color: #8080a8; line-height: 1.65; max-width: 520px; }
+.style-conf { font-size: var(--fs-sub); color: #8080aa; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 0.75rem; }
+.style-meaning { font-size: var(--fs-body); color: #8080a8; line-height: 1.65; max-width: 520px; }
 
 /* ── Scene tiles ────────────────────────────────────────────────── */
 .scene-tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 0.75rem; }
@@ -208,30 +219,30 @@ canvas { max-height: 300px; }
 .scene-tile::before {
   content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
 }
-.scene-tile-name { font-size: 0.78rem; color: #9090b0; font-weight: 600; margin-bottom: 0.4rem; text-transform: capitalize; }
+.scene-tile-name { font-size: var(--fs-body); color: #9090b0; font-weight: 600; margin-bottom: 0.4rem; text-transform: capitalize; }
 .scene-tile-count { font-size: 1.6rem; font-weight: 800; color: #e0e0ee; letter-spacing: -0.02em; line-height: 1; }
-.scene-tile-score { font-size: 0.72rem; color: #7878a0; margin-top: 0.25rem; }
+.scene-tile-score { font-size: var(--fs-label); color: #7878a0; margin-top: 0.25rem; }
 .scene-tile-bar { height: 3px; background: #1a1a28; border-radius: 2px; margin-top: 0.6rem; }
 .scene-tile-bar-fill { height: 3px; border-radius: 2px; }
 
 /* ── Aesthetic score by scene ───────────────────────────────────── */
 .aes-scene-list { display: flex; flex-direction: column; gap: 0.55rem; }
 .aes-scene-row { display: flex; align-items: center; gap: 0.75rem; }
-.aes-scene-name { font-size: 0.8rem; color: #8888aa; min-width: 140px; text-align: right; flex-shrink: 0; text-transform: capitalize; }
+.aes-scene-name { font-size: var(--fs-body); color: #8888aa; min-width: 140px; text-align: right; flex-shrink: 0; text-transform: capitalize; }
 .aes-scene-bar-wrap { flex: 1; position: relative; height: 20px; background: #141420; border-radius: 5px; overflow: hidden; }
 .aes-scene-bar-fill { height: 100%; border-radius: 5px; display: flex; align-items: center; padding-left: 8px; }
-.aes-scene-score { font-size: 0.73rem; font-weight: 700; color: rgba(255,255,255,0.8); white-space: nowrap; }
-.aes-scene-count { font-size: 0.7rem; color: #7878a0; min-width: 60px; text-align: left; }
+.aes-scene-score { font-size: var(--fs-label); font-weight: 700; color: rgba(255,255,255,0.8); white-space: nowrap; }
+.aes-scene-count { font-size: var(--fs-label); color: #7878a0; min-width: 60px; text-align: left; }
 
 /* ── Color scene cards ──────────────────────────────────────────── */
 .color-scene-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px,1fr)); gap: 0.65rem; }
 .color-scene-card {
   border-radius: 9px; padding: 0.85rem 1rem; border: 1px solid #1c1c2e;
 }
-.cs-name { font-size: 0.75rem; font-weight: 600; color: #9090b0; margin-bottom: 0.5rem; text-transform: capitalize; }
+.cs-name { font-size: var(--fs-label); font-weight: 600; color: #9090b0; margin-bottom: 0.5rem; text-transform: capitalize; }
 .cs-temp { font-size: 1rem; font-weight: 700; margin-bottom: 0.2rem; }
 .cs-pills { display: flex; flex-wrap: wrap; gap: 3px; margin-top: 0.5rem; }
-.cs-pill { font-size: 0.62rem; background: rgba(255,255,255,0.04); border-radius: 3px; padding: 2px 5px; color: #5a5a78; }
+.cs-pill { font-size: var(--fs-micro); background: rgba(255,255,255,0.04); border-radius: 3px; padding: 2px 5px; color: #5a5a78; }
 
 /* ── Flag rows ──────────────────────────────────────────────────── */
 .flag-row { padding: 0.8rem 0; border-bottom: 1px solid #141420; }
@@ -240,11 +251,11 @@ canvas { max-height: 300px; }
 .flag-pct { font-size: 1rem; font-weight: 700; min-width: 44px; text-align: right; flex-shrink: 0; }
 .flag-pct.hi { color: #f87171; } .flag-pct.md { color: #fbbf24; } .flag-pct.lo { color: #7878a0; }
 .flag-info { flex: 1; }
-.flag-name { font-size: 0.78rem; color: #c8c8de; font-weight: 500; }
-.flag-meta { font-size: 0.72rem; color: #8080aa; margin-top: 2px; }
+.flag-name { font-size: var(--fs-body); color: #c8c8de; font-weight: 500; }
+.flag-meta { font-size: var(--fs-label); color: #8080aa; margin-top: 2px; }
 .flag-bar { height: 3px; background: #1a1a28; border-radius: 2px; margin-top: 4px; }
 .flag-bar-fill { height: 3px; border-radius: 2px; background: #7c6af7; }
-.flag-desc { font-size: 0.78rem; color: #8080aa; margin-top: 0.4rem; line-height: 1.55; padding-left: 56px; }
+.flag-desc { font-size: var(--fs-body); color: #8080aa; margin-top: 0.4rem; line-height: 1.55; padding-left: 56px; }
 
 /* ── Aesthetic narrow range notice ─────────────────────────────── */
 .range-note {
@@ -258,12 +269,36 @@ canvas { max-height: 300px; }
 .pattern-card { background: #16161f; border-radius: 8px; padding: 0.85rem 1rem; border-left: 3px solid #1c1c2e; }
 .pattern-card.dom { border-left-color: #7c6af7; }
 .pattern-card.mod { border-left-color: #f97316; }
-.ptn-name { font-size: 0.78rem; font-weight: 600; color: #c8c8de; }
+.ptn-name { font-size: var(--fs-body); font-weight: 600; color: #c8c8de; }
 .ptn-conf-row { display: flex; align-items: center; gap: 0.5rem; margin: 0.35rem 0; }
 .ptn-conf-bar { flex: 1; height: 4px; background: #1c1c2e; border-radius: 2px; }
 .ptn-conf-fill { height: 4px; border-radius: 2px; }
-.ptn-pct { font-size: 0.68rem; color: #7878a0; min-width: 38px; text-align: right; }
-.ptn-desc { font-size: 0.78rem; color: #8080aa; line-height: 1.55; margin-top: 0.3rem; }
+.ptn-pct { font-size: var(--fs-sub); color: #7878a0; min-width: 38px; text-align: right; }
+.ptn-desc { font-size: var(--fs-body); color: #8080aa; line-height: 1.55; margin-top: 0.3rem; }
+
+/* ── Back to top ────────────────────────────────────────────────── */
+#back-to-top {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: rgba(124,106,247,0.12);
+  border: 1px solid rgba(124,106,247,0.28);
+  color: #7c6af7;
+  font-size: 1.1rem;
+  cursor: pointer;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s, background 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+}
+#back-to-top.visible { opacity: 1; pointer-events: auto; }
+#back-to-top:hover { background: rgba(124,106,247,0.28); }
 </style>
 </head>
 <body>
@@ -275,7 +310,7 @@ canvas { max-height: 300px; }
   <div class="sb-label">Explore</div>
   <a href="#s-semantic">What You Shoot</a>
   <a href="#s-technical">How You Shoot</a>
-  <a href="#s-aesthetics">Editing Style</a>
+  <a href="#s-aesthetics">Editing &amp; Aesthetics</a>
   <a href="#s-when">When You Shoot</a>
   <div class="sb-label">Signals</div>
   <a href="#s-forensics">Forensics</a>
@@ -288,38 +323,52 @@ canvas { max-height: 300px; }
 <div class="hero" id="s-overview">
   <h1 class="hero-title" style="font-size:1.9rem;letter-spacing:0.04em;font-weight:800;text-transform:uppercase;color:#c8c8de;">Image Library Analytics</h1>
   <p class="hero-sub">{{ photo_count }} images · analyzed entirely on-device · CLIP ViT-L/14 · LAION Aesthetic MLP · DINOv2 · Depth Anything v2 · Florence-2 · RMBG-1.4</p>
-  <div class="hero-digest">
-    <div class="hero-digest-item">
-      <div class="hd-label">Dominant Scene</div>
-      <div class="hd-value" style="font-size:0.95rem;text-transform:capitalize;">{{ agg.scene_stats.dominant_scene or "—" }}</div>
+  <div class="stat-grid">
+    <div class="stat">
+      <div class="stat-l">Dominant Scene</div>
       {% set dom_pct = (scene_dist.get(agg.scene_stats.dominant_scene, 0) / (scene_dist.values()|sum) * 100)|round|int if scene_dist.values()|sum > 0 else 0 %}
-      <div class="hd-sub">{{ dom_pct }}% of library</div>
+      <div class="stat-v" style="font-size:1.1rem;text-transform:capitalize;">{{ agg.scene_stats.dominant_scene or "—" }}</div>
+      <div class="stat-s">{{ dom_pct }}% of library</div>
     </div>
-    <div class="hero-digest-item">
-      <div class="hd-label">Avg Aesthetic Score</div>
-      <div class="hd-value">{{ "%.1f"|format(aesthetic_stats.avg_score or 0) }}<span style="font-size:0.9rem;font-weight:400;color:#7878a0;"> / 100</span></div>
-      <div class="hd-sub">range {{ "%.0f"|format(aesthetic_stats.min_score or 0) }}–{{ "%.0f"|format(aesthetic_stats.max_score or 0) }}</div>
+    <div class="stat">
+      <div class="stat-l">Avg Aesthetic Score</div>
+      <div class="stat-v">{{ "%.1f"|format(aesthetic_stats.avg_score or 0) }}<span style="font-size:0.78rem;font-weight:400;color:#7878a0;"> / 100</span></div>
+      <div class="stat-s">range {{ "%.0f"|format(aesthetic_stats.min_score or 0) }}–{{ "%.0f"|format(aesthetic_stats.max_score or 0) }}</div>
     </div>
-    <div class="hero-digest-item">
-      <div class="hd-label">Visual Clusters</div>
-      <div class="hd-value">{{ clusters.n_clusters or "—" }}</div>
-      <div class="hd-sub">DINOv2 + KMeans</div>
+    <div class="stat">
+      <div class="stat-l">Visual Clusters</div>
+      <div class="stat-v">{{ clusters.n_clusters or "—" }}</div>
+      <div class="stat-s">DINOv2 + KMeans</div>
     </div>
-    <div class="hero-digest-item">
-      <div class="hd-label">Avg Resolution</div>
-      <div class="hd-value">{{ "%.1f"|format(megapixel_stats.avg or 0) }}<span style="font-size:0.9rem;font-weight:400;color:#7878a0;">MP</span></div>
-      <div class="hd-sub">{{ megapixel_stats.min }}–{{ megapixel_stats.max }}MP range</div>
+    <div class="stat">
+      <div class="stat-l">Avg Resolution</div>
+      <div class="stat-v">{{ "%.1f"|format(megapixel_stats.avg or 0) }}<span style="font-size:0.78rem;font-weight:400;color:#7878a0;">MP</span></div>
+      <div class="stat-s">{{ megapixel_stats.min }}–{{ megapixel_stats.max }}MP range</div>
     </div>
-    <div class="hero-digest-item">
-      <div class="hd-label">Exposure Bias</div>
-      <div class="hd-value">{{ "%+.2f"|format(exposure_stats.avg_bias or 0) }}</div>
-      <div class="hd-sub">0 = neutral</div>
+    <div class="stat">
+      <div class="stat-l">Exposure Bias</div>
+      <div class="stat-v">{{ "%+.2f"|format(exposure_stats.avg_bias or 0) }}</div>
+      <div class="stat-s">0 = neutral</div>
     </div>
-    <div class="hero-digest-item">
-      <div class="hd-label">Editing Style</div>
-      <div class="hd-value" style="font-size:0.9rem;">{% if editing_style_patterns %}{{ editing_style_patterns[0].name }}{% else %}—{% endif %}</div>
-      <div class="hd-sub">{% if editing_style_patterns %}{{ "%.0f"|format(editing_style_patterns[0].confidence * 100) }}% confidence{% endif %}</div>
+    <div class="stat">
+      <div class="stat-l">Editing Style</div>
+      <div class="stat-v" style="font-size:1.0rem;">{% if editing_style_patterns %}{{ editing_style_patterns[0].name }}{% else %}—{% endif %}</div>
+      <div class="stat-s">{% if editing_style_patterns %}{{ "%.0f"|format(editing_style_patterns[0].confidence * 100) }}% confidence{% endif %}</div>
     </div>
+    {% if storage_tiers and storage_tiers.redundant_count %}
+    <div class="stat">
+      <div class="stat-l">Redundant Images</div>
+      <div class="stat-v">{{ storage_tiers.redundant_count }}</div>
+      <div class="stat-s">similar image duplicates</div>
+    </div>
+    {% endif %}
+    {% if ela_stats and ela_stats.extreme_outlier_count is defined and ela_stats.extreme_outlier_count > 0 %}
+    <div class="stat">
+      <div class="stat-l">ELA Outliers</div>
+      <div class="stat-v">{{ ela_stats.extreme_outlier_count }}</div>
+      <div class="stat-s">unusual compression artifacts</div>
+    </div>
+    {% endif %}
   </div>
 </div>
 
@@ -341,7 +390,7 @@ canvas { max-height: 300px; }
       {% for key, label, color in attr_meta %}
       {% set items = va.get(key, []) %}{% if items %}
       <div>
-        <div style="font-size:0.78rem;color:#7878a0;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:0.5rem;">{{ label }}</div>
+        <div style="font-size:0.68rem;color:#7878a0;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:0.5rem;">{{ label }}</div>
         {% for item in items %}
         <div style="margin-bottom:4px;">
           <div style="display:flex;justify-content:space-between;margin-bottom:2px;">
@@ -453,13 +502,13 @@ canvas { max-height: 300px; }
     <!-- Edge activity + Subject placement: equal 1fr 1fr columns so grids are same size -->
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.25rem;margin-bottom:1.25rem;align-items:start;">
       <div>
-        <div style="font-size:0.65rem;color:#7878a0;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:0.5rem;">Edge Activity</div>
+        <div style="font-size:0.68rem;color:#7878a0;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:0.5rem;">Edge Activity</div>
         <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:3px;">
           {% for row in grid_heatmap %}{% for v in row %}
           <div style="aspect-ratio:1;background:rgba(124,106,247,{{ (v/(mxv+0.001))|round(2) }});border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:0.65rem;color:#e0d8ff;font-weight:500;">{{ "%.2f"|format(v) }}</div>
           {% endfor %}{% endfor %}
         </div>
-        <div style="margin-top:0.5rem;font-size:0.75rem;color:#7878a8;line-height:1.45;">Brighter = more edges and detail in that zone. Centre <strong style="color:#c0c0d8;">{{ "%.2f"|format(center_val) }}</strong> vs corners avg <strong style="color:#c0c0d8;">{{ "%.2f"|format(corner_avg) }}</strong>.</div>
+        <div style="margin-top:0.5rem;font-size:0.75rem;color:#7878a8;line-height:1.5;">Brighter = more edges and detail in that zone. Centre <strong style="color:#c0c0d8;">{{ "%.2f"|format(center_val) }}</strong> vs corners avg <strong style="color:#c0c0d8;">{{ "%.2f"|format(corner_avg) }}</strong>.</div>
       </div>
 
       {% if saliency_stats and saliency_stats.total_analyzed > 0 %}
@@ -467,13 +516,13 @@ canvas { max-height: 300px; }
       {% set sp_flat = [] %}{% for row in sp %}{% for v in row %}{% set _ = sp_flat.append(v) %}{% endfor %}{% endfor %}
       {% set sp_max = sp_flat | max %}
       <div>
-        <div style="font-size:0.65rem;color:#7878a0;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:0.5rem;">Subject Placement</div>
+        <div style="font-size:0.68rem;color:#7878a0;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:0.5rem;">Subject Placement</div>
         <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:3px;">
           {% for row in sp %}{% for v in row %}
           <div style="aspect-ratio:1;background:rgba(16,185,129,{{ (v/(sp_max+0.001))|round(2) }});border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:0.65rem;font-weight:700;color:{% if v > sp_max*0.35 %}#d0f5e8{% else %}#2a4a3a{% endif %};">{{ (v*100)|round|int }}%</div>
           {% endfor %}{% endfor %}
         </div>
-        <div style="margin-top:0.5rem;font-size:0.75rem;color:#7878a8;line-height:1.45;">Darker green = more images placed in that zone. Subject fills avg <strong style="color:#c0c0d8;">{{ "%.0f"|format((saliency_stats.avg_subject_area or 0)*100) }}%</strong> of the frame; <strong style="color:#c0c0d8;">{{ "%.3f"|format(saliency_stats.avg_off_center or 0) }}</strong> off-centre (0 = perfectly centred).</div>
+        <div style="margin-top:0.5rem;font-size:0.75rem;color:#7878a8;line-height:1.5;">Darker green = more images placed in that zone. Subject fills avg <strong style="color:#c0c0d8;">{{ "%.0f"|format((saliency_stats.avg_subject_area or 0)*100) }}%</strong> of the frame; <strong style="color:#c0c0d8;">{{ "%.3f"|format(saliency_stats.avg_off_center or 0) }}</strong> off-centre (0 = perfectly centred).</div>
       </div>
       {% endif %}
     </div>
@@ -483,7 +532,7 @@ canvas { max-height: 300px; }
     {% set ht = (hd.high or 0) + (hd.mid or 0) + (hd.low or 0) + (hd.none or 0) %}
     {% if ht > 0 %}
     <div style="margin-bottom:1.1rem;">
-      <div style="font-size:0.65rem;color:#7878a0;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:0.5rem;">Horizon Position</div>
+      <div style="font-size:0.68rem;color:#7878a0;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:0.5rem;">Horizon Position</div>
       {% for pos, lbl in [("high","Top"),("mid","Mid"),("low","Bottom"),("none","None")] %}
       {% set pct = ((hd[pos] or 0) / ht * 100)|round|int %}
       <div class="dbar">
@@ -496,8 +545,8 @@ canvas { max-height: 300px; }
 
     <!-- Zone interpretation -->
     <div style="border-top:1px solid #1a1a28;padding-top:0.75rem;">
-      <div style="font-size:0.65rem;color:#7878a0;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:0.3rem;">Zone Interpretation</div>
-      <div style="font-size:0.75rem;color:#7878a8;line-height:1.45;">
+      <div style="font-size:0.68rem;color:#7878a0;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:0.3rem;">Zone Interpretation</div>
+      <div style="font-size:0.75rem;color:#7878a8;line-height:1.5;">
         {% if center_val > corner_avg * 1.5 %}
           <strong style="color:#ddd8f0;">Center-dominant</strong> — most visual detail and subject matter sits in the middle of the frame. The centre zone scores <strong style="color:#c0c0d8;">{{ "%.2f"|format(center_val) }}</strong> versus a corner average of <strong style="color:#c0c0d8;">{{ "%.2f"|format(corner_avg) }}</strong>, a ratio typical of telephoto or portrait-heavy libraries.
         {% elif edge_avg > center_val %}
@@ -754,7 +803,7 @@ canvas { max-height: 300px; }
       <!-- score value -->
       <div style="min-width:44px;text-align:right;font-size:0.78rem;font-weight:700;color:#e0e0ee;font-variant-numeric:tabular-nums;flex-shrink:0;">{{ "%.2f"|format(v.avg_score) }}</div>
       <!-- std badge -->
-      <div style="min-width:52px;font-size:0.65rem;color:#7878a0;flex-shrink:0;">σ&thinsp;{{ "%.2f"|format(v['std']) }}</div>
+      <div style="min-width:52px;font-size:0.68rem;color:#7878a0;flex-shrink:0;">σ&thinsp;{{ "%.2f"|format(v['std']) }}</div>
     </div>
     {% endif %}{% endfor %}
   </div>
@@ -786,7 +835,7 @@ canvas { max-height: 300px; }
       </div>
     </div>
     {% if cgs.avg_tonal_shadow_pct is not none %}
-    <div style="font-size:0.78rem;color:#7878a0;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:0.5rem;">Tonal Zone Split</div>
+    <div style="font-size:0.68rem;color:#7878a0;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:0.5rem;">Tonal Zone Split</div>
     {% for lbl, val, col in [("Shadows", cgs.avg_tonal_shadow_pct,"#6366f1"),("Midtones",cgs.avg_tonal_mid_pct,"#f59e0b"),("Highlights",cgs.avg_tonal_highlight_pct,"#34d399")] %}
       {% if val is not none %}
       <div class="dbar">
@@ -798,7 +847,7 @@ canvas { max-height: 300px; }
     {% endif %}
     {% set hps = cgs.harmony_pcts %}
     {% if hps %}
-    <div style="font-size:0.78rem;color:#7878a0;text-transform:uppercase;letter-spacing:0.07em;margin:0.9rem 0 0.5rem;">Color Harmony</div>
+    <div style="font-size:0.68rem;color:#7878a0;text-transform:uppercase;letter-spacing:0.07em;margin:0.9rem 0 0.5rem;">Color Harmony</div>
     {% set hcols = {"analogous":"#7c6af7","complementary":"#f97316","triadic":"#10b981","monochromatic":"#94a3b8","mixed":"#f59e0b"} %}
     {% for htype, pct in hps.items() %}
     <div class="dbar">
@@ -812,7 +861,7 @@ canvas { max-height: 300px; }
     {% endif %}
     {% set st = cgs.split_toning %}
     {% if st %}
-    <div style="font-size:0.78rem;color:#7878a0;text-transform:uppercase;letter-spacing:0.07em;margin:0.9rem 0 0.4rem;">Split Toning</div>
+    <div style="font-size:0.68rem;color:#7878a0;text-transform:uppercase;letter-spacing:0.07em;margin:0.9rem 0 0.4rem;">Split Toning</div>
     <div style="font-size:0.82rem;color:#b8b8d0;margin-bottom:0.6rem;">{{ st.toning_style }}</div>
     <div style="display:flex;gap:0.8rem;align-items:flex-start;margin-bottom:0.6rem;">
       {% for zone_label, zone_color, lum_shift in [("Shadows", st.shadow_color, st.shadow_lum_shift), ("Midtones", st.midtone_color, st.midtone_lum_shift), ("Highlights", st.highlight_color, st.highlight_lum_shift)] %}
@@ -850,11 +899,11 @@ canvas { max-height: 300px; }
     {% endfor %}
     {% endif %}
     <div style="display:flex;justify-content:space-between;align-items:baseline;margin:0.9rem 0 0.4rem;">
-      <div style="font-size:0.78rem;color:#7878a0;text-transform:uppercase;letter-spacing:0.07em;">Hue Distribution</div>
+      <div style="font-size:0.68rem;color:#7878a0;text-transform:uppercase;letter-spacing:0.07em;">Hue Distribution</div>
       <div style="font-size:0.65rem;color:#606080;">chromatic images only (sat &gt; 15%)</div>
     </div>
     <div class="chart-h" style="max-height:160px;"><canvas id="hueChart" style="max-height:160px;"></canvas></div>
-    <div style="font-size:0.78rem;color:#7878a0;text-transform:uppercase;letter-spacing:0.07em;margin:0.8rem 0 0.4rem;">Saturation Distribution</div>
+    <div style="font-size:0.68rem;color:#7878a0;text-transform:uppercase;letter-spacing:0.07em;margin:0.8rem 0 0.4rem;">Saturation Distribution</div>
     <div class="chart-h" style="max-height:100px;"><canvas id="satHistChart" style="max-height:100px;"></canvas></div>
   </div>
 </div>
@@ -868,7 +917,7 @@ canvas { max-height: 300px; }
   {% endif %}
   <div class="row two" style="margin-bottom:0;">
     <div>
-      <div style="font-size:0.78rem;color:#7878a0;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:0.6rem;">Tone</div>
+      <div style="font-size:0.68rem;color:#7878a0;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:0.6rem;">Tone</div>
       {% for key in ["Exposure2012","Highlights2012","Shadows2012","Whites2012","Blacks2012","Contrast2012"] %}
       {% set s = signature_edit.get(key) %}{% if s %}
       <div class="sig-row">
@@ -884,7 +933,7 @@ canvas { max-height: 300px; }
       {% endif %}{% endfor %}
     </div>
     <div>
-      <div style="font-size:0.78rem;color:#7878a0;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:0.6rem;">Presence & Color</div>
+      <div style="font-size:0.68rem;color:#7878a0;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:0.6rem;">Presence & Color</div>
       {% for key in ["Texture","Clarity","Dehaze","Vibrance","Saturation"] %}
       {% set s = signature_edit.get(key) %}{% if s %}
       <div class="sig-row">
@@ -937,13 +986,17 @@ canvas { max-height: 300px; }
   {% set dev_sliders = [("Exposure2012","Exposure"),("Contrast","Contrast"),("Highlights2012","Highlights"),("Shadows2012","Shadows"),("Whites2012","Whites"),("Blacks2012","Blacks"),("Vibrance","Vibrance"),("Saturation","Saturation"),("Sharpness","Sharpness"),("LuminanceSmoothing","Lum. Noise"),("ColorNoiseReduction","Color NR")] %}
   {% set dev_scenes = develop_stats.by_scene.keys() | list %}
   <div style="margin-top:1.4rem;overflow-x:auto;">
-    <div style="font-size:0.65rem;color:#7878a0;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:0.6rem;">Avg Slider Value by Scene</div>
-    <table style="width:100%;border-collapse:separate;border-spacing:2px;font-size:0.68rem;">
+    <div style="font-size:0.68rem;color:#7878a0;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:0.6rem;">Avg Slider Value by Scene</div>
+    <table style="width:100%;border-collapse:separate;border-spacing:2px;font-size:0.68rem;table-layout:fixed;">
+      <colgroup>
+        <col style="width:90px;">
+        {% for sc in dev_scenes %}<col style="width:{{ (100 / (dev_scenes|length + 0.0001))|round(1) }}%;">{% endfor %}
+      </colgroup>
       <thead>
         <tr>
-          <th style="text-align:left;padding:3px 8px;color:#7878a0;font-weight:400;min-width:80px;"></th>
+          <th style="text-align:left;padding:3px 8px;color:#7878a0;font-weight:400;"></th>
           {% for sc in dev_scenes %}
-          <th style="padding:3px 5px;color:#8080aa;font-weight:400;white-space:nowrap;text-transform:capitalize;font-size:0.62rem;">{{ sc.replace(" and ", " & ") }}</th>
+          <th style="padding:3px 5px;color:#8080aa;font-weight:400;text-transform:capitalize;font-size:0.62rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ sc.replace(" and ", " & ") }}</th>
           {% endfor %}
         </tr>
       </thead>
@@ -951,7 +1004,7 @@ canvas { max-height: 300px; }
       {% for key, label in dev_sliders %}
       {% if develop_stats.avg.get(key) is not none %}
       <tr>
-        <td style="padding:3px 8px;color:#9090b8;white-space:nowrap;">{{ label }}</td>
+        <td style="padding:3px 8px;color:#9090b8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ label }}</td>
         {% for sc in dev_scenes %}
         {% set val = develop_stats.by_scene[sc].get(key) %}
         {% if val is not none %}
@@ -967,7 +1020,7 @@ canvas { max-height: 300px; }
       {% endfor %}
       </tbody>
     </table>
-    <div style="margin-top:0.5rem;font-size:0.63rem;color:#505070;">Green = pushed above default &nbsp;·&nbsp; Red = pulled below &nbsp;·&nbsp; Intensity = magnitude of avg shift</div>
+    <div style="margin-top:0.5rem;font-size:0.68rem;color:#505070;">Green = pushed above default &nbsp;·&nbsp; Red = pulled below &nbsp;·&nbsp; Intensity = magnitude of avg shift</div>
   </div>
   {% endif %}
 </div>
@@ -1071,21 +1124,21 @@ canvas { max-height: 300px; }
 
   {% if album_stats.avg_aesthetic_in is not none and album_stats.avg_aesthetic_out is not none %}
   <div style="margin-bottom:1rem;padding:0.75rem 1rem;background:#16161f;border-radius:8px;">
-    <div style="font-size:0.65rem;color:#7878a0;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:0.6rem;">AI Aesthetic Agreement</div>
+    <div style="font-size:0.68rem;color:#7878a0;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:0.6rem;">AI Aesthetic Agreement</div>
     <div style="display:flex;gap:2rem;align-items:center;flex-wrap:wrap;">
       <div>
         <div style="font-size:1.2rem;font-weight:700;color:#7c6af7;">{{ "%.1f"|format(album_stats.avg_aesthetic_in) }}</div>
-        <div style="font-size:0.65rem;color:#7878a0;">avg score · in albums</div>
+        <div style="font-size:0.68rem;color:#7878a0;">avg score · in albums</div>
       </div>
       <div style="font-size:1.4rem;color:#3a3a50;">vs</div>
       <div>
         <div style="font-size:1.2rem;font-weight:700;color:#9090b8;">{{ "%.1f"|format(album_stats.avg_aesthetic_out) }}</div>
-        <div style="font-size:0.65rem;color:#7878a0;">avg score · not in albums</div>
+        <div style="font-size:0.68rem;color:#7878a0;">avg score · not in albums</div>
       </div>
       {% set delta = album_stats.avg_aesthetic_in - album_stats.avg_aesthetic_out %}
       <div style="margin-left:auto;">
         <div style="font-size:1rem;font-weight:700;color:{% if delta > 1 %}#34d399{% elif delta < -1 %}#f87171{% else %}#f59e0b{% endif %};">{{ "%+.1f"|format(delta) }}</div>
-        <div style="font-size:0.65rem;color:#7878a0;">model bias</div>
+        <div style="font-size:0.68rem;color:#7878a0;">model bias</div>
       </div>
     </div>
     <div style="margin-top:0.6rem;font-size:0.7rem;color:#6060808;">
@@ -1125,7 +1178,7 @@ canvas { max-height: 300px; }
           <div style="flex:1;height:5px;background:#1a1a28;border-radius:3px;min-width:50px;max-width:80px;">
             <div style="width:{{ '%.0f'|format(s*100) }}%;height:5px;background:#7c6af7;border-radius:3px;"></div>
           </div>
-          <span style="font-size:0.65rem;color:#7878a0;min-width:26px;">{{ '%.0f'|format(s*100) }}%</span>
+          <span style="font-size:0.68rem;color:#7878a0;min-width:26px;">{{ '%.0f'|format(s*100) }}%</span>
         </div>
       </td>
       <td style="padding:5px 8px;">
@@ -1133,7 +1186,7 @@ canvas { max-height: 300px; }
           <div style="flex:1;height:5px;background:#1a1a28;border-radius:3px;min-width:50px;max-width:80px;">
             <div style="width:{{ '%.0f'|format(b2*100) }}%;height:5px;background:#f59e0b;border-radius:3px;"></div>
           </div>
-          <span style="font-size:0.65rem;color:#7878a0;min-width:26px;">{{ '%.0f'|format(b2*100) }}%</span>
+          <span style="font-size:0.68rem;color:#7878a0;min-width:26px;">{{ '%.0f'|format(b2*100) }}%</span>
         </div>
       </td>
       <td style="padding:5px 8px;">
@@ -1188,7 +1241,7 @@ canvas { max-height: 300px; }
     {% endfor %}
   </div>
   {% if pick_stats.pick_rate_by_scene %}
-  <div style="font-size:0.65rem;color:#7878a0;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:0.5rem;">Pick Rate by Scene</div>
+  <div style="font-size:0.68rem;color:#7878a0;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:0.5rem;">Pick Rate by Scene</div>
   {% set pr_max = pick_stats.pick_rate_by_scene.values() | max %}
   {% for scene, rate in pick_stats.pick_rate_by_scene.items() | sort(attribute=1, reverse=True) %}
   <div class="dbar">
@@ -1223,24 +1276,24 @@ canvas { max-height: 300px; }
     </div>
   </div>
   {% if events.events %}
-  <table style="width:100%;border-collapse:collapse;">
-    <thead><tr>
-      <th style="text-align:left;padding:4px 8px;font-size:0.68rem;color:#7878a0;border-bottom:1px solid #1a1a28;">Date</th>
-      <th style="text-align:right;padding:4px 8px;font-size:0.68rem;color:#7878a0;border-bottom:1px solid #1a1a28;">Images</th>
-      <th style="text-align:right;padding:4px 8px;font-size:0.68rem;color:#7878a0;border-bottom:1px solid #1a1a28;">Duration</th>
-      <th style="text-align:left;padding:4px 8px;font-size:0.68rem;color:#7878a0;border-bottom:1px solid #1a1a28;">Scene</th>
-      <th style="text-align:left;padding:4px 8px;font-size:0.68rem;color:#7878a0;border-bottom:1px solid #1a1a28;">Narrative</th>
-    </tr></thead>
+  <table>
+    <thead>
+      <tr>
+        <th style="width:100px;">Date</th>
+        <th style="width:110px;">Scene</th>
+        <th style="width:64px;text-align:right;">Images</th>
+        <th style="width:64px;text-align:right;">Duration</th>
+        <th>Narrative</th>
+      </tr>
+    </thead>
     <tbody>
     {% for ev in events.events %}
     <tr>
-      <td style="padding:5px 8px;font-size:0.78rem;color:#c0c0d8;white-space:nowrap;">{{ ev.date }}</td>
-      <td style="padding:5px 8px;font-size:0.78rem;color:#9090b8;text-align:right;">{{ ev.photo_count }}</td>
-      <td style="padding:5px 8px;font-size:0.78rem;color:#9090b8;text-align:right;">
-        {% if ev.duration_mins >= 60 %}{{ (ev.duration_mins / 60)|round(1) }}h{% else %}{{ ev.duration_mins|int }}m{% endif %}
-      </td>
-      <td style="padding:5px 8px;font-size:0.72rem;color:#7c6af7;white-space:nowrap;">{{ ev.top_scene or "—" }}</td>
-      <td style="padding:5px 8px;font-size:0.72rem;color:#7878a0;font-style:italic;">{{ ev.narrative or "" }}</td>
+      <td style="white-space:nowrap;font-weight:600;color:#c0c0d8;">{{ ev.date }}</td>
+      <td>{% if ev.top_scene %}<span style="font-size:0.68rem;background:rgba(124,106,247,0.15);color:#a090e0;border-radius:4px;padding:2px 7px;">{{ ev.top_scene }}</span>{% else %}<span style="color:#3a3a5a;">—</span>{% endif %}</td>
+      <td style="text-align:right;color:#9090b8;">{{ ev.photo_count }}</td>
+      <td style="text-align:right;color:#9090b8;white-space:nowrap;">{% if ev.duration_mins >= 60 %}{{ (ev.duration_mins / 60)|round(1) }}h{% else %}{{ ev.duration_mins|int }}m{% endif %}</td>
+      <td style="color:#7878a0;font-style:italic;line-height:1.5;">{{ ev.narrative or "—" }}</td>
     </tr>
     {% endfor %}
     </tbody>
@@ -1254,7 +1307,7 @@ canvas { max-height: 300px; }
 {% if has_cull %}
 <div class="card mb">
   <div class="card-title">Similar Image Groups <span style="color:#8080aa;font-weight:400;">DINOv2 · DBSCAN ε=0.05</span></div>
-  <div class="card-desc">Images grouped by visual similarity using DINOv2 embeddings and DBSCAN clustering — the best-scoring image in each group is the keep candidate; the rest are safe to cull. Groups of 5 or more shown below.</div>
+  <div class="card-desc">Images grouped by visual similarity using DINOv2 embeddings and DBSCAN clustering — the best-scoring image in each group is the keep candidate; the rest are safe to cull. Top 10 largest groups shown.</div>
   <div class="strip mb">
     <div class="strip-item">
       <div class="strip-l" style="margin-bottom:0.25rem;">Groups Found</div>
@@ -1285,7 +1338,7 @@ canvas { max-height: 300px; }
       <th style="text-align:right;padding:4px 8px;font-size:0.68rem;color:#7878a0;border-bottom:1px solid #1a1a28;">To Cull</th>
     </tr></thead>
     <tbody>
-    {% for g in storage_tiers.tiers if g.size >= 5 %}
+    {% for g in storage_tiers.tiers %}
     <tr>
       <td style="padding:4px 8px;font-size:0.78rem;color:#9090b8;">{{ g.scene or "—" }}</td>
       <td style="padding:4px 8px;font-size:0.78rem;color:#c0c0d8;text-align:right;">{{ g.size }}</td>
@@ -1307,7 +1360,7 @@ canvas { max-height: 300px; }
   <div class="row two" style="margin-bottom:0;">
     <div>
       {% if has_ratings %}
-      <div style="font-size:0.78rem;color:#7878a0;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:0.6rem;">Star Ratings</div>
+      <div style="font-size:0.68rem;color:#7878a0;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:0.6rem;">Star Ratings</div>
       {% set max_r = lightroom_stats.ratings | map(attribute='count') | max %}
       {% for item in lightroom_stats.ratings %}{% if item.count > 0 %}
       <div style="display:flex;align-items:center;gap:7px;margin-bottom:5px;">
@@ -1319,7 +1372,7 @@ canvas { max-height: 300px; }
       </div>
       {% endif %}{% endfor %}
       {% if lightroom_stats.color_labels %}
-      <div style="font-size:0.78rem;color:#7878a0;text-transform:uppercase;letter-spacing:0.07em;margin:0.9rem 0 0.5rem;">Color Labels</div>
+      <div style="font-size:0.68rem;color:#7878a0;text-transform:uppercase;letter-spacing:0.07em;margin:0.9rem 0 0.5rem;">Color Labels</div>
       {% for item in lightroom_stats.color_labels %}
       <span style="display:inline-block;background:#16161f;border-radius:4px;padding:2px 8px;margin:2px;font-size:0.78rem;">
         <span style="color:{{ {'red':'#f87171','yellow':'#fbbf24','green':'#34d399','blue':'#60a5fa','purple':'#a78bfa'}.get(item.label,'#94a3b8') }};">●</span>
@@ -1331,14 +1384,14 @@ canvas { max-height: 300px; }
     </div>
     <div>
       {% if has_keywords %}
-      <div style="font-size:0.78rem;color:#7878a0;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:0.5rem;">Top Keywords (top 20)</div>
+      <div style="font-size:0.68rem;color:#7878a0;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:0.5rem;">Top Keywords (top 20)</div>
       <canvas id="keywordsChart" style="max-height:280px;"></canvas>
       {% endif %}
     </div>
   </div>
   {% if keyword_map and keyword_map.by_scene and keyword_map.by_scene | length > 0 %}
   <div style="margin-top:1rem;padding-top:0.75rem;border-top:1px solid #1a1a28;">
-    <div style="font-size:0.65rem;color:#7878a0;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:0.55rem;">Top Keywords by Scene</div>
+    <div style="font-size:0.68rem;color:#7878a0;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:0.55rem;">Top Keywords by Scene</div>
     <table style="width:100%;border-collapse:collapse;">
       <thead><tr>
         <th style="text-align:left;padding:4px 8px;font-size:0.68rem;color:#7878a0;border-bottom:1px solid #1a1a28;">Scene</th>
@@ -1367,7 +1420,7 @@ canvas { max-height: 300px; }
 {% if ela_stats and ela_stats.total_jpegs > 0 %}
 <div class="card mb">
   <div class="card-title">ELA Forensics <span style="color:#8080aa;font-weight:400;">JPEG compression analysis</span></div>
-  <div class="card-desc">Error Level Analysis detects regions with inconsistent JPEG compression — a technique used in forensic contexts to identify locally edited or composited areas. <strong style="color:#f59e0b;">Note:</strong> images that have been processed in Lightroom and exported as JPEG (as most in this library are) will naturally score higher than unedited camera originals. This is expected — Lightroom applies sharpening, noise reduction, and local adjustments that create compression-level variation across regions. A high score here reflects <em>editing activity</em>, not AI generation or deceptive manipulation. Use it as a relative signal — outliers with an unusually high score compared to the rest of your library are worth a closer look.</div>
+  <div class="card-desc">Error Level Analysis detects regions with inconsistent JPEG compression — a technique used in forensic contexts to identify locally edited or composited areas. <strong style="color:#f59e0b;">Note:</strong> images that have been processed in Lightroom and exported as JPEG (as most in this library are) will naturally score higher than unedited camera originals. This is expected — Lightroom applies sharpening, noise reduction, and local adjustments that create compression-level variation across regions. A high score here reflects <em>editing activity</em>, not AI generation or deceptive manipulation. Use it as a relative signal — outliers with an unusually high score compared to the rest of your library are worth a closer look. The extreme outlier count above uses a 3×IQR fence: any image whose max error exceeds Q3 + 3 × (Q3 − Q1), where Q1 and Q3 are your library's 25th and 75th percentile scores, is flagged. This adapts to your library's own baseline rather than a fixed cutoff.</div>
   <div class="strip mb">
     <div class="strip-item">
       <div class="strip-v">{{ ela_stats.total_jpegs }}</div>
@@ -1375,14 +1428,14 @@ canvas { max-height: 300px; }
       <div class="strip-s">non-JPEG files skipped</div>
     </div>
     <div class="strip-item">
-      <div class="strip-v" style="color:{% if ela_stats.suspicious_pct > 20 %}#f87171{% elif ela_stats.suspicious_pct > 5 %}#fbbf24{% else %}#34d399{% endif %};">{{ ela_stats.suspicious_count }}</div>
-      <div class="strip-l">Suspicious</div>
-      <div class="strip-s">{{ ela_stats.suspicious_pct }}% of JPEGs (max error &gt; 35)</div>
-    </div>
-    <div class="strip-item">
       <div class="strip-v">{{ ela_stats.avg_max_error if ela_stats.avg_max_error is not none else "—" }}</div>
       <div class="strip-l">Avg Max Error</div>
-      <div class="strip-s">avg mean: {{ ela_stats.avg_mean_error if ela_stats.avg_mean_error is not none else "—" }}</div>
+      <div class="strip-s">library baseline</div>
+    </div>
+    <div class="strip-item">
+      <div class="strip-v" style="color:{% if ela_stats.extreme_outlier_count > 0 %}#f87171{% else %}#34d399{% endif %};">{{ ela_stats.extreme_outlier_count }}</div>
+      <div class="strip-l">Extreme Outliers</div>
+      <div class="strip-s">max error &gt; {{ ela_stats.extreme_outlier_threshold or "—" }} (3×IQR above Q3)</div>
     </div>
   </div>
 </div>
@@ -1649,7 +1702,7 @@ const GD = { responsive: true, plugins: { legend: { display: false } }, scales: 
     {% endif %}
   </div>
   {% if iq_stats.distribution %}
-  <div style="font-size:0.65rem;color:#7878a0;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:0.5rem;">Score Distribution</div>
+  <div style="font-size:0.68rem;color:#7878a0;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:0.5rem;">Score Distribution</div>
   <div class="chart-h" style="height:140px;"><canvas id="iqDistChart"></canvas></div>
   <script>
   (() => {
@@ -1672,6 +1725,8 @@ const GD = { responsive: true, plugins: { legend: { display: false } }, scales: 
 </div><!-- /.page -->
 </div><!-- /#main-content -->
 
+<button id="back-to-top" aria-label="Back to top">↑</button>
+
 <script>
 (function() {
   const sbLinks = Array.from(document.querySelectorAll("#sidebar a"));
@@ -1683,6 +1738,14 @@ const GD = { responsive: true, plugins: { legend: { display: false } }, scales: 
   }
   window.addEventListener("scroll", update, { passive: true });
   update();
+})();
+
+(function () {
+  const btn = document.getElementById('back-to-top');
+  window.addEventListener('scroll', () => {
+    btn.classList.toggle('visible', window.scrollY / document.body.scrollHeight > 0.15);
+  }, { passive: true });
+  btn.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
 })();
 </script>
 

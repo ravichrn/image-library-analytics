@@ -6,6 +6,16 @@
 <title>Image Library Analytics</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
 <style>
+:root {
+  --fs-card-title: 0.76rem;
+  --fs-card-desc:  0.86rem;
+  --fs-label:      0.78rem;
+  --fs-body:       0.83rem;
+  --fs-sub:        0.75rem;
+  --fs-micro:      0.66rem;
+  --fs-stat-v:     1.3rem;
+  --fs-strip-v:    1.2rem;
+}
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 body {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
@@ -82,10 +92,11 @@ body {
   padding: 1.4rem 1.6rem;
 }
 .card-title {
-  font-size: 0.7rem; font-weight: 700; color: #7878a0;
+  font-size: var(--fs-card-title); font-weight: 700; color: #7878a0;
   text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 0.8rem;
 }
-.card-desc { font-size: 0.85rem; color: #7878a8; margin-top: -0.3rem; margin-bottom: 0.9rem; line-height: 1.55; }
+.card-title span { font-size: var(--fs-micro); font-weight: 400; }
+.card-desc { font-size: var(--fs-card-desc); color: #7878a8; margin-top: -0.3rem; margin-bottom: 0.9rem; line-height: 1.55; }
 .naked { background: transparent; border-color: transparent; padding: 0; }
 
 /* ── Accent cards ──────────────────────────────────────────────── */
@@ -111,41 +122,41 @@ body {
 /* ── Stats ─────────────────────────────────────────────────────── */
 .stat-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px,1fr)); gap: 0.75rem; }
 .stat { background: #16161f; border-radius: 8px; padding: 0.85rem 1rem; }
-.stat-l { font-size: 0.75rem; color: #8080aa; text-transform: uppercase; letter-spacing: 0.06em; }
-.stat-v { font-size: 1.3rem; font-weight: 700; color: #ddd8f0; margin-top: 0.15rem; }
-.stat-s { font-size: 0.75rem; color: #7878a0; margin-top: 0.1rem; }
+.stat-l { font-size: var(--fs-sub); color: #8080aa; text-transform: uppercase; letter-spacing: 0.06em; }
+.stat-v { font-size: var(--fs-stat-v); font-weight: 700; color: #ddd8f0; margin-top: 0.15rem; }
+.stat-s { font-size: var(--fs-sub); color: #7878a0; margin-top: 0.1rem; }
 
 /* Inline strip */
 .strip { display: flex; border: 1px solid #1c1c2e; border-radius: 10px; overflow: hidden; }
 .strip-item { flex: 1; padding: 0.85rem 1.1rem; border-right: 1px solid #1c1c2e; }
 .strip-item:last-child { border-right: none; }
-.strip-v { font-size: 1.2rem; font-weight: 700; color: #ddd8f0; }
-.strip-l { font-size: 0.65rem; color: #8080a8; text-transform: uppercase; letter-spacing: 0.05em; margin-top: 0.12rem; }
-.strip-s { font-size: 0.75rem; color: #7878a0; margin-top: 0.08rem; }
+.strip-v { font-size: var(--fs-strip-v); font-weight: 700; color: #ddd8f0; }
+.strip-l { font-size: var(--fs-sub); color: #8080a8; text-transform: uppercase; letter-spacing: 0.05em; margin-top: 0.12rem; }
+.strip-s { font-size: var(--fs-sub); color: #7878a0; margin-top: 0.08rem; }
 
 /* ── Bar lists ─────────────────────────────────────────────────── */
 .bar-list { display: flex; flex-direction: column; gap: 0.45rem; }
 .bar-row { display: flex; align-items: center; gap: 0.65rem; }
-.bar-lbl { font-size: 0.78rem; color: #8888aa; text-align: right; flex-shrink: 0; min-width: 0; }
+.bar-lbl { font-size: var(--fs-body); color: #8888aa; text-align: right; flex-shrink: 0; min-width: 0; }
 .bar-track { flex: 1; height: 7px; background: #1a1a28; border-radius: 4px; overflow: hidden; }
 .bar-fill { height: 100%; border-radius: 4px; }
-.bar-val { font-size: 0.75rem; color: #7878a8; min-width: 42px; text-align: right; flex-shrink: 0; }
+.bar-val { font-size: var(--fs-sub); color: #7878a8; min-width: 42px; text-align: right; flex-shrink: 0; }
 
 /* ── Small bar (dist) ───────────────────────────────────────────── */
 .dbar { margin-bottom: 0.45rem; }
-.dbar-row { display: flex; justify-content: space-between; font-size: 0.78rem; margin-bottom: 3px; }
+.dbar-row { display: flex; justify-content: space-between; font-size: var(--fs-body); margin-bottom: 3px; }
 .dbar-row span:first-child { color: #8888aa; }
 .dbar-row span:last-child { color: #7878a8; }
 .dbar-bg { height: 5px; background: #1a1a28; border-radius: 3px; }
 .dbar-fill { height: 5px; border-radius: 3px; }
 
 /* ── Table ─────────────────────────────────────────────────────── */
-table { width: 100%; border-collapse: collapse; font-size: 0.78rem; }
+table { width: 100%; border-collapse: collapse; font-size: var(--fs-body); }
 th { text-align: left; color: #7878a8; font-weight: 600; padding: 0.35rem 0.8rem;
-     border-bottom: 1px solid #1c1c2e; text-transform: uppercase; font-size: 0.68rem; letter-spacing: 0.06em; }
+     border-bottom: 1px solid #1c1c2e; text-transform: uppercase; font-size: var(--fs-sub); letter-spacing: 0.06em; }
 td { padding: 0.5rem 0.8rem; border-bottom: 1px solid #141420; color: #9090b8; }
 tr:last-child td { border-bottom: none; }
-.badge { display: inline-block; background: #1c1c2e; border-radius: 4px; padding: 3px 8px; font-size: 0.72rem; margin: 2px; color: #6a6a90; }
+.badge { display: inline-block; background: #1c1c2e; border-radius: 4px; padding: 3px 8px; font-size: var(--fs-label); margin: 2px; color: #6a6a90; }
 
 /* ── Chart wraps ───────────────────────────────────────────────── */
 .chart-h { position: relative; }
@@ -160,8 +171,8 @@ canvas { max-height: 300px; }
 .cp-row { display: flex; align-items: flex-start; gap: 0.6rem; }
 .cp-pct { font-size: 0.73rem; font-weight: 700; min-width: 35px; text-align: right; color: #7070901; flex-shrink: 0; padding-top: 1px; color: #6060881; }
 .cp-body {}
-.cp-name { font-size: 0.78rem; color: #c0c0d8; font-weight: 600; }
-.cp-desc { font-size: 0.75rem; color: #7878a8; line-height: 1.45; margin-top: 2px; }
+.cp-name { font-size: var(--fs-body); color: #c0c0d8; font-weight: 600; }
+.cp-desc { font-size: var(--fs-sub); color: #7878a8; line-height: 1.45; margin-top: 2px; }
 .cp-bar { height: 3px; background: #1a1a28; border-radius: 2px; margin-top: 4px; }
 .cp-bar-fill { height: 3px; border-radius: 2px; background: #10b981; }
 
@@ -196,8 +207,8 @@ canvas { max-height: 300px; }
   font-size: 2.4rem; font-weight: 900; letter-spacing: -0.03em;
   color: #7c6af7; line-height: 1.1; margin-bottom: 0.35rem;
 }
-.style-conf { font-size: 0.68rem; color: #8080aa; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 0.75rem; }
-.style-meaning { font-size: 0.78rem; color: #8080a8; line-height: 1.65; max-width: 520px; }
+.style-conf { font-size: var(--fs-sub); color: #8080aa; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 0.75rem; }
+.style-meaning { font-size: var(--fs-body); color: #8080a8; line-height: 1.65; max-width: 520px; }
 
 /* ── Scene tiles ────────────────────────────────────────────────── */
 .scene-tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 0.75rem; }
@@ -208,30 +219,30 @@ canvas { max-height: 300px; }
 .scene-tile::before {
   content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
 }
-.scene-tile-name { font-size: 0.78rem; color: #9090b0; font-weight: 600; margin-bottom: 0.4rem; text-transform: capitalize; }
+.scene-tile-name { font-size: var(--fs-body); color: #9090b0; font-weight: 600; margin-bottom: 0.4rem; text-transform: capitalize; }
 .scene-tile-count { font-size: 1.6rem; font-weight: 800; color: #e0e0ee; letter-spacing: -0.02em; line-height: 1; }
-.scene-tile-score { font-size: 0.72rem; color: #7878a0; margin-top: 0.25rem; }
+.scene-tile-score { font-size: var(--fs-label); color: #7878a0; margin-top: 0.25rem; }
 .scene-tile-bar { height: 3px; background: #1a1a28; border-radius: 2px; margin-top: 0.6rem; }
 .scene-tile-bar-fill { height: 3px; border-radius: 2px; }
 
 /* ── Aesthetic score by scene ───────────────────────────────────── */
 .aes-scene-list { display: flex; flex-direction: column; gap: 0.55rem; }
 .aes-scene-row { display: flex; align-items: center; gap: 0.75rem; }
-.aes-scene-name { font-size: 0.8rem; color: #8888aa; min-width: 140px; text-align: right; flex-shrink: 0; text-transform: capitalize; }
+.aes-scene-name { font-size: var(--fs-body); color: #8888aa; min-width: 140px; text-align: right; flex-shrink: 0; text-transform: capitalize; }
 .aes-scene-bar-wrap { flex: 1; position: relative; height: 20px; background: #141420; border-radius: 5px; overflow: hidden; }
 .aes-scene-bar-fill { height: 100%; border-radius: 5px; display: flex; align-items: center; padding-left: 8px; }
-.aes-scene-score { font-size: 0.73rem; font-weight: 700; color: rgba(255,255,255,0.8); white-space: nowrap; }
-.aes-scene-count { font-size: 0.7rem; color: #7878a0; min-width: 60px; text-align: left; }
+.aes-scene-score { font-size: var(--fs-label); font-weight: 700; color: rgba(255,255,255,0.8); white-space: nowrap; }
+.aes-scene-count { font-size: var(--fs-label); color: #7878a0; min-width: 60px; text-align: left; }
 
 /* ── Color scene cards ──────────────────────────────────────────── */
 .color-scene-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px,1fr)); gap: 0.65rem; }
 .color-scene-card {
   border-radius: 9px; padding: 0.85rem 1rem; border: 1px solid #1c1c2e;
 }
-.cs-name { font-size: 0.75rem; font-weight: 600; color: #9090b0; margin-bottom: 0.5rem; text-transform: capitalize; }
+.cs-name { font-size: var(--fs-label); font-weight: 600; color: #9090b0; margin-bottom: 0.5rem; text-transform: capitalize; }
 .cs-temp { font-size: 1rem; font-weight: 700; margin-bottom: 0.2rem; }
 .cs-pills { display: flex; flex-wrap: wrap; gap: 3px; margin-top: 0.5rem; }
-.cs-pill { font-size: 0.62rem; background: rgba(255,255,255,0.04); border-radius: 3px; padding: 2px 5px; color: #5a5a78; }
+.cs-pill { font-size: var(--fs-micro); background: rgba(255,255,255,0.04); border-radius: 3px; padding: 2px 5px; color: #5a5a78; }
 
 /* ── Flag rows ──────────────────────────────────────────────────── */
 .flag-row { padding: 0.8rem 0; border-bottom: 1px solid #141420; }
@@ -240,11 +251,11 @@ canvas { max-height: 300px; }
 .flag-pct { font-size: 1rem; font-weight: 700; min-width: 44px; text-align: right; flex-shrink: 0; }
 .flag-pct.hi { color: #f87171; } .flag-pct.md { color: #fbbf24; } .flag-pct.lo { color: #7878a0; }
 .flag-info { flex: 1; }
-.flag-name { font-size: 0.78rem; color: #c8c8de; font-weight: 500; }
-.flag-meta { font-size: 0.72rem; color: #8080aa; margin-top: 2px; }
+.flag-name { font-size: var(--fs-body); color: #c8c8de; font-weight: 500; }
+.flag-meta { font-size: var(--fs-label); color: #8080aa; margin-top: 2px; }
 .flag-bar { height: 3px; background: #1a1a28; border-radius: 2px; margin-top: 4px; }
 .flag-bar-fill { height: 3px; border-radius: 2px; background: #7c6af7; }
-.flag-desc { font-size: 0.78rem; color: #8080aa; margin-top: 0.4rem; line-height: 1.55; padding-left: 56px; }
+.flag-desc { font-size: var(--fs-body); color: #8080aa; margin-top: 0.4rem; line-height: 1.55; padding-left: 56px; }
 
 /* ── Aesthetic narrow range notice ─────────────────────────────── */
 .range-note {
@@ -258,12 +269,36 @@ canvas { max-height: 300px; }
 .pattern-card { background: #16161f; border-radius: 8px; padding: 0.85rem 1rem; border-left: 3px solid #1c1c2e; }
 .pattern-card.dom { border-left-color: #7c6af7; }
 .pattern-card.mod { border-left-color: #f97316; }
-.ptn-name { font-size: 0.78rem; font-weight: 600; color: #c8c8de; }
+.ptn-name { font-size: var(--fs-body); font-weight: 600; color: #c8c8de; }
 .ptn-conf-row { display: flex; align-items: center; gap: 0.5rem; margin: 0.35rem 0; }
 .ptn-conf-bar { flex: 1; height: 4px; background: #1c1c2e; border-radius: 2px; }
 .ptn-conf-fill { height: 4px; border-radius: 2px; }
-.ptn-pct { font-size: 0.68rem; color: #7878a0; min-width: 38px; text-align: right; }
-.ptn-desc { font-size: 0.78rem; color: #8080aa; line-height: 1.55; margin-top: 0.3rem; }
+.ptn-pct { font-size: var(--fs-sub); color: #7878a0; min-width: 38px; text-align: right; }
+.ptn-desc { font-size: var(--fs-body); color: #8080aa; line-height: 1.55; margin-top: 0.3rem; }
+
+/* ── Back to top ────────────────────────────────────────────────── */
+#back-to-top {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: rgba(124,106,247,0.12);
+  border: 1px solid rgba(124,106,247,0.28);
+  color: #7c6af7;
+  font-size: 1.1rem;
+  cursor: pointer;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s, background 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+}
+#back-to-top.visible { opacity: 1; pointer-events: auto; }
+#back-to-top:hover { background: rgba(124,106,247,0.28); }
 </style>
 </head>
 <body>
@@ -275,7 +310,7 @@ canvas { max-height: 300px; }
   <div class="sb-label">Explore</div>
   <a href="#s-semantic">What You Shoot</a>
   <a href="#s-technical">How You Shoot</a>
-  <a href="#s-aesthetics">Editing Style</a>
+  <a href="#s-aesthetics">Editing &amp; Aesthetics</a>
   <a href="#s-when">When You Shoot</a>
   <div class="sb-label">Signals</div>
   <a href="#s-forensics">Forensics</a>
@@ -288,38 +323,52 @@ canvas { max-height: 300px; }
 <div class="hero" id="s-overview">
   <h1 class="hero-title" style="font-size:1.9rem;letter-spacing:0.04em;font-weight:800;text-transform:uppercase;color:#c8c8de;">Image Library Analytics</h1>
   <p class="hero-sub">5107 images · analyzed entirely on-device · CLIP ViT-L/14 · LAION Aesthetic MLP · DINOv2 · Depth Anything v2 · Florence-2 · RMBG-1.4</p>
-  <div class="hero-digest">
-    <div class="hero-digest-item">
-      <div class="hd-label">Dominant Scene</div>
-      <div class="hd-value" style="font-size:0.95rem;text-transform:capitalize;">travel and landmarks</div>
+  <div class="stat-grid">
+    <div class="stat">
+      <div class="stat-l">Dominant Scene</div>
       
-      <div class="hd-sub">54% of library</div>
+      <div class="stat-v" style="font-size:1.1rem;text-transform:capitalize;">travel and landmarks</div>
+      <div class="stat-s">54% of library</div>
     </div>
-    <div class="hero-digest-item">
-      <div class="hd-label">Avg Aesthetic Score</div>
-      <div class="hd-value">52.8<span style="font-size:0.9rem;font-weight:400;color:#7878a0;"> / 100</span></div>
-      <div class="hd-sub">range 51–55</div>
+    <div class="stat">
+      <div class="stat-l">Avg Aesthetic Score</div>
+      <div class="stat-v">52.8<span style="font-size:0.78rem;font-weight:400;color:#7878a0;"> / 100</span></div>
+      <div class="stat-s">range 51–55</div>
     </div>
-    <div class="hero-digest-item">
-      <div class="hd-label">Visual Clusters</div>
-      <div class="hd-value">10</div>
-      <div class="hd-sub">DINOv2 + KMeans</div>
+    <div class="stat">
+      <div class="stat-l">Visual Clusters</div>
+      <div class="stat-v">10</div>
+      <div class="stat-s">DINOv2 + KMeans</div>
     </div>
-    <div class="hero-digest-item">
-      <div class="hd-label">Avg Resolution</div>
-      <div class="hd-value">2.8<span style="font-size:0.9rem;font-weight:400;color:#7878a0;">MP</span></div>
-      <div class="hd-sub">1.96–4.03MP range</div>
+    <div class="stat">
+      <div class="stat-l">Avg Resolution</div>
+      <div class="stat-v">2.8<span style="font-size:0.78rem;font-weight:400;color:#7878a0;">MP</span></div>
+      <div class="stat-s">1.96–4.03MP range</div>
     </div>
-    <div class="hero-digest-item">
-      <div class="hd-label">Exposure Bias</div>
-      <div class="hd-value">-0.08</div>
-      <div class="hd-sub">0 = neutral</div>
+    <div class="stat">
+      <div class="stat-l">Exposure Bias</div>
+      <div class="stat-v">-0.08</div>
+      <div class="stat-s">0 = neutral</div>
     </div>
-    <div class="hero-digest-item">
-      <div class="hd-label">Editing Style</div>
-      <div class="hd-value" style="font-size:0.9rem;">Varied / Eclectic</div>
-      <div class="hd-sub">91% confidence</div>
+    <div class="stat">
+      <div class="stat-l">Editing Style</div>
+      <div class="stat-v" style="font-size:1.0rem;">Varied / Eclectic</div>
+      <div class="stat-s">91% confidence</div>
     </div>
+    
+    <div class="stat">
+      <div class="stat-l">Redundant Images</div>
+      <div class="stat-v">279</div>
+      <div class="stat-s">similar image duplicates</div>
+    </div>
+    
+    
+    <div class="stat">
+      <div class="stat-l">ELA Outliers</div>
+      <div class="stat-v">1</div>
+      <div class="stat-s">unusual compression artifacts</div>
+    </div>
+    
   </div>
 </div>
 
@@ -341,7 +390,7 @@ canvas { max-height: 300px; }
       
       
       <div>
-        <div style="font-size:0.78rem;color:#7878a0;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:0.5rem;">Season</div>
+        <div style="font-size:0.68rem;color:#7878a0;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:0.5rem;">Season</div>
         
         <div style="margin-bottom:4px;">
           <div style="display:flex;justify-content:space-between;margin-bottom:2px;">
@@ -397,7 +446,7 @@ canvas { max-height: 300px; }
       
       
       <div>
-        <div style="font-size:0.78rem;color:#7878a0;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:0.5rem;">People Present</div>
+        <div style="font-size:0.68rem;color:#7878a0;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:0.5rem;">People Present</div>
         
         <div style="margin-bottom:4px;">
           <div style="display:flex;justify-content:space-between;margin-bottom:2px;">
@@ -423,7 +472,7 @@ canvas { max-height: 300px; }
       
       
       <div>
-        <div style="font-size:0.78rem;color:#7878a0;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:0.5rem;">Setting</div>
+        <div style="font-size:0.68rem;color:#7878a0;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:0.5rem;">Setting</div>
         
         <div style="margin-bottom:4px;">
           <div style="display:flex;justify-content:space-between;margin-bottom:2px;">
@@ -459,7 +508,7 @@ canvas { max-height: 300px; }
       
       
       <div>
-        <div style="font-size:0.78rem;color:#7878a0;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:0.5rem;">Time of Day</div>
+        <div style="font-size:0.68rem;color:#7878a0;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:0.5rem;">Time of Day</div>
         
         <div style="margin-bottom:4px;">
           <div style="display:flex;justify-content:space-between;margin-bottom:2px;">
@@ -525,7 +574,7 @@ canvas { max-height: 300px; }
       
       
       <div>
-        <div style="font-size:0.78rem;color:#7878a0;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:0.5rem;">Weather</div>
+        <div style="font-size:0.68rem;color:#7878a0;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:0.5rem;">Weather</div>
         
         <div style="margin-bottom:4px;">
           <div style="display:flex;justify-content:space-between;margin-bottom:2px;">
@@ -714,7 +763,7 @@ canvas { max-height: 300px; }
     <!-- Edge activity + Subject placement: equal 1fr 1fr columns so grids are same size -->
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.25rem;margin-bottom:1.25rem;align-items:start;">
       <div>
-        <div style="font-size:0.65rem;color:#7878a0;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:0.5rem;">Edge Activity</div>
+        <div style="font-size:0.68rem;color:#7878a0;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:0.5rem;">Edge Activity</div>
         <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:3px;">
           
           <div style="aspect-ratio:1;background:rgba(124,106,247,0.36);border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:0.65rem;color:#e0d8ff;font-weight:500;">0.06</div>
@@ -736,7 +785,7 @@ canvas { max-height: 300px; }
           <div style="aspect-ratio:1;background:rgba(124,106,247,0.73);border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:0.65rem;color:#e0d8ff;font-weight:500;">0.12</div>
           
         </div>
-        <div style="margin-top:0.5rem;font-size:0.75rem;color:#7878a8;line-height:1.45;">Brighter = more edges and detail in that zone. Centre <strong style="color:#c0c0d8;">0.17</strong> vs corners avg <strong style="color:#c0c0d8;">0.09</strong>.</div>
+        <div style="margin-top:0.5rem;font-size:0.75rem;color:#7878a8;line-height:1.5;">Brighter = more edges and detail in that zone. Centre <strong style="color:#c0c0d8;">0.17</strong> vs corners avg <strong style="color:#c0c0d8;">0.09</strong>.</div>
       </div>
 
       
@@ -744,7 +793,7 @@ canvas { max-height: 300px; }
       
       
       <div>
-        <div style="font-size:0.65rem;color:#7878a0;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:0.5rem;">Subject Placement</div>
+        <div style="font-size:0.68rem;color:#7878a0;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:0.5rem;">Subject Placement</div>
         <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:3px;">
           
           <div style="aspect-ratio:1;background:rgba(16,185,129,0.01);border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:0.65rem;font-weight:700;color:#2a4a3a;">1%</div>
@@ -766,7 +815,7 @@ canvas { max-height: 300px; }
           <div style="aspect-ratio:1;background:rgba(16,185,129,0.0);border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:0.65rem;font-weight:700;color:#2a4a3a;">0%</div>
           
         </div>
-        <div style="margin-top:0.5rem;font-size:0.75rem;color:#7878a8;line-height:1.45;">Darker green = more images placed in that zone. Subject fills avg <strong style="color:#c0c0d8;">66%</strong> of the frame; <strong style="color:#c0c0d8;">0.119</strong> off-centre (0 = perfectly centred).</div>
+        <div style="margin-top:0.5rem;font-size:0.75rem;color:#7878a8;line-height:1.5;">Darker green = more images placed in that zone. Subject fills avg <strong style="color:#c0c0d8;">66%</strong> of the frame; <strong style="color:#c0c0d8;">0.119</strong> off-centre (0 = perfectly centred).</div>
       </div>
       
     </div>
@@ -776,7 +825,7 @@ canvas { max-height: 300px; }
     
     
     <div style="margin-bottom:1.1rem;">
-      <div style="font-size:0.65rem;color:#7878a0;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:0.5rem;">Horizon Position</div>
+      <div style="font-size:0.68rem;color:#7878a0;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:0.5rem;">Horizon Position</div>
       
       
       <div class="dbar">
@@ -807,8 +856,8 @@ canvas { max-height: 300px; }
 
     <!-- Zone interpretation -->
     <div style="border-top:1px solid #1a1a28;padding-top:0.75rem;">
-      <div style="font-size:0.65rem;color:#7878a0;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:0.3rem;">Zone Interpretation</div>
-      <div style="font-size:0.75rem;color:#7878a8;line-height:1.45;">
+      <div style="font-size:0.68rem;color:#7878a0;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:0.3rem;">Zone Interpretation</div>
+      <div style="font-size:0.75rem;color:#7878a8;line-height:1.5;">
         
           <strong style="color:#ddd8f0;">Center-dominant</strong> — most visual detail and subject matter sits in the middle of the frame. The centre zone scores <strong style="color:#c0c0d8;">0.17</strong> versus a corner average of <strong style="color:#c0c0d8;">0.09</strong>, a ratio typical of telephoto or portrait-heavy libraries.
         
@@ -1111,7 +1160,7 @@ canvas { max-height: 300px; }
       </div>
     </div>
     
-    <div style="font-size:0.78rem;color:#7878a0;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:0.5rem;">Tonal Zone Split</div>
+    <div style="font-size:0.68rem;color:#7878a0;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:0.5rem;">Tonal Zone Split</div>
     
       
       <div class="dbar">
@@ -1137,7 +1186,7 @@ canvas { max-height: 300px; }
     
     
     
-    <div style="font-size:0.78rem;color:#7878a0;text-transform:uppercase;letter-spacing:0.07em;margin:0.9rem 0 0.5rem;">Color Harmony</div>
+    <div style="font-size:0.68rem;color:#7878a0;text-transform:uppercase;letter-spacing:0.07em;margin:0.9rem 0 0.5rem;">Color Harmony</div>
     
     
     <div class="dbar">
@@ -1183,7 +1232,7 @@ canvas { max-height: 300px; }
     
     
     
-    <div style="font-size:0.78rem;color:#7878a0;text-transform:uppercase;letter-spacing:0.07em;margin:0.9rem 0 0.4rem;">Split Toning</div>
+    <div style="font-size:0.68rem;color:#7878a0;text-transform:uppercase;letter-spacing:0.07em;margin:0.9rem 0 0.4rem;">Split Toning</div>
     <div style="font-size:0.82rem;color:#b8b8d0;margin-bottom:0.6rem;">Green highlights · green shadows</div>
     <div style="display:flex;gap:0.8rem;align-items:flex-start;margin-bottom:0.6rem;">
       
@@ -1245,11 +1294,11 @@ canvas { max-height: 300px; }
     
     
     <div style="display:flex;justify-content:space-between;align-items:baseline;margin:0.9rem 0 0.4rem;">
-      <div style="font-size:0.78rem;color:#7878a0;text-transform:uppercase;letter-spacing:0.07em;">Hue Distribution</div>
+      <div style="font-size:0.68rem;color:#7878a0;text-transform:uppercase;letter-spacing:0.07em;">Hue Distribution</div>
       <div style="font-size:0.65rem;color:#606080;">chromatic images only (sat &gt; 15%)</div>
     </div>
     <div class="chart-h" style="max-height:160px;"><canvas id="hueChart" style="max-height:160px;"></canvas></div>
-    <div style="font-size:0.78rem;color:#7878a0;text-transform:uppercase;letter-spacing:0.07em;margin:0.8rem 0 0.4rem;">Saturation Distribution</div>
+    <div style="font-size:0.68rem;color:#7878a0;text-transform:uppercase;letter-spacing:0.07em;margin:0.8rem 0 0.4rem;">Saturation Distribution</div>
     <div class="chart-h" style="max-height:100px;"><canvas id="satHistChart" style="max-height:100px;"></canvas></div>
   </div>
 </div>
@@ -1263,7 +1312,7 @@ canvas { max-height: 300px; }
   
   <div class="row two" style="margin-bottom:0;">
     <div>
-      <div style="font-size:0.78rem;color:#7878a0;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:0.6rem;">Tone</div>
+      <div style="font-size:0.68rem;color:#7878a0;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:0.6rem;">Tone</div>
       
       
       <div class="sig-row">
@@ -1337,7 +1386,7 @@ canvas { max-height: 300px; }
       
     </div>
     <div>
-      <div style="font-size:0.78rem;color:#7878a0;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:0.6rem;">Presence & Color</div>
+      <div style="font-size:0.68rem;color:#7878a0;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:0.6rem;">Presence & Color</div>
       
       
       <div class="sig-row">
@@ -1485,31 +1534,35 @@ canvas { max-height: 300px; }
   
   
   <div style="margin-top:1.4rem;overflow-x:auto;">
-    <div style="font-size:0.65rem;color:#7878a0;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:0.6rem;">Avg Slider Value by Scene</div>
-    <table style="width:100%;border-collapse:separate;border-spacing:2px;font-size:0.68rem;">
+    <div style="font-size:0.68rem;color:#7878a0;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:0.6rem;">Avg Slider Value by Scene</div>
+    <table style="width:100%;border-collapse:separate;border-spacing:2px;font-size:0.68rem;table-layout:fixed;">
+      <colgroup>
+        <col style="width:90px;">
+        <col style="width:10.0%;"><col style="width:10.0%;"><col style="width:10.0%;"><col style="width:10.0%;"><col style="width:10.0%;"><col style="width:10.0%;"><col style="width:10.0%;"><col style="width:10.0%;"><col style="width:10.0%;"><col style="width:10.0%;">
+      </colgroup>
       <thead>
         <tr>
-          <th style="text-align:left;padding:3px 8px;color:#7878a0;font-weight:400;min-width:80px;"></th>
+          <th style="text-align:left;padding:3px 8px;color:#7878a0;font-weight:400;"></th>
           
-          <th style="padding:3px 5px;color:#8080aa;font-weight:400;white-space:nowrap;text-transform:capitalize;font-size:0.62rem;">travel &amp; landmarks</th>
+          <th style="padding:3px 5px;color:#8080aa;font-weight:400;text-transform:capitalize;font-size:0.62rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">travel &amp; landmarks</th>
           
-          <th style="padding:3px 5px;color:#8080aa;font-weight:400;white-space:nowrap;text-transform:capitalize;font-size:0.62rem;">night scene</th>
+          <th style="padding:3px 5px;color:#8080aa;font-weight:400;text-transform:capitalize;font-size:0.62rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">night scene</th>
           
-          <th style="padding:3px 5px;color:#8080aa;font-weight:400;white-space:nowrap;text-transform:capitalize;font-size:0.62rem;">abstract</th>
+          <th style="padding:3px 5px;color:#8080aa;font-weight:400;text-transform:capitalize;font-size:0.62rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">abstract</th>
           
-          <th style="padding:3px 5px;color:#8080aa;font-weight:400;white-space:nowrap;text-transform:capitalize;font-size:0.62rem;">urban street</th>
+          <th style="padding:3px 5px;color:#8080aa;font-weight:400;text-transform:capitalize;font-size:0.62rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">urban street</th>
           
-          <th style="padding:3px 5px;color:#8080aa;font-weight:400;white-space:nowrap;text-transform:capitalize;font-size:0.62rem;">architecture</th>
+          <th style="padding:3px 5px;color:#8080aa;font-weight:400;text-transform:capitalize;font-size:0.62rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">architecture</th>
           
-          <th style="padding:3px 5px;color:#8080aa;font-weight:400;white-space:nowrap;text-transform:capitalize;font-size:0.62rem;">people &amp; portraits</th>
+          <th style="padding:3px 5px;color:#8080aa;font-weight:400;text-transform:capitalize;font-size:0.62rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">people &amp; portraits</th>
           
-          <th style="padding:3px 5px;color:#8080aa;font-weight:400;white-space:nowrap;text-transform:capitalize;font-size:0.62rem;">nature</th>
+          <th style="padding:3px 5px;color:#8080aa;font-weight:400;text-transform:capitalize;font-size:0.62rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">nature</th>
           
-          <th style="padding:3px 5px;color:#8080aa;font-weight:400;white-space:nowrap;text-transform:capitalize;font-size:0.62rem;">animals</th>
+          <th style="padding:3px 5px;color:#8080aa;font-weight:400;text-transform:capitalize;font-size:0.62rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">animals</th>
           
-          <th style="padding:3px 5px;color:#8080aa;font-weight:400;white-space:nowrap;text-transform:capitalize;font-size:0.62rem;">interior</th>
+          <th style="padding:3px 5px;color:#8080aa;font-weight:400;text-transform:capitalize;font-size:0.62rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">interior</th>
           
-          <th style="padding:3px 5px;color:#8080aa;font-weight:400;white-space:nowrap;text-transform:capitalize;font-size:0.62rem;">food</th>
+          <th style="padding:3px 5px;color:#8080aa;font-weight:400;text-transform:capitalize;font-size:0.62rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">food</th>
           
         </tr>
       </thead>
@@ -1519,7 +1572,7 @@ canvas { max-height: 300px; }
       
       
       <tr>
-        <td style="padding:3px 8px;color:#9090b8;white-space:nowrap;">Contrast</td>
+        <td style="padding:3px 8px;color:#9090b8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Contrast</td>
         
         
         
@@ -1594,7 +1647,7 @@ canvas { max-height: 300px; }
       
       
       <tr>
-        <td style="padding:3px 8px;color:#9090b8;white-space:nowrap;">Vibrance</td>
+        <td style="padding:3px 8px;color:#9090b8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Vibrance</td>
         
         
         
@@ -1671,7 +1724,7 @@ canvas { max-height: 300px; }
       
       
       <tr>
-        <td style="padding:3px 8px;color:#9090b8;white-space:nowrap;">Saturation</td>
+        <td style="padding:3px 8px;color:#9090b8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Saturation</td>
         
         
         
@@ -1748,7 +1801,7 @@ canvas { max-height: 300px; }
       
       
       <tr>
-        <td style="padding:3px 8px;color:#9090b8;white-space:nowrap;">Sharpness</td>
+        <td style="padding:3px 8px;color:#9090b8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Sharpness</td>
         
         
         
@@ -1825,7 +1878,7 @@ canvas { max-height: 300px; }
       
       
       <tr>
-        <td style="padding:3px 8px;color:#9090b8;white-space:nowrap;">Lum. Noise</td>
+        <td style="padding:3px 8px;color:#9090b8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Lum. Noise</td>
         
         
         
@@ -1902,7 +1955,7 @@ canvas { max-height: 300px; }
       
       
       <tr>
-        <td style="padding:3px 8px;color:#9090b8;white-space:nowrap;">Color NR</td>
+        <td style="padding:3px 8px;color:#9090b8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Color NR</td>
         
         
         
@@ -1979,7 +2032,7 @@ canvas { max-height: 300px; }
       
       </tbody>
     </table>
-    <div style="margin-top:0.5rem;font-size:0.63rem;color:#505070;">Green = pushed above default &nbsp;·&nbsp; Red = pulled below &nbsp;·&nbsp; Intensity = magnitude of avg shift</div>
+    <div style="margin-top:0.5rem;font-size:0.68rem;color:#505070;">Green = pushed above default &nbsp;·&nbsp; Red = pulled below &nbsp;·&nbsp; Intensity = magnitude of avg shift</div>
   </div>
   
 </div>
@@ -2456,21 +2509,21 @@ canvas { max-height: 300px; }
 
   
   <div style="margin-bottom:1rem;padding:0.75rem 1rem;background:#16161f;border-radius:8px;">
-    <div style="font-size:0.65rem;color:#7878a0;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:0.6rem;">AI Aesthetic Agreement</div>
+    <div style="font-size:0.68rem;color:#7878a0;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:0.6rem;">AI Aesthetic Agreement</div>
     <div style="display:flex;gap:2rem;align-items:center;flex-wrap:wrap;">
       <div>
         <div style="font-size:1.2rem;font-weight:700;color:#7c6af7;">52.9</div>
-        <div style="font-size:0.65rem;color:#7878a0;">avg score · in albums</div>
+        <div style="font-size:0.68rem;color:#7878a0;">avg score · in albums</div>
       </div>
       <div style="font-size:1.4rem;color:#3a3a50;">vs</div>
       <div>
         <div style="font-size:1.2rem;font-weight:700;color:#9090b8;">52.8</div>
-        <div style="font-size:0.65rem;color:#7878a0;">avg score · not in albums</div>
+        <div style="font-size:0.68rem;color:#7878a0;">avg score · not in albums</div>
       </div>
       
       <div style="margin-left:auto;">
         <div style="font-size:1rem;font-weight:700;color:#f59e0b;">+0.1</div>
-        <div style="font-size:0.65rem;color:#7878a0;">model bias</div>
+        <div style="font-size:0.68rem;color:#7878a0;">model bias</div>
       </div>
     </div>
     <div style="margin-top:0.6rem;font-size:0.7rem;color:#6060808;">
@@ -2508,7 +2561,7 @@ canvas { max-height: 300px; }
           <div style="flex:1;height:5px;background:#1a1a28;border-radius:3px;min-width:50px;max-width:80px;">
             <div style="width:17%;height:5px;background:#7c6af7;border-radius:3px;"></div>
           </div>
-          <span style="font-size:0.65rem;color:#7878a0;min-width:26px;">17%</span>
+          <span style="font-size:0.68rem;color:#7878a0;min-width:26px;">17%</span>
         </div>
       </td>
       <td style="padding:5px 8px;">
@@ -2516,7 +2569,7 @@ canvas { max-height: 300px; }
           <div style="flex:1;height:5px;background:#1a1a28;border-radius:3px;min-width:50px;max-width:80px;">
             <div style="width:54%;height:5px;background:#f59e0b;border-radius:3px;"></div>
           </div>
-          <span style="font-size:0.65rem;color:#7878a0;min-width:26px;">54%</span>
+          <span style="font-size:0.68rem;color:#7878a0;min-width:26px;">54%</span>
         </div>
       </td>
       <td style="padding:5px 8px;">
@@ -2541,7 +2594,7 @@ canvas { max-height: 300px; }
           <div style="flex:1;height:5px;background:#1a1a28;border-radius:3px;min-width:50px;max-width:80px;">
             <div style="width:21%;height:5px;background:#7c6af7;border-radius:3px;"></div>
           </div>
-          <span style="font-size:0.65rem;color:#7878a0;min-width:26px;">21%</span>
+          <span style="font-size:0.68rem;color:#7878a0;min-width:26px;">21%</span>
         </div>
       </td>
       <td style="padding:5px 8px;">
@@ -2549,7 +2602,7 @@ canvas { max-height: 300px; }
           <div style="flex:1;height:5px;background:#1a1a28;border-radius:3px;min-width:50px;max-width:80px;">
             <div style="width:65%;height:5px;background:#f59e0b;border-radius:3px;"></div>
           </div>
-          <span style="font-size:0.65rem;color:#7878a0;min-width:26px;">65%</span>
+          <span style="font-size:0.68rem;color:#7878a0;min-width:26px;">65%</span>
         </div>
       </td>
       <td style="padding:5px 8px;">
@@ -2574,7 +2627,7 @@ canvas { max-height: 300px; }
           <div style="flex:1;height:5px;background:#1a1a28;border-radius:3px;min-width:50px;max-width:80px;">
             <div style="width:22%;height:5px;background:#7c6af7;border-radius:3px;"></div>
           </div>
-          <span style="font-size:0.65rem;color:#7878a0;min-width:26px;">22%</span>
+          <span style="font-size:0.68rem;color:#7878a0;min-width:26px;">22%</span>
         </div>
       </td>
       <td style="padding:5px 8px;">
@@ -2582,7 +2635,7 @@ canvas { max-height: 300px; }
           <div style="flex:1;height:5px;background:#1a1a28;border-radius:3px;min-width:50px;max-width:80px;">
             <div style="width:49%;height:5px;background:#f59e0b;border-radius:3px;"></div>
           </div>
-          <span style="font-size:0.65rem;color:#7878a0;min-width:26px;">49%</span>
+          <span style="font-size:0.68rem;color:#7878a0;min-width:26px;">49%</span>
         </div>
       </td>
       <td style="padding:5px 8px;">
@@ -2607,7 +2660,7 @@ canvas { max-height: 300px; }
           <div style="flex:1;height:5px;background:#1a1a28;border-radius:3px;min-width:50px;max-width:80px;">
             <div style="width:24%;height:5px;background:#7c6af7;border-radius:3px;"></div>
           </div>
-          <span style="font-size:0.65rem;color:#7878a0;min-width:26px;">24%</span>
+          <span style="font-size:0.68rem;color:#7878a0;min-width:26px;">24%</span>
         </div>
       </td>
       <td style="padding:5px 8px;">
@@ -2615,7 +2668,7 @@ canvas { max-height: 300px; }
           <div style="flex:1;height:5px;background:#1a1a28;border-radius:3px;min-width:50px;max-width:80px;">
             <div style="width:41%;height:5px;background:#f59e0b;border-radius:3px;"></div>
           </div>
-          <span style="font-size:0.65rem;color:#7878a0;min-width:26px;">41%</span>
+          <span style="font-size:0.68rem;color:#7878a0;min-width:26px;">41%</span>
         </div>
       </td>
       <td style="padding:5px 8px;">
@@ -2640,7 +2693,7 @@ canvas { max-height: 300px; }
           <div style="flex:1;height:5px;background:#1a1a28;border-radius:3px;min-width:50px;max-width:80px;">
             <div style="width:30%;height:5px;background:#7c6af7;border-radius:3px;"></div>
           </div>
-          <span style="font-size:0.65rem;color:#7878a0;min-width:26px;">30%</span>
+          <span style="font-size:0.68rem;color:#7878a0;min-width:26px;">30%</span>
         </div>
       </td>
       <td style="padding:5px 8px;">
@@ -2648,7 +2701,7 @@ canvas { max-height: 300px; }
           <div style="flex:1;height:5px;background:#1a1a28;border-radius:3px;min-width:50px;max-width:80px;">
             <div style="width:51%;height:5px;background:#f59e0b;border-radius:3px;"></div>
           </div>
-          <span style="font-size:0.65rem;color:#7878a0;min-width:26px;">51%</span>
+          <span style="font-size:0.68rem;color:#7878a0;min-width:26px;">51%</span>
         </div>
       </td>
       <td style="padding:5px 8px;">
@@ -2673,7 +2726,7 @@ canvas { max-height: 300px; }
           <div style="flex:1;height:5px;background:#1a1a28;border-radius:3px;min-width:50px;max-width:80px;">
             <div style="width:24%;height:5px;background:#7c6af7;border-radius:3px;"></div>
           </div>
-          <span style="font-size:0.65rem;color:#7878a0;min-width:26px;">24%</span>
+          <span style="font-size:0.68rem;color:#7878a0;min-width:26px;">24%</span>
         </div>
       </td>
       <td style="padding:5px 8px;">
@@ -2681,7 +2734,7 @@ canvas { max-height: 300px; }
           <div style="flex:1;height:5px;background:#1a1a28;border-radius:3px;min-width:50px;max-width:80px;">
             <div style="width:55%;height:5px;background:#f59e0b;border-radius:3px;"></div>
           </div>
-          <span style="font-size:0.65rem;color:#7878a0;min-width:26px;">55%</span>
+          <span style="font-size:0.68rem;color:#7878a0;min-width:26px;">55%</span>
         </div>
       </td>
       <td style="padding:5px 8px;">
@@ -2706,7 +2759,7 @@ canvas { max-height: 300px; }
           <div style="flex:1;height:5px;background:#1a1a28;border-radius:3px;min-width:50px;max-width:80px;">
             <div style="width:23%;height:5px;background:#7c6af7;border-radius:3px;"></div>
           </div>
-          <span style="font-size:0.65rem;color:#7878a0;min-width:26px;">23%</span>
+          <span style="font-size:0.68rem;color:#7878a0;min-width:26px;">23%</span>
         </div>
       </td>
       <td style="padding:5px 8px;">
@@ -2714,7 +2767,7 @@ canvas { max-height: 300px; }
           <div style="flex:1;height:5px;background:#1a1a28;border-radius:3px;min-width:50px;max-width:80px;">
             <div style="width:57%;height:5px;background:#f59e0b;border-radius:3px;"></div>
           </div>
-          <span style="font-size:0.65rem;color:#7878a0;min-width:26px;">57%</span>
+          <span style="font-size:0.68rem;color:#7878a0;min-width:26px;">57%</span>
         </div>
       </td>
       <td style="padding:5px 8px;">
@@ -2739,7 +2792,7 @@ canvas { max-height: 300px; }
           <div style="flex:1;height:5px;background:#1a1a28;border-radius:3px;min-width:50px;max-width:80px;">
             <div style="width:12%;height:5px;background:#7c6af7;border-radius:3px;"></div>
           </div>
-          <span style="font-size:0.65rem;color:#7878a0;min-width:26px;">12%</span>
+          <span style="font-size:0.68rem;color:#7878a0;min-width:26px;">12%</span>
         </div>
       </td>
       <td style="padding:5px 8px;">
@@ -2747,7 +2800,7 @@ canvas { max-height: 300px; }
           <div style="flex:1;height:5px;background:#1a1a28;border-radius:3px;min-width:50px;max-width:80px;">
             <div style="width:30%;height:5px;background:#f59e0b;border-radius:3px;"></div>
           </div>
-          <span style="font-size:0.65rem;color:#7878a0;min-width:26px;">30%</span>
+          <span style="font-size:0.68rem;color:#7878a0;min-width:26px;">30%</span>
         </div>
       </td>
       <td style="padding:5px 8px;">
@@ -2772,7 +2825,7 @@ canvas { max-height: 300px; }
           <div style="flex:1;height:5px;background:#1a1a28;border-radius:3px;min-width:50px;max-width:80px;">
             <div style="width:22%;height:5px;background:#7c6af7;border-radius:3px;"></div>
           </div>
-          <span style="font-size:0.65rem;color:#7878a0;min-width:26px;">22%</span>
+          <span style="font-size:0.68rem;color:#7878a0;min-width:26px;">22%</span>
         </div>
       </td>
       <td style="padding:5px 8px;">
@@ -2780,7 +2833,7 @@ canvas { max-height: 300px; }
           <div style="flex:1;height:5px;background:#1a1a28;border-radius:3px;min-width:50px;max-width:80px;">
             <div style="width:53%;height:5px;background:#f59e0b;border-radius:3px;"></div>
           </div>
-          <span style="font-size:0.65rem;color:#7878a0;min-width:26px;">53%</span>
+          <span style="font-size:0.68rem;color:#7878a0;min-width:26px;">53%</span>
         </div>
       </td>
       <td style="padding:5px 8px;">
@@ -2805,7 +2858,7 @@ canvas { max-height: 300px; }
           <div style="flex:1;height:5px;background:#1a1a28;border-radius:3px;min-width:50px;max-width:80px;">
             <div style="width:27%;height:5px;background:#7c6af7;border-radius:3px;"></div>
           </div>
-          <span style="font-size:0.65rem;color:#7878a0;min-width:26px;">27%</span>
+          <span style="font-size:0.68rem;color:#7878a0;min-width:26px;">27%</span>
         </div>
       </td>
       <td style="padding:5px 8px;">
@@ -2813,7 +2866,7 @@ canvas { max-height: 300px; }
           <div style="flex:1;height:5px;background:#1a1a28;border-radius:3px;min-width:50px;max-width:80px;">
             <div style="width:46%;height:5px;background:#f59e0b;border-radius:3px;"></div>
           </div>
-          <span style="font-size:0.65rem;color:#7878a0;min-width:26px;">46%</span>
+          <span style="font-size:0.68rem;color:#7878a0;min-width:26px;">46%</span>
         </div>
       </td>
       <td style="padding:5px 8px;">
@@ -2838,7 +2891,7 @@ canvas { max-height: 300px; }
           <div style="flex:1;height:5px;background:#1a1a28;border-radius:3px;min-width:50px;max-width:80px;">
             <div style="width:28%;height:5px;background:#7c6af7;border-radius:3px;"></div>
           </div>
-          <span style="font-size:0.65rem;color:#7878a0;min-width:26px;">28%</span>
+          <span style="font-size:0.68rem;color:#7878a0;min-width:26px;">28%</span>
         </div>
       </td>
       <td style="padding:5px 8px;">
@@ -2846,7 +2899,7 @@ canvas { max-height: 300px; }
           <div style="flex:1;height:5px;background:#1a1a28;border-radius:3px;min-width:50px;max-width:80px;">
             <div style="width:59%;height:5px;background:#f59e0b;border-radius:3px;"></div>
           </div>
-          <span style="font-size:0.65rem;color:#7878a0;min-width:26px;">59%</span>
+          <span style="font-size:0.68rem;color:#7878a0;min-width:26px;">59%</span>
         </div>
       </td>
       <td style="padding:5px 8px;">
@@ -2871,7 +2924,7 @@ canvas { max-height: 300px; }
           <div style="flex:1;height:5px;background:#1a1a28;border-radius:3px;min-width:50px;max-width:80px;">
             <div style="width:23%;height:5px;background:#7c6af7;border-radius:3px;"></div>
           </div>
-          <span style="font-size:0.65rem;color:#7878a0;min-width:26px;">23%</span>
+          <span style="font-size:0.68rem;color:#7878a0;min-width:26px;">23%</span>
         </div>
       </td>
       <td style="padding:5px 8px;">
@@ -2879,7 +2932,7 @@ canvas { max-height: 300px; }
           <div style="flex:1;height:5px;background:#1a1a28;border-radius:3px;min-width:50px;max-width:80px;">
             <div style="width:61%;height:5px;background:#f59e0b;border-radius:3px;"></div>
           </div>
-          <span style="font-size:0.65rem;color:#7878a0;min-width:26px;">61%</span>
+          <span style="font-size:0.68rem;color:#7878a0;min-width:26px;">61%</span>
         </div>
       </td>
       <td style="padding:5px 8px;">
@@ -2904,7 +2957,7 @@ canvas { max-height: 300px; }
           <div style="flex:1;height:5px;background:#1a1a28;border-radius:3px;min-width:50px;max-width:80px;">
             <div style="width:27%;height:5px;background:#7c6af7;border-radius:3px;"></div>
           </div>
-          <span style="font-size:0.65rem;color:#7878a0;min-width:26px;">27%</span>
+          <span style="font-size:0.68rem;color:#7878a0;min-width:26px;">27%</span>
         </div>
       </td>
       <td style="padding:5px 8px;">
@@ -2912,7 +2965,7 @@ canvas { max-height: 300px; }
           <div style="flex:1;height:5px;background:#1a1a28;border-radius:3px;min-width:50px;max-width:80px;">
             <div style="width:55%;height:5px;background:#f59e0b;border-radius:3px;"></div>
           </div>
-          <span style="font-size:0.65rem;color:#7878a0;min-width:26px;">55%</span>
+          <span style="font-size:0.68rem;color:#7878a0;min-width:26px;">55%</span>
         </div>
       </td>
       <td style="padding:5px 8px;">
@@ -2937,7 +2990,7 @@ canvas { max-height: 300px; }
           <div style="flex:1;height:5px;background:#1a1a28;border-radius:3px;min-width:50px;max-width:80px;">
             <div style="width:28%;height:5px;background:#7c6af7;border-radius:3px;"></div>
           </div>
-          <span style="font-size:0.65rem;color:#7878a0;min-width:26px;">28%</span>
+          <span style="font-size:0.68rem;color:#7878a0;min-width:26px;">28%</span>
         </div>
       </td>
       <td style="padding:5px 8px;">
@@ -2945,7 +2998,7 @@ canvas { max-height: 300px; }
           <div style="flex:1;height:5px;background:#1a1a28;border-radius:3px;min-width:50px;max-width:80px;">
             <div style="width:64%;height:5px;background:#f59e0b;border-radius:3px;"></div>
           </div>
-          <span style="font-size:0.65rem;color:#7878a0;min-width:26px;">64%</span>
+          <span style="font-size:0.68rem;color:#7878a0;min-width:26px;">64%</span>
         </div>
       </td>
       <td style="padding:5px 8px;">
@@ -2970,7 +3023,7 @@ canvas { max-height: 300px; }
           <div style="flex:1;height:5px;background:#1a1a28;border-radius:3px;min-width:50px;max-width:80px;">
             <div style="width:32%;height:5px;background:#7c6af7;border-radius:3px;"></div>
           </div>
-          <span style="font-size:0.65rem;color:#7878a0;min-width:26px;">32%</span>
+          <span style="font-size:0.68rem;color:#7878a0;min-width:26px;">32%</span>
         </div>
       </td>
       <td style="padding:5px 8px;">
@@ -2978,7 +3031,7 @@ canvas { max-height: 300px; }
           <div style="flex:1;height:5px;background:#1a1a28;border-radius:3px;min-width:50px;max-width:80px;">
             <div style="width:34%;height:5px;background:#f59e0b;border-radius:3px;"></div>
           </div>
-          <span style="font-size:0.65rem;color:#7878a0;min-width:26px;">34%</span>
+          <span style="font-size:0.68rem;color:#7878a0;min-width:26px;">34%</span>
         </div>
       </td>
       <td style="padding:5px 8px;">
@@ -3003,7 +3056,7 @@ canvas { max-height: 300px; }
           <div style="flex:1;height:5px;background:#1a1a28;border-radius:3px;min-width:50px;max-width:80px;">
             <div style="width:21%;height:5px;background:#7c6af7;border-radius:3px;"></div>
           </div>
-          <span style="font-size:0.65rem;color:#7878a0;min-width:26px;">21%</span>
+          <span style="font-size:0.68rem;color:#7878a0;min-width:26px;">21%</span>
         </div>
       </td>
       <td style="padding:5px 8px;">
@@ -3011,7 +3064,7 @@ canvas { max-height: 300px; }
           <div style="flex:1;height:5px;background:#1a1a28;border-radius:3px;min-width:50px;max-width:80px;">
             <div style="width:54%;height:5px;background:#f59e0b;border-radius:3px;"></div>
           </div>
-          <span style="font-size:0.65rem;color:#7878a0;min-width:26px;">54%</span>
+          <span style="font-size:0.68rem;color:#7878a0;min-width:26px;">54%</span>
         </div>
       </td>
       <td style="padding:5px 8px;">
@@ -3069,124 +3122,104 @@ canvas { max-height: 300px; }
     </div>
   </div>
   
-  <table style="width:100%;border-collapse:collapse;">
-    <thead><tr>
-      <th style="text-align:left;padding:4px 8px;font-size:0.68rem;color:#7878a0;border-bottom:1px solid #1a1a28;">Date</th>
-      <th style="text-align:right;padding:4px 8px;font-size:0.68rem;color:#7878a0;border-bottom:1px solid #1a1a28;">Images</th>
-      <th style="text-align:right;padding:4px 8px;font-size:0.68rem;color:#7878a0;border-bottom:1px solid #1a1a28;">Duration</th>
-      <th style="text-align:left;padding:4px 8px;font-size:0.68rem;color:#7878a0;border-bottom:1px solid #1a1a28;">Scene</th>
-      <th style="text-align:left;padding:4px 8px;font-size:0.68rem;color:#7878a0;border-bottom:1px solid #1a1a28;">Narrative</th>
-    </tr></thead>
+  <table>
+    <thead>
+      <tr>
+        <th style="width:100px;">Date</th>
+        <th style="width:110px;">Scene</th>
+        <th style="width:64px;text-align:right;">Images</th>
+        <th style="width:64px;text-align:right;">Duration</th>
+        <th>Narrative</th>
+      </tr>
+    </thead>
     <tbody>
     
     <tr>
-      <td style="padding:5px 8px;font-size:0.78rem;color:#c0c0d8;white-space:nowrap;">2025-03-02</td>
-      <td style="padding:5px 8px;font-size:0.78rem;color:#9090b8;text-align:right;">267</td>
-      <td style="padding:5px 8px;font-size:0.78rem;color:#9090b8;text-align:right;">
-        4.9h
-      </td>
-      <td style="padding:5px 8px;font-size:0.72rem;color:#7c6af7;white-space:nowrap;">travel and landmarks</td>
-      <td style="padding:5px 8px;font-size:0.72rem;color:#7878a0;font-style:italic;">A indoors shoot. during daytime. in sunny conditions.</td>
+      <td style="white-space:nowrap;font-weight:600;color:#c0c0d8;">2025-03-02</td>
+      <td><span style="font-size:0.68rem;background:rgba(124,106,247,0.15);color:#a090e0;border-radius:4px;padding:2px 7px;">travel and landmarks</span></td>
+      <td style="text-align:right;color:#9090b8;">267</td>
+      <td style="text-align:right;color:#9090b8;white-space:nowrap;">4.9h</td>
+      <td style="color:#7878a0;font-style:italic;line-height:1.5;">A indoors shoot. during daytime. in sunny conditions.</td>
     </tr>
     
     <tr>
-      <td style="padding:5px 8px;font-size:0.78rem;color:#c0c0d8;white-space:nowrap;">2025-01-27</td>
-      <td style="padding:5px 8px;font-size:0.78rem;color:#9090b8;text-align:right;">111</td>
-      <td style="padding:5px 8px;font-size:0.78rem;color:#9090b8;text-align:right;">
-        3.6h
-      </td>
-      <td style="padding:5px 8px;font-size:0.72rem;color:#7c6af7;white-space:nowrap;">travel and landmarks</td>
-      <td style="padding:5px 8px;font-size:0.72rem;color:#7878a0;font-style:italic;">A outdoors shoot. during afternoon. in sunny conditions.</td>
+      <td style="white-space:nowrap;font-weight:600;color:#c0c0d8;">2025-01-27</td>
+      <td><span style="font-size:0.68rem;background:rgba(124,106,247,0.15);color:#a090e0;border-radius:4px;padding:2px 7px;">travel and landmarks</span></td>
+      <td style="text-align:right;color:#9090b8;">111</td>
+      <td style="text-align:right;color:#9090b8;white-space:nowrap;">3.6h</td>
+      <td style="color:#7878a0;font-style:italic;line-height:1.5;">A outdoors shoot. during afternoon. in sunny conditions.</td>
     </tr>
     
     <tr>
-      <td style="padding:5px 8px;font-size:0.78rem;color:#c0c0d8;white-space:nowrap;">2025-01-26</td>
-      <td style="padding:5px 8px;font-size:0.78rem;color:#9090b8;text-align:right;">121</td>
-      <td style="padding:5px 8px;font-size:0.78rem;color:#9090b8;text-align:right;">
-        1.6h
-      </td>
-      <td style="padding:5px 8px;font-size:0.72rem;color:#7c6af7;white-space:nowrap;">night scene</td>
-      <td style="padding:5px 8px;font-size:0.72rem;color:#7878a0;font-style:italic;">A outdoors shoot. during daytime. in sunny conditions.</td>
+      <td style="white-space:nowrap;font-weight:600;color:#c0c0d8;">2025-01-26</td>
+      <td><span style="font-size:0.68rem;background:rgba(124,106,247,0.15);color:#a090e0;border-radius:4px;padding:2px 7px;">night scene</span></td>
+      <td style="text-align:right;color:#9090b8;">121</td>
+      <td style="text-align:right;color:#9090b8;white-space:nowrap;">1.6h</td>
+      <td style="color:#7878a0;font-style:italic;line-height:1.5;">A outdoors shoot. during daytime. in sunny conditions.</td>
     </tr>
     
     <tr>
-      <td style="padding:5px 8px;font-size:0.78rem;color:#c0c0d8;white-space:nowrap;">2024-09-01</td>
-      <td style="padding:5px 8px;font-size:0.78rem;color:#9090b8;text-align:right;">67</td>
-      <td style="padding:5px 8px;font-size:0.78rem;color:#9090b8;text-align:right;">
-        4.3h
-      </td>
-      <td style="padding:5px 8px;font-size:0.72rem;color:#7c6af7;white-space:nowrap;">travel and landmarks</td>
-      <td style="padding:5px 8px;font-size:0.72rem;color:#7878a0;font-style:italic;">A outdoors shoot. during daytime. in sunny conditions.</td>
+      <td style="white-space:nowrap;font-weight:600;color:#c0c0d8;">2024-09-01</td>
+      <td><span style="font-size:0.68rem;background:rgba(124,106,247,0.15);color:#a090e0;border-radius:4px;padding:2px 7px;">travel and landmarks</span></td>
+      <td style="text-align:right;color:#9090b8;">67</td>
+      <td style="text-align:right;color:#9090b8;white-space:nowrap;">4.3h</td>
+      <td style="color:#7878a0;font-style:italic;line-height:1.5;">A outdoors shoot. during daytime. in sunny conditions.</td>
     </tr>
     
     <tr>
-      <td style="padding:5px 8px;font-size:0.78rem;color:#c0c0d8;white-space:nowrap;">2024-08-31</td>
-      <td style="padding:5px 8px;font-size:0.78rem;color:#9090b8;text-align:right;">120</td>
-      <td style="padding:5px 8px;font-size:0.78rem;color:#9090b8;text-align:right;">
-        9.8h
-      </td>
-      <td style="padding:5px 8px;font-size:0.72rem;color:#7c6af7;white-space:nowrap;">travel and landmarks</td>
-      <td style="padding:5px 8px;font-size:0.72rem;color:#7878a0;font-style:italic;">A outdoors shoot. during afternoon. in cloudy conditions.</td>
+      <td style="white-space:nowrap;font-weight:600;color:#c0c0d8;">2024-08-31</td>
+      <td><span style="font-size:0.68rem;background:rgba(124,106,247,0.15);color:#a090e0;border-radius:4px;padding:2px 7px;">travel and landmarks</span></td>
+      <td style="text-align:right;color:#9090b8;">120</td>
+      <td style="text-align:right;color:#9090b8;white-space:nowrap;">9.8h</td>
+      <td style="color:#7878a0;font-style:italic;line-height:1.5;">A outdoors shoot. during afternoon. in cloudy conditions.</td>
     </tr>
     
     <tr>
-      <td style="padding:5px 8px;font-size:0.78rem;color:#c0c0d8;white-space:nowrap;">2024-07-28</td>
-      <td style="padding:5px 8px;font-size:0.78rem;color:#9090b8;text-align:right;">76</td>
-      <td style="padding:5px 8px;font-size:0.78rem;color:#9090b8;text-align:right;">
-        4.8h
-      </td>
-      <td style="padding:5px 8px;font-size:0.72rem;color:#7c6af7;white-space:nowrap;">abstract</td>
-      <td style="padding:5px 8px;font-size:0.72rem;color:#7878a0;font-style:italic;">A indoors shoot. during daytime. in sunny conditions.</td>
+      <td style="white-space:nowrap;font-weight:600;color:#c0c0d8;">2024-07-28</td>
+      <td><span style="font-size:0.68rem;background:rgba(124,106,247,0.15);color:#a090e0;border-radius:4px;padding:2px 7px;">abstract</span></td>
+      <td style="text-align:right;color:#9090b8;">76</td>
+      <td style="text-align:right;color:#9090b8;white-space:nowrap;">4.8h</td>
+      <td style="color:#7878a0;font-style:italic;line-height:1.5;">A indoors shoot. during daytime. in sunny conditions.</td>
     </tr>
     
     <tr>
-      <td style="padding:5px 8px;font-size:0.78rem;color:#c0c0d8;white-space:nowrap;">2024-07-05</td>
-      <td style="padding:5px 8px;font-size:0.78rem;color:#9090b8;text-align:right;">120</td>
-      <td style="padding:5px 8px;font-size:0.78rem;color:#9090b8;text-align:right;">
-        9.3h
-      </td>
-      <td style="padding:5px 8px;font-size:0.72rem;color:#7c6af7;white-space:nowrap;">travel and landmarks</td>
-      <td style="padding:5px 8px;font-size:0.72rem;color:#7878a0;font-style:italic;">A outdoors shoot. during daytime. in sunny conditions.</td>
+      <td style="white-space:nowrap;font-weight:600;color:#c0c0d8;">2024-07-05</td>
+      <td><span style="font-size:0.68rem;background:rgba(124,106,247,0.15);color:#a090e0;border-radius:4px;padding:2px 7px;">travel and landmarks</span></td>
+      <td style="text-align:right;color:#9090b8;">120</td>
+      <td style="text-align:right;color:#9090b8;white-space:nowrap;">9.3h</td>
+      <td style="color:#7878a0;font-style:italic;line-height:1.5;">A outdoors shoot. during daytime. in sunny conditions.</td>
     </tr>
     
     <tr>
-      <td style="padding:5px 8px;font-size:0.78rem;color:#c0c0d8;white-space:nowrap;">2024-07-04</td>
-      <td style="padding:5px 8px;font-size:0.78rem;color:#9090b8;text-align:right;">202</td>
-      <td style="padding:5px 8px;font-size:0.78rem;color:#9090b8;text-align:right;">
-        12.1h
-      </td>
-      <td style="padding:5px 8px;font-size:0.72rem;color:#7c6af7;white-space:nowrap;">travel and landmarks</td>
-      <td style="padding:5px 8px;font-size:0.72rem;color:#7878a0;font-style:italic;">A outdoors shoot. during afternoon. in sunny conditions.</td>
+      <td style="white-space:nowrap;font-weight:600;color:#c0c0d8;">2024-07-04</td>
+      <td><span style="font-size:0.68rem;background:rgba(124,106,247,0.15);color:#a090e0;border-radius:4px;padding:2px 7px;">travel and landmarks</span></td>
+      <td style="text-align:right;color:#9090b8;">202</td>
+      <td style="text-align:right;color:#9090b8;white-space:nowrap;">12.1h</td>
+      <td style="color:#7878a0;font-style:italic;line-height:1.5;">A outdoors shoot. during afternoon. in sunny conditions.</td>
     </tr>
     
     <tr>
-      <td style="padding:5px 8px;font-size:0.78rem;color:#c0c0d8;white-space:nowrap;">2024-07-03</td>
-      <td style="padding:5px 8px;font-size:0.78rem;color:#9090b8;text-align:right;">57</td>
-      <td style="padding:5px 8px;font-size:0.78rem;color:#9090b8;text-align:right;">
-        1.1h
-      </td>
-      <td style="padding:5px 8px;font-size:0.72rem;color:#7c6af7;white-space:nowrap;">travel and landmarks</td>
-      <td style="padding:5px 8px;font-size:0.72rem;color:#7878a0;font-style:italic;">A outdoors shoot. during morning. in sunny conditions.</td>
+      <td style="white-space:nowrap;font-weight:600;color:#c0c0d8;">2024-07-03</td>
+      <td><span style="font-size:0.68rem;background:rgba(124,106,247,0.15);color:#a090e0;border-radius:4px;padding:2px 7px;">travel and landmarks</span></td>
+      <td style="text-align:right;color:#9090b8;">57</td>
+      <td style="text-align:right;color:#9090b8;white-space:nowrap;">1.1h</td>
+      <td style="color:#7878a0;font-style:italic;line-height:1.5;">A outdoors shoot. during morning. in sunny conditions.</td>
     </tr>
     
     <tr>
-      <td style="padding:5px 8px;font-size:0.78rem;color:#c0c0d8;white-space:nowrap;">2024-05-26</td>
-      <td style="padding:5px 8px;font-size:0.78rem;color:#9090b8;text-align:right;">94</td>
-      <td style="padding:5px 8px;font-size:0.78rem;color:#9090b8;text-align:right;">
-        7.2h
-      </td>
-      <td style="padding:5px 8px;font-size:0.72rem;color:#7c6af7;white-space:nowrap;">travel and landmarks</td>
-      <td style="padding:5px 8px;font-size:0.72rem;color:#7878a0;font-style:italic;">A outdoors shoot. during daytime. in sunny conditions.</td>
+      <td style="white-space:nowrap;font-weight:600;color:#c0c0d8;">2024-05-26</td>
+      <td><span style="font-size:0.68rem;background:rgba(124,106,247,0.15);color:#a090e0;border-radius:4px;padding:2px 7px;">travel and landmarks</span></td>
+      <td style="text-align:right;color:#9090b8;">94</td>
+      <td style="text-align:right;color:#9090b8;white-space:nowrap;">7.2h</td>
+      <td style="color:#7878a0;font-style:italic;line-height:1.5;">A outdoors shoot. during daytime. in sunny conditions.</td>
     </tr>
     
     <tr>
-      <td style="padding:5px 8px;font-size:0.78rem;color:#c0c0d8;white-space:nowrap;">2024-05-25</td>
-      <td style="padding:5px 8px;font-size:0.78rem;color:#9090b8;text-align:right;">131</td>
-      <td style="padding:5px 8px;font-size:0.78rem;color:#9090b8;text-align:right;">
-        4.5h
-      </td>
-      <td style="padding:5px 8px;font-size:0.72rem;color:#7c6af7;white-space:nowrap;">travel and landmarks</td>
-      <td style="padding:5px 8px;font-size:0.72rem;color:#7878a0;font-style:italic;">A outdoors shoot. during noon. in sunny conditions.</td>
+      <td style="white-space:nowrap;font-weight:600;color:#c0c0d8;">2024-05-25</td>
+      <td><span style="font-size:0.68rem;background:rgba(124,106,247,0.15);color:#a090e0;border-radius:4px;padding:2px 7px;">travel and landmarks</span></td>
+      <td style="text-align:right;color:#9090b8;">131</td>
+      <td style="text-align:right;color:#9090b8;white-space:nowrap;">4.5h</td>
+      <td style="color:#7878a0;font-style:italic;line-height:1.5;">A outdoors shoot. during noon. in sunny conditions.</td>
     </tr>
     
     </tbody>
@@ -3200,7 +3233,7 @@ canvas { max-height: 300px; }
 
 <div class="card mb">
   <div class="card-title">Similar Image Groups <span style="color:#8080aa;font-weight:400;">DINOv2 · DBSCAN ε=0.05</span></div>
-  <div class="card-desc">Images grouped by visual similarity using DINOv2 embeddings and DBSCAN clustering — the best-scoring image in each group is the keep candidate; the rest are safe to cull. Groups of 5 or more shown below.</div>
+  <div class="card-desc">Images grouped by visual similarity using DINOv2 embeddings and DBSCAN clustering — the best-scoring image in each group is the keep candidate; the rest are safe to cull. Top 10 largest groups shown.</div>
   <div class="strip mb">
     <div class="strip-item">
       <div class="strip-l" style="margin-bottom:0.25rem;">Groups Found</div>
@@ -3295,6 +3328,13 @@ canvas { max-height: 300px; }
       <td style="padding:4px 8px;font-size:0.78rem;color:#f87171;text-align:right;">4</td>
     </tr>
     
+    <tr>
+      <td style="padding:4px 8px;font-size:0.78rem;color:#9090b8;">travel and landmarks</td>
+      <td style="padding:4px 8px;font-size:0.78rem;color:#c0c0d8;text-align:right;">4</td>
+      <td style="padding:4px 8px;font-size:0.78rem;color:#7c6af7;text-align:right;">52.81</td>
+      <td style="padding:4px 8px;font-size:0.78rem;color:#f87171;text-align:right;">3</td>
+    </tr>
+    
     </tbody>
   </table>
 </div>
@@ -3310,7 +3350,7 @@ canvas { max-height: 300px; }
 
 <div class="card mb">
   <div class="card-title">ELA Forensics <span style="color:#8080aa;font-weight:400;">JPEG compression analysis</span></div>
-  <div class="card-desc">Error Level Analysis detects regions with inconsistent JPEG compression — a technique used in forensic contexts to identify locally edited or composited areas. <strong style="color:#f59e0b;">Note:</strong> images that have been processed in Lightroom and exported as JPEG (as most in this library are) will naturally score higher than unedited camera originals. This is expected — Lightroom applies sharpening, noise reduction, and local adjustments that create compression-level variation across regions. A high score here reflects <em>editing activity</em>, not AI generation or deceptive manipulation. Use it as a relative signal — outliers with an unusually high score compared to the rest of your library are worth a closer look.</div>
+  <div class="card-desc">Error Level Analysis detects regions with inconsistent JPEG compression — a technique used in forensic contexts to identify locally edited or composited areas. <strong style="color:#f59e0b;">Note:</strong> images that have been processed in Lightroom and exported as JPEG (as most in this library are) will naturally score higher than unedited camera originals. This is expected — Lightroom applies sharpening, noise reduction, and local adjustments that create compression-level variation across regions. A high score here reflects <em>editing activity</em>, not AI generation or deceptive manipulation. Use it as a relative signal — outliers with an unusually high score compared to the rest of your library are worth a closer look. The extreme outlier count above uses a 3×IQR fence: any image whose max error exceeds Q3 + 3 × (Q3 − Q1), where Q1 and Q3 are your library's 25th and 75th percentile scores, is flagged. This adapts to your library's own baseline rather than a fixed cutoff.</div>
   <div class="strip mb">
     <div class="strip-item">
       <div class="strip-v">5107</div>
@@ -3318,14 +3358,14 @@ canvas { max-height: 300px; }
       <div class="strip-s">non-JPEG files skipped</div>
     </div>
     <div class="strip-item">
-      <div class="strip-v" style="color:#f87171;">4435</div>
-      <div class="strip-l">Suspicious</div>
-      <div class="strip-s">86.8% of JPEGs (max error &gt; 35)</div>
-    </div>
-    <div class="strip-item">
       <div class="strip-v">60.98</div>
       <div class="strip-l">Avg Max Error</div>
-      <div class="strip-s">avg mean: 1.835</div>
+      <div class="strip-s">library baseline</div>
+    </div>
+    <div class="strip-item">
+      <div class="strip-v" style="color:#f87171;">1</div>
+      <div class="strip-l">Extreme Outliers</div>
+      <div class="strip-s">max error &gt; 171.0 (3×IQR above Q3)</div>
     </div>
   </div>
 </div>
@@ -3635,6 +3675,8 @@ const GD = { responsive: true, plugins: { legend: { display: false } }, scales: 
 </div><!-- /.page -->
 </div><!-- /#main-content -->
 
+<button id="back-to-top" aria-label="Back to top">↑</button>
+
 <script>
 (function() {
   const sbLinks = Array.from(document.querySelectorAll("#sidebar a"));
@@ -3646,6 +3688,14 @@ const GD = { responsive: true, plugins: { legend: { display: false } }, scales: 
   }
   window.addEventListener("scroll", update, { passive: true });
   update();
+})();
+
+(function () {
+  const btn = document.getElementById('back-to-top');
+  window.addEventListener('scroll', () => {
+    btn.classList.toggle('visible', window.scrollY / document.body.scrollHeight > 0.15);
+  }, { passive: true });
+  btn.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
 })();
 </script>
 
