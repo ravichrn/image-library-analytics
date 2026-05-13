@@ -36,14 +36,14 @@ MPS (Apple Silicon) or CUDA used automatically if available; falls back to CPU. 
 
 8 passes — each caches results by SHA-256 so repeat runs only process new or changed photos. All ML passes use batched inference; Pass 1 runs in parallel across CPU cores.
 
-1. **EXIF · Color · Composition · ELA** — parallel CPU pass; extracts focal length, aperture, ISO, shooting time, palette, saturation, brightness, contrast, sharpness, tonal zones, rule of thirds, negative space, horizon, subject isolation; ELA re-compresses each JPEG at quality 75 and flags compression inconsistencies
-2. **CLIP (ViT-L/14) + LAION MLP** — batched; scene classification (10 labels) + aesthetic score 0–100
-3. **MUSIQ (pyiqa)** — CPU pass; technical IQ score per photo — blur, noise, compression, exposure quality; flags photos with high aesthetic but low technical quality
-4. **DINOv2-base** — batched; 768-dim visual embeddings → UMAP 2D + KMeans clustering + DBSCAN burst/near-duplicate detection + event narrative diversity selection
-5. **Depth Anything v2 (Small)** — batched depth estimation → depth range, complexity, subject-background separation
-6. **Florence-2-base** — batched; detailed caption + 5 VQA questions per photo (people, setting, time of day, weather, season); captions used for event narratives
-7. **RMBG-1.4 saliency (briaai/RMBG-1.4)** — subject mask per photo → area %, centroid, off-center distance, 3×3 placement distribution
-8. **YOLOv8n-pose** — portrait photos only (where Florence-2 detected a person); 80-class object detection + human pose keypoints → pose type, body coverage
+1. **EXIF · Color · Composition · ELA** — parallel CPU; focal length, aperture, ISO, shooting time, palette, tonal zones, rule of thirds, negative space, horizon, subject isolation; ELA re-compresses each JPEG at quality 75 to flag compression inconsistencies
+2. **CLIP + LAION MLP** — batched; scene classification + aesthetic score
+3. **MUSIQ** — CPU; technical IQ score; flags photos with high aesthetic but low technical quality
+4. **DINOv2** — batched; embeddings → UMAP 2D + KMeans clustering + DBSCAN near-duplicate detection; selects diverse images per event for narrative generation
+5. **Depth Anything v2** — batched; depth range, complexity, subject-background separation
+6. **Florence-2** — batched; detailed caption + 5 VQA questions per photo (people, setting, time of day, weather, season)
+7. **RMBG-1.4** — subject mask per photo → area %, centroid, off-center distance, 3×3 placement distribution
+8. **YOLOv8n-pose** — portrait photos only (Florence-2 detected a person); object detection + pose keypoints → pose type, body coverage
 
 Lightroom metadata (develop settings, ratings, keywords) is fetched via delta sync — only new or updated assets are pulled from the API on each run. If nothing has changed, all data is served from local SQLite cache with no API calls.
 
@@ -96,11 +96,11 @@ open docs/report.html
 
 ### Cache pruning
 
-Over time the cache accumulates entries for photos you've deleted from your library. Run `--prune` periodically to keep the report in sync:
+Run `--prune` periodically to remove cache entries for deleted photos:
 
-- **Local source** — compares the cache against a fresh filesystem scan; any file no longer on disk is removed.
-- **Lightroom source** — performs a full API fetch (no delta filter) to get the true current asset list, then removes anything not returned. This is the only reliable way to detect Lightroom deletions since the delta sync only surfaces new and updated assets, not deleted ones.
-- **Both sources** — combines the above.
+- **Local** — compares cache against a fresh filesystem scan; removes files no longer on disk.
+- **Lightroom** — performs a full API fetch (bypassing delta sync) to get the true current asset list, then removes anything not returned. Delta sync only surfaces new and updated assets, not deletions.
+- **Both** — combines the above.
 
 Orphaned rendition files in `cache/renditions/` are also deleted for any pruned hash.
 
