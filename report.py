@@ -71,5 +71,10 @@ def generate_html(data: dict, path: Path = OUTPUT_DIR / "report.html") -> None:
         ela_stats=agg.get("ela_stats", {}),
         album_stats=agg.get("album_stats", {}),
         coach=data.get("coach"),
+        # model upgrades
+        iq_stats=agg.get("iq_stats", {}),
+        object_frequency=agg.get("object_frequency", {}),
+        pose_stats=agg.get("pose_stats", {}),
+        aesthetic_by_vqa=agg.get("aesthetic_by_vqa", {}),
     )
     path.write_text(html)

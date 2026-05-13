@@ -1,14 +1,37 @@
+import base64
 import colorsys
 import math
+import os
 from collections import Counter, defaultdict
-from datetime import datetime
+from datetime import datetime, timedelta
+from io import BytesIO
 from pathlib import Path
+
+
+def _show_thumbnails() -> bool:
+    return os.environ.get("SHOW_THUMBNAILS", "false").lower() == "true"
 
 import numpy as np
 from sklearn.cluster import DBSCAN, KMeans
 from umap import UMAP
 
+from PIL import Image as _PILImage
+
 from extractors import hour_to_time_of_day
+
+
+def _thumb_b64(rec: dict, size: int = 72) -> str | None:
+    path = rec.get("path") or rec.get("rendition_path")
+    if not path:
+        return None
+    try:
+        with _PILImage.open(path) as img:
+            img.thumbnail((size, size))
+            buf = BytesIO()
+            img.convert("RGB").save(buf, format="JPEG", quality=60)
+            return base64.b64encode(buf.getvalue()).decode()
+    except Exception:
+        return None
 
 
 def _mean(vals: list) -> float | None:
@@ -226,16 +249,18 @@ def aggregate(records: list[dict]) -> dict:
         labels = km.fit_predict(matrix).tolist()
 
         n_neighbors = min(15, len(umap_valid) - 1)
-        reducer = UMAP(n_components=2, n_neighbors=n_neighbors, random_state=42)
+        reducer = UMAP(n_components=2, n_neighbors=n_neighbors, random_state=42, transform_seed=42, init="spectral")
         coords = reducer.fit_transform(matrix)
 
         points = []
         for (orig_i, rec), lbl, (x, y) in zip(umap_valid, labels, coords):
             points.append({
                 "x": round(float(x), 4), "y": round(float(y), 4),
-                "cluster": lbl, "path": Path(rec.get("path", "")).name,
+                "cluster": lbl, "path": Path(rec.get("path", "") or "").name,
                 "scene_type": rec.get("scene", {}).get("scene_type", "unknown"),
                 "aesthetic_score": rec.get("aesthetic_score"),
+                "in_album": bool(rec.get("lightroom_album_names")),
+                "thumb": _thumb_b64(rec) if _show_thumbnails() else None,
             })
         clusters_out = {
             "n_clusters": n_clusters, "labels": labels,
@@ -405,7 +430,7 @@ def aggregate(records: list[dict]) -> dict:
     }
 
     # ── color by scene ────────────────────────────────────────────────────────
-    color_by_scene_data: dict = defaultdict(lambda: {"sats": [], "warm": [], "warmths": [], "brightness": [], "aesthetics": []})
+    color_by_scene_data: dict = defaultdict(lambda: {"sats": [], "warm": [], "warmths": [], "brightness": [], "aesthetics": [], "contrasts": []})
     for r in records:
         scene = r.get("scene", {}).get("scene_type")
         col_d = r.get("color", {})
@@ -415,6 +440,7 @@ def aggregate(records: list[dict]) -> dict:
             wt = col_d.get("warmth")
             b = col_d.get("avg_brightness")
             a = r.get("aesthetic_score")
+            c = col_d.get("avg_contrast")
             if sat is not None:
                 color_by_scene_data[scene]["sats"].append(sat)
             if wr is not None:
@@ -425,14 +451,19 @@ def aggregate(records: list[dict]) -> dict:
                 color_by_scene_data[scene]["brightness"].append(b)
             if a is not None:
                 color_by_scene_data[scene]["aesthetics"].append(a)
+            if c is not None:
+                color_by_scene_data[scene]["contrasts"].append(c)
 
     color_by_scene = {}
     for scene, data in color_by_scene_data.items():
         dominant_warmth = Counter(data["warmths"]).most_common(1)[0][0] if data["warmths"] else "unknown"
+        aes_s = aesthetic_by_scene.get(scene, {})
         color_by_scene[scene] = {
             "avg_saturation": round(float(np.mean(data["sats"])), 3) if data["sats"] else None,
             "avg_brightness": round(float(np.mean(data["brightness"])), 3) if data["brightness"] else None,
+            "avg_contrast": round(float(np.mean(data["contrasts"])), 3) if data["contrasts"] else None,
             "avg_aesthetic": round(float(np.mean(data["aesthetics"])), 2) if data["aesthetics"] else None,
+            "aesthetic_std": round(float(aes_s["std"]), 2) if aes_s.get("std") is not None else None,
             "avg_warmth_ratio": round(float(np.mean(data["warm"])), 3) if data["warm"] else None,
             "dominant_warmth": dominant_warmth,
             "count": len(data["sats"]),
@@ -576,6 +607,69 @@ def aggregate(records: list[dict]) -> dict:
     dominant_harmony = harmony_counter.most_common(1)[0][0] if harmony_counter else "unknown"
     harmony_total = sum(harmony_counter.values()) or 1
 
+    # ── Split toning / color grading from Lightroom develop settings ────────
+    _TONING_KEYS = [
+        "SplitToningShadowHue", "SplitToningShadowSaturation",
+        "SplitToningHighlightHue", "SplitToningHighlightSaturation",
+        "SplitToningBalance",
+        "ColorGradeMidtoneHue", "ColorGradeMidtoneSat",
+        "ColorGradeShadowLum", "ColorGradeMidtoneLum", "ColorGradeHighlightLum",
+        "ColorGradeGlobalHue", "ColorGradeGlobalSat",
+    ]
+    toning_accum: dict[str, list] = {k: [] for k in _TONING_KEYS}
+    for r in records:
+        dev = r.get("lightroom_develop", {})
+        for k in _TONING_KEYS:
+            v = dev.get(k)
+            if v is not None:
+                toning_accum[k].append(float(v))
+
+    def _tavg(key: str) -> float | None:
+        return _mean(toning_accum.get(key, []))
+
+    def _hsl_to_hex(hue_deg: float | None, sat_pct: float | None, lum: float = 0.5) -> str | None:
+        if hue_deg is None or sat_pct is None or sat_pct < 2:
+            return None
+        r, g, b = colorsys.hls_to_rgb(hue_deg / 360, lum, sat_pct / 100)
+        return "#{:02x}{:02x}{:02x}".format(int(r * 255), int(g * 255), int(b * 255))
+
+    def _hue_name(hue: float | None) -> str | None:
+        if hue is None:
+            return None
+        h = hue % 360
+        if h < 20 or h >= 340: return "red"
+        if h < 45: return "orange"
+        if h < 70: return "yellow"
+        if h < 150: return "green"
+        if h < 200: return "cyan/teal"
+        if h < 260: return "blue"
+        if h < 290: return "purple"
+        return "magenta"
+
+    _sh_sat = _tavg("SplitToningShadowSaturation") or 0
+    _hl_sat = _tavg("SplitToningHighlightSaturation") or 0
+    sh_name = _hue_name(_tavg("SplitToningShadowHue")) if _sh_sat > 3 else None
+    hl_name = _hue_name(_tavg("SplitToningHighlightHue")) if _hl_sat > 3 else None
+    if sh_name and hl_name:
+        toning_style = f"{hl_name.capitalize()} highlights · {sh_name} shadows"
+    elif sh_name:
+        toning_style = f"{sh_name.capitalize()} shadows"
+    elif hl_name:
+        toning_style = f"{hl_name.capitalize()} highlights"
+    else:
+        toning_style = "Neutral (no toning)"
+
+    split_toning = {
+        "shadow_color":    _hsl_to_hex(_tavg("SplitToningShadowHue"),    _tavg("SplitToningShadowSaturation"),    0.22),
+        "midtone_color":   _hsl_to_hex(_tavg("ColorGradeMidtoneHue"),    _tavg("ColorGradeMidtoneSat"),           0.50),
+        "highlight_color": _hsl_to_hex(_tavg("SplitToningHighlightHue"), _tavg("SplitToningHighlightSaturation"), 0.78),
+        "toning_style": toning_style,
+        "avg_balance": round(_tavg("SplitToningBalance") or 0, 1),
+        "shadow_lum_shift":    round(_tavg("ColorGradeShadowLum") or 0, 1),
+        "midtone_lum_shift":   round(_tavg("ColorGradeMidtoneLum") or 0, 1),
+        "highlight_lum_shift": round(_tavg("ColorGradeHighlightLum") or 0, 1),
+    }
+
     color_grading_stats = {
         "tonal_style": tonal_style,
         "tonal_description": tonal_desc,
@@ -587,6 +681,7 @@ def aggregate(records: list[dict]) -> dict:
         "color_harmony_dist": color_harmony_dist,
         "dominant_harmony": dominant_harmony,
         "harmony_pcts": {k: round(v / harmony_total * 100, 1) for k, v in harmony_counter.most_common()},
+        "split_toning": split_toning,
     }
 
     # ── composition patterns ──────────────────────────────────────────────────
@@ -741,6 +836,21 @@ def aggregate(records: list[dict]) -> dict:
         k: _vqa_dist(vqa_counters[k]) for k in VQA_KEYS
     }
     visual_attributes["total_analyzed"] = vqa_total
+
+    # ── Aesthetic score by VQA condition (Florence-2) ────────────────────────
+    aesthetic_by_vqa: dict[str, dict[str, float]] = {}
+    for field in VQA_KEYS:
+        buckets: dict[str, list] = {}
+        for r in records:
+            val = (r.get("caption") or {}).get(field, "")
+            score = r.get("aesthetic_score")
+            if val and score:
+                buckets.setdefault(val, []).append(score)
+        aesthetic_by_vqa[field] = {
+            k: round(sum(v) / len(v), 1)
+            for k, v in sorted(buckets.items(), key=lambda x: -(sum(x[1]) / len(x[1])))
+            if len(v) >= 3
+        }
 
     # ── Lightroom develop stats ───────────────────────────────────────────────
     DEVELOP_KEYS = [
@@ -970,6 +1080,9 @@ def aggregate(records: list[dict]) -> dict:
         "most_edited_scene": most_edited_scene,
         "aesthetic_by_intensity": intensity_aesthetic_corr,
     }
+    for scene, val in editing_intensity["by_scene"].items():
+        if scene in color_by_scene:
+            color_by_scene[scene]["editing_intensity"] = val
 
     # ── Pick / reject analysis ────────────────────────────────────────────────
     pick_buckets: dict[int, dict] = {1: {"aesthetics": [], "sharpness": [], "scenes": []},
@@ -1102,10 +1215,16 @@ def aggregate(records: list[dict]) -> dict:
             event_groups.append(current)
 
         def _event_narrative(ev_records):
+            # Prefer Florence-2 detailed caption from the hero (highest aesthetic) photo
+            hero = max(ev_records, key=lambda r: r.get("aesthetic_score") or 0)
+            detailed = hero.get("caption", {}).get("detailed_caption", "").strip()
+            if detailed:
+                return detailed
+
+            # Fallback: build narrative from VQA fields
             captions = [r.get("caption", {}) for r in ev_records if r.get("caption")]
             if not captions:
                 return ""
-            # pick up to 3 most diverse by DINOv2, fallback to top aesthetic
             dino_ev = [(i, r.get("dinov2")) for i, r in enumerate(ev_records) if r.get("dinov2")]
             if len(dino_ev) >= 3:
                 vecs_ev = np.array([v for _, v in dino_ev], dtype=np.float32)
@@ -1123,14 +1242,10 @@ def aggregate(records: list[dict]) -> dict:
                 rep_caps = [r.get("caption", {}) for r in sorted_ev[:3] if r.get("caption")]
 
             settings = [c.get("setting") for c in rep_caps if c.get("setting")]
-            people = [c.get("people") for c in rep_caps if c.get("people")]
             tod = next((c.get("time_of_day") for c in rep_caps if c.get("time_of_day")), None)
             weather = next((c.get("weather") for c in rep_caps if c.get("weather")), None)
             setting_str = settings[0] if settings else "mixed"
-            people_str = people[0] if people else ""
             parts = [f"A {setting_str} shoot"]
-            if people_str:
-                parts.append(people_str)
             if tod:
                 parts.append(f"during {tod}")
             if weather and weather.lower() not in ("clear", "unknown"):
@@ -1156,11 +1271,13 @@ def aggregate(records: list[dict]) -> dict:
                 "narrative": _event_narrative(ev_records),
             })
         event_list.sort(key=lambda e: e["date"], reverse=True)
+        cutoff_date = (datetime.now() - timedelta(days=730)).strftime("%Y-%m-%d")
+        display_events = [e for e in event_list if e["photo_count"] >= 50 and e["date"] >= cutoff_date]
         events = {
             "total_events": len(event_list),
             "avg_photos_per_event": round(sum(e["photo_count"] for e in event_list) / len(event_list), 1) if event_list else 0,
             "largest_event": max((e["photo_count"] for e in event_list), default=0),
-            "events": event_list,
+            "events": display_events,
         }
 
     # ── ELA stats ─────────────────────────────────────────────────────────────
@@ -1229,15 +1346,66 @@ def aggregate(records: list[dict]) -> dict:
         for name in r["lightroom_album_names"]:
             album_counter[name].append(r)
 
+    def _album_hsl_to_hex(hue_deg: float | None, sat_pct: float | None, lum: float = 0.5) -> str | None:
+        if hue_deg is None or sat_pct is None or sat_pct < 2:
+            return None
+        r2, g2, b2 = colorsys.hls_to_rgb(hue_deg / 360, lum, sat_pct / 100)
+        return "#{:02x}{:02x}{:02x}".format(int(r2 * 255), int(g2 * 255), int(b2 * 255))
+
     album_breakdown = []
     for name, recs in sorted(album_counter.items(), key=lambda x: -len(x[1])):
         aes = [r.get("aesthetic_score") for r in recs if r.get("aesthetic_score") is not None]
-        scenes = [r.get("scene", {}).get("scene_type") for r in recs if r.get("scene")]
+        # Color stats
+        sats_a = [r.get("color", {}).get("avg_saturation") for r in recs if (r.get("color") or {}).get("avg_saturation") is not None]
+        brights_a = [r.get("color", {}).get("avg_brightness") for r in recs if (r.get("color") or {}).get("avg_brightness") is not None]
+        warm_a = [r.get("color", {}).get("warm_ratio") for r in recs if (r.get("color") or {}).get("warm_ratio") is not None]
+        # Improved palette: merge similar colors by Euclidean distance < 30
+        merged_palette: dict[tuple, float] = {}
+        for r in recs:
+            for sw in (r.get("color") or {}).get("palette") or []:
+                rgb = tuple(int(x) for x in sw["rgb"])
+                weight = sw.get("weight", 0)
+                best_key = None
+                best_dist = 30
+                for k in merged_palette:
+                    d = (sum((a - b) ** 2 for a, b in zip(rgb, k))) ** 0.5
+                    if d < best_dist:
+                        best_dist = d
+                        best_key = k
+                if best_key:
+                    merged_palette[best_key] += weight
+                else:
+                    merged_palette[rgb] = weight
+        top_colors = ["#{:02x}{:02x}{:02x}".format(*k) for k in sorted(merged_palette, key=lambda k: -merged_palette[k])[:6]]
+        # Tonal colors from Lightroom develop settings
+        sh_hues_a = [float(r["lightroom_develop"]["SplitToningShadowHue"]) for r in recs if r.get("lightroom_develop", {}).get("SplitToningShadowHue") is not None]
+        sh_sats_a = [float(r["lightroom_develop"]["SplitToningShadowSaturation"]) for r in recs if r.get("lightroom_develop", {}).get("SplitToningShadowSaturation") is not None]
+        hl_hues_a = [float(r["lightroom_develop"]["SplitToningHighlightHue"]) for r in recs if r.get("lightroom_develop", {}).get("SplitToningHighlightHue") is not None]
+        hl_sats_a = [float(r["lightroom_develop"]["SplitToningHighlightSaturation"]) for r in recs if r.get("lightroom_develop", {}).get("SplitToningHighlightSaturation") is not None]
+        mt_hues_a = [float(r["lightroom_develop"]["ColorGradeMidtoneHue"]) for r in recs if r.get("lightroom_develop", {}).get("ColorGradeMidtoneHue") is not None]
+        mt_sats_a = [float(r["lightroom_develop"]["ColorGradeMidtoneSat"]) for r in recs if r.get("lightroom_develop", {}).get("ColorGradeMidtoneSat") is not None]
+        tonal_colors = {
+            "shadow":    _album_hsl_to_hex(_mean(sh_hues_a), _mean(sh_sats_a), 0.25),
+            "midtone":   _album_hsl_to_hex(_mean(mt_hues_a), _mean(mt_sats_a), 0.50),
+            "highlight": _album_hsl_to_hex(_mean(hl_hues_a), _mean(hl_sats_a), 0.75),
+        }
+        intensities_a = [
+            sum(abs(float(r["lightroom_develop"][k]) - default)
+                for k, default in _INTENSITY_DEFAULTS.items()
+                if k in r.get("lightroom_develop", {}))
+            for r in recs if r.get("lightroom_develop")
+        ]
         album_breakdown.append({
             "name": name,
             "count": len(recs),
             "avg_aesthetic": round(float(np.mean(aes)), 2) if aes else None,
-            "top_scene": Counter(s for s in scenes if s).most_common(1)[0][0] if scenes else None,
+            "aesthetic_std": round(float(np.std(aes)), 2) if len(aes) > 1 else None,
+            "avg_editing_intensity": round(float(np.mean(intensities_a)), 1) if intensities_a else None,
+            "avg_saturation": round(float(np.mean(sats_a)), 3) if sats_a else None,
+            "avg_brightness": round(float(np.mean(brights_a)), 3) if brights_a else None,
+            "avg_warmth": round(float(np.mean(warm_a)), 2) if warm_a else None,
+            "top_colors": top_colors,
+            "tonal_colors": tonal_colors,
         })
 
     scene_in_ctr: Counter = Counter()
@@ -1265,6 +1433,84 @@ def aggregate(records: list[dict]) -> dict:
         "avg_aesthetic_out": round(float(np.mean(out_aes)), 2) if out_aes else None,
         "albums": album_breakdown,
         "scene_curation_rate": scene_curation_rate,
+    }
+
+    # ── MUSIQ IQ score stats ─────────────────────────────────────────────────
+    iq_scores = [r.get("iq_score") for r in records if r.get("iq_score") is not None]
+    if iq_scores:
+        buckets = [0] * 10
+        for s in iq_scores:
+            buckets[min(int(s * 10), 9)] += 1
+        iq_stats = {
+            "avg": _mean(iq_scores),
+            "std": _std(iq_scores),
+            "distribution": buckets,
+            "high_aesthetic_low_iq_count": sum(
+                1 for r in records
+                if (r.get("aesthetic_score") or 0) > 70
+                and r.get("iq_score") is not None
+                and r["iq_score"] < 0.4
+            ),
+        }
+    else:
+        iq_stats = {"avg": None, "std": None, "distribution": [], "high_aesthetic_low_iq_count": 0, "unavailable": True}
+
+    # ── Object frequency (from YOLOv8-Pose) ─────────────────────────────────
+    obj_counter: Counter = Counter()
+    for r in records:
+        for obj in r.get("pose_data", {}).get("detected_objects", []):
+            obj_counter[obj["label"]] += 1
+    object_frequency = dict(obj_counter.most_common(20))
+
+    # ── Pose stats (portrait photos only) ────────────────────────────────────
+    portrait_records = [r for r in records if r.get("pose_data")]
+    pose_types = [
+        r.get("pose_data", {}).get("pose", {}).get("pose_type")
+        for r in portrait_records
+        if r.get("pose_data", {}).get("pose", {}).get("pose_type")
+    ]
+    framing_tiers: dict[str, int] = {"tight": 0, "medium": 0, "wide": 0}
+    framing_aesthetic: dict[str, list] = {"tight": [], "medium": [], "wide": []}
+    pose_aesthetic: dict[str, list] = {}
+    person_count_dist: dict[str, int] = {"1": 0, "2": 0, "3": 0, "4+": 0}
+    solo_vs_group: dict[str, int] = {"solo": 0, "group": 0}
+    for r in portrait_records:
+        pose = r.get("pose_data", {}).get("pose", {})
+        coverage = pose.get("body_coverage")
+        person_count = pose.get("person_count", 1) or 1
+        pose_type = pose.get("pose_type")
+        aesthetic = r.get("aesthetic_score")
+        if coverage is not None:
+            tier = "tight" if coverage < 0.25 else ("wide" if coverage > 0.55 else "medium")
+            framing_tiers[tier] += 1
+            if aesthetic:
+                framing_aesthetic[tier].append(aesthetic)
+        if pose_type and aesthetic:
+            pose_aesthetic.setdefault(pose_type, []).append(aesthetic)
+        key = str(min(person_count, 3)) if person_count <= 3 else "4+"
+        person_count_dist[key] += 1
+        solo_vs_group["solo" if person_count == 1 else "group"] += 1
+    coverages = [
+        r.get("pose_data", {}).get("pose", {}).get("body_coverage")
+        for r in portrait_records
+        if r.get("pose_data", {}).get("pose", {}).get("body_coverage") is not None
+    ]
+    pose_stats = {
+        "pose_type_distribution": dict(Counter(pose_types)),
+        "avg_body_coverage": _mean(coverages),
+        "portrait_count": len(portrait_records),
+        "framing_tiers": framing_tiers,
+        "framing_aesthetic": {
+            k: round(sum(v) / len(v), 1) if v else None
+            for k, v in framing_aesthetic.items()
+        },
+        "pose_type_aesthetic": {
+            k: round(sum(v) / len(v), 1) for k, v in
+            sorted(pose_aesthetic.items(), key=lambda x: -(sum(x[1]) / len(x[1])))
+            if v
+        },
+        "person_count_dist": person_count_dist,
+        "solo_vs_group": solo_vs_group,
     }
 
     return {
@@ -1314,4 +1560,9 @@ def aggregate(records: list[dict]) -> dict:
         "events": events,
         "ela_stats": ela_stats,
         "album_stats": album_stats,
+        # model upgrades
+        "iq_stats": iq_stats,
+        "object_frequency": object_frequency,
+        "pose_stats": pose_stats,
+        "aesthetic_by_vqa": aesthetic_by_vqa,
     }

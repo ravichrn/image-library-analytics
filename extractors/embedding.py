@@ -9,9 +9,9 @@ def load_dino_model() -> tuple:
         else "mps" if torch.backends.mps.is_available()
         else "cpu"
     )
-    processor = AutoImageProcessor.from_pretrained("facebook/dinov2-small")
+    processor = AutoImageProcessor.from_pretrained("facebook/dinov2-base")
     model = AutoModel.from_pretrained(
-        "facebook/dinov2-small",
+        "facebook/dinov2-base",
         torch_dtype=torch.float16 if device != "cpu" else torch.float32,
     )
     model.eval()

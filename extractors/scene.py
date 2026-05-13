@@ -40,6 +40,68 @@ class _AestheticMLP(nn.Module):
         return self.layers(x)
 
 
+def load_musiq_metric():
+    """Load MUSIQ IQA metric on CPU (avoids MPS op compatibility issues)."""
+    try:
+        import pyiqa
+        return pyiqa.create_metric("musiq", device="cpu")
+    except Exception:
+        return None
+
+
+def extract_iq_batch(paths: list, iq_metric, batch_size: int = 16) -> list[float | None]:
+    """Run MUSIQ in batches. Preprocesses all images first, then runs batched inference."""
+    import torch
+    from PIL import Image
+    from torchvision import transforms
+
+    preprocess = transforms.Compose([
+        transforms.Resize((224, 224)),
+        transforms.ToTensor(),
+        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+    ])
+
+    results: list[float | None] = [None] * len(paths)
+    valid: list[tuple[int, Path]] = [(i, p) for i, p in enumerate(paths) if p is not None]
+
+    for start in range(0, len(valid), batch_size):
+        chunk = valid[start : start + batch_size]
+        tensors: list[torch.Tensor] = []
+        indices: list[int] = []
+        for i, path in chunk:
+            try:
+                with Image.open(path) as img:
+                    tensors.append(preprocess(img.convert("RGB")))
+                indices.append(i)
+            except Exception:
+                pass
+
+        if not tensors:
+            continue
+
+        batch = torch.stack(tensors)  # [B, C, H, W]
+        try:
+            with torch.no_grad():
+                scores = iq_metric(batch)
+            if isinstance(scores, torch.Tensor):
+                scores = scores.flatten().tolist()
+            else:
+                scores = list(scores)
+            for idx, score in zip(indices, scores):
+                results[idx] = round(float(score), 4)
+        except Exception:
+            # fallback: per-image if batched call fails
+            for idx, tensor in zip(indices, tensors):
+                try:
+                    with torch.no_grad():
+                        s = iq_metric(tensor.unsqueeze(0))
+                    results[idx] = round(float(s.item()), 4)
+                except Exception:
+                    pass
+
+    return results
+
+
 def load_clip_models() -> tuple:
     model, preprocess, _ = open_clip.create_model_and_transforms("ViT-L-14", pretrained="openai")
     tokenizer = open_clip.get_tokenizer("ViT-L-14")

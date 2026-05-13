@@ -1,45 +1,49 @@
 # Image Library Analytics
 
-Analyzes your photo library locally and creates an interactive HTML dashboard with deep metrics across composition, color, aesthetics, editing style, and shooting patterns. Supports local folders and Adobe Lightroom cloud.
+An image library analysis tool that generates an interactive HTML dashboard with deep metrics across composition, color, aesthetics, editing style, and shooting patterns. All ML inference runs on-device. Supports local folders and Adobe Lightroom cloud.
 
 **[Live report →](https://ravichrn.github.io/image-library-analytics/report.html)**
 
-## Models (all local, ~5GB total)
+## Models (all local, ~6.5GB total)
 
 | Model | Purpose |
 |---|---|
 | CLIP ViT-L/14 | Zero-shot scene classification (10 labels) + aesthetic score |
 | LAION aesthetic predictor MLP | Aesthetic score 0–100 (768→1024→128→64→16→1) |
-| DINOv2-small | 768-dim visual embeddings for UMAP + clustering + burst detection |
+| MUSIQ (pyiqa) | Technical IQ score — noise, blur, exposure quality; runs on CPU |
+| DINOv2-base | 768-dim visual embeddings for UMAP + clustering + burst detection |
 | Depth Anything v2 Small | Monocular depth estimation — depth range, complexity, subject separation |
-| BLIP VQA base | Visual question answering — people, setting, time of day, weather, season per photo |
+| Florence-2-base | VQA (people, setting, time, weather, season) + detailed caption per photo |
 | RMBG-1.4 (briaai/RMBG-1.4) | Salient object detection — subject area, centroid, off-center placement |
+| YOLOv8n-pose | Object detection (80 COCO classes) + human pose estimation for portrait photos |
 | ELA (built-in) | Error Level Analysis — JPEG re-compression at quality 75, detects inconsistent compression artifacts |
 
-MPS (Apple Silicon) or CUDA used automatically if available; falls back to CPU. Requires ~6GB RAM.
+MPS (Apple Silicon) or CUDA used automatically if available; falls back to CPU. Requires ~8GB RAM.
 
 ## Report sections
 
 | Category | Sections |
 |---|---|
-| **Library overview** | Summary stats, scene preferences, visual attributes (BLIP VQA), visual similarity map (UMAP) |
-| **Composition & depth** | Compositional style patterns, 3×3 subject placement heatmap, depth range & complexity by scene |
+| **Library overview** | Summary stats, scene preferences, visual attributes (Florence-2 VQA), visual similarity map (UMAP) |
+| **Composition & depth** | Composition style patterns, 3×3 composition grid (edge activity, subject placement, zone interpretation), depth range & complexity by scene |
 | **Technical** | Focal length / aperture / ISO histograms, sharpness & exposure, shooting hours, monthly shooting |
 | **Aesthetics & color** | Aesthetic score histogram + by-scene dot-plot, color grading, color & mood palette, color profile by scene |
 | **Editing style** | Editing style patterns, signature edit (median sliders), Lightroom develop heatmap, HSL DNA, trends over time |
-| **Curation & culling** | Quality issues, picks vs. rejects, portfolio albums, burst & near-duplicates, smart culling, ratings & keywords |
-| **Forensics & events** | ELA JPEG compression analysis, photo events with auto-narrative |
+| **Curation & culling** | Quality issues, picks vs. rejects, portfolio albums, photo events with auto-narrative (BLIP captions), similar image groups (DINOv2 + DBSCAN), ratings & keywords |
+| **Forensics** | ELA JPEG compression analysis |
 
 ## Pipeline
 
-6 passes — each caches results by SHA-256 so repeat runs only process new or changed photos. All ML passes use batched inference; Pass 1 runs in parallel across CPU cores.
+8 passes — each caches results by SHA-256 so repeat runs only process new or changed photos. All ML passes use batched inference; Pass 1 runs in parallel across CPU cores.
 
 1. **EXIF · Color · Composition · ELA** — parallel CPU pass; extracts focal length, aperture, ISO, shooting time, palette, saturation, brightness, contrast, sharpness, tonal zones, rule of thirds, negative space, horizon, subject isolation; ELA re-compresses each JPEG at quality 75 and flags compression inconsistencies
 2. **CLIP (ViT-L/14) + LAION MLP** — batched; scene classification (10 labels) + aesthetic score 0–100
-3. **DINOv2-small** — batched; 768-dim visual embeddings → UMAP 2D + KMeans clustering + DBSCAN burst/near-duplicate detection + event narrative diversity selection
-4. **Depth Anything v2 (Small)** — batched depth estimation → depth range, complexity, subject-background separation
-5. **BLIP VQA base** — 5 questions per photo in a single `generate()` call; batched across photos
-6. **RMBG-1.4 saliency (briaai/RMBG-1.4)** — subject mask per photo → area %, centroid, off-center distance, 3×3 placement distribution
+3. **MUSIQ (pyiqa)** — CPU pass; technical IQ score per photo — blur, noise, compression, exposure quality; flags photos with high aesthetic but low technical quality
+4. **DINOv2-base** — batched; 768-dim visual embeddings → UMAP 2D + KMeans clustering + DBSCAN burst/near-duplicate detection + event narrative diversity selection
+5. **Depth Anything v2 (Small)** — batched depth estimation → depth range, complexity, subject-background separation
+6. **Florence-2-base** — batched; detailed caption + 5 VQA questions per photo (people, setting, time of day, weather, season); captions used for event narratives
+7. **RMBG-1.4 saliency (briaai/RMBG-1.4)** — subject mask per photo → area %, centroid, off-center distance, 3×3 placement distribution
+8. **YOLOv8n-pose** — portrait photos only (where Florence-2 detected a person); 80-class object detection + human pose keypoints → pose type, body coverage
 
 Lightroom metadata (develop settings, ratings, keywords) is fetched via delta sync — only new or updated assets are pulled from the API on each run. If nothing has changed, all data is served from local SQLite cache with no API calls.
 

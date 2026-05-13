@@ -13,8 +13,24 @@ body {
   color: #d8d8e4;
   line-height: 1.65;
   font-size: 15px;
+  display: flex;
 }
+#sidebar {
+  width: 180px; min-width: 180px; position: sticky; top: 0; height: 100vh;
+  overflow-y: auto; background: #0c0c14; border-right: 1px solid #1a1a2e;
+  padding: 1.2rem 0; flex-shrink: 0; z-index: 100;
+}
+#sidebar .sb-logo { font-size: 0.6rem; font-weight: 800; color: #7c6af7; text-transform: uppercase;
+  letter-spacing: 0.14em; padding: 0 1.2rem 1.2rem; border-bottom: 1px solid #1a1a2e; margin-bottom: 0.6rem; }
+#sidebar .sb-label { font-size: 0.58rem; color: #3a3a5a; text-transform: uppercase;
+  letter-spacing: 0.1em; padding: 0.9rem 1.2rem 0.3rem; }
+#sidebar a { display: block; font-size: 0.76rem; color: #7878a0; padding: 0.42rem 1.2rem;
+  text-decoration: none; border-left: 2px solid transparent; transition: color 0.12s, border-color 0.12s; }
+#sidebar a:hover { color: #b8b8d0; border-left-color: #4a4a7a; }
+#sidebar a.sb-active { color: #c8c8de; border-left-color: #7c6af7; }
+#main-content { flex: 1; min-width: 0; }
 .page { max-width: 1160px; margin: 0 auto; padding: 0 1.5rem 6rem; }
+@media (max-width: 900px) { #sidebar { display: none; } body { display: block; } }
 
 /* ── Hero ──────────────────────────────────────────────────────── */
 .hero {
@@ -88,6 +104,7 @@ body {
 .c7-5  { grid-template-columns: 7fr 5fr; }
 @media (max-width: 780px) {
   .two, .three, .c3-2, .c2-3, .c4-8, .c5-7, .c7-5 { grid-template-columns: 1fr; }
+  #color-board-inner { grid-template-columns: 1fr !important; }
 }
 .mb { margin-bottom: 1rem; }
 
@@ -250,12 +267,27 @@ canvas { max-height: 300px; }
 </style>
 </head>
 <body>
+
+<nav id="sidebar">
+  <div class="sb-logo">Analytics</div>
+  <div class="sb-label">Library</div>
+  <a href="#s-overview">Overview</a>
+  <div class="sb-label">Explore</div>
+  <a href="#s-semantic">What You Shoot</a>
+  <a href="#s-technical">How You Shoot</a>
+  <a href="#s-aesthetics">Editing Style</a>
+  <a href="#s-when">When You Shoot</a>
+  <div class="sb-label">Signals</div>
+  <a href="#s-forensics">Forensics</a>
+</nav>
+
+<div id="main-content">
 <div class="page">
 
 <!-- ══════════════════════════════════════ HERO ══════════════════ -->
-<div class="hero">
+<div class="hero" id="s-overview">
   <h1 class="hero-title" style="font-size:1.9rem;letter-spacing:0.04em;font-weight:800;text-transform:uppercase;color:#c8c8de;">Image Library Analytics</h1>
-  <p class="hero-sub">{{ photo_count }} photos · analyzed entirely on-device · CLIP ViT-L/14 · LAION Aesthetic MLP · DINOv2 · Depth Anything v2 · BLIP VQA · RMBG-1.4</p>
+  <p class="hero-sub">{{ photo_count }} images · analyzed entirely on-device · CLIP ViT-L/14 · LAION Aesthetic MLP · DINOv2 · Depth Anything v2 · Florence-2 · RMBG-1.4</p>
   <div class="hero-digest">
     <div class="hero-digest-item">
       <div class="hd-label">Dominant Scene</div>
@@ -292,6 +324,7 @@ canvas { max-height: 300px; }
 </div>
 
 <!-- ══════════════════════════════════════ WHAT YOU SHOOT ══════════════════ -->
+<div id="s-semantic"></div>
 
 <!-- Scene Preferences (pie) + Visual Attributes -->
 <div class="row c4-8 mb">
@@ -302,9 +335,9 @@ canvas { max-height: 300px; }
   {% set va = visual_attributes %}
   {% if va and va.total_analyzed %}
   <div class="card">
-    <div class="card-title">Visual Attributes <span style="color:#8080aa;font-size:0.6rem;font-weight:400;">BLIP VQA · {{ va.total_analyzed }} photos</span></div>
-    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:1rem;">
-      {% set attr_meta = [("has_person","People Present","#7c6af7"),("setting","Setting","#10b981"),("time_of_day","Time of Day","#f59e0b"),("weather","Weather","#3b82f6"),("season","Season","#ec4899")] %}
+    <div class="card-title">Visual Attributes <span style="color:#8080aa;font-size:0.6rem;font-weight:400;">Florence-2 VQA · {{ va.total_analyzed }} images</span></div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1rem;">
+      {% set attr_meta = [("season","Season","#ec4899"),("has_person","People Present","#7c6af7"),("setting","Setting","#10b981"),("time_of_day","Time of Day","#f59e0b"),("weather","Weather","#3b82f6")] %}
       {% for key, label, color in attr_meta %}
       {% set items = va.get(key, []) %}{% if items %}
       <div>
@@ -324,18 +357,20 @@ canvas { max-height: 300px; }
       {% endif %}{% endfor %}
     </div>
 
+
   </div>
   {% endif %}
 </div>
 
 <!-- UMAP — compact -->
 <div class="card mb" style="padding: 1.2rem 1.6rem;">
-  <div class="card-title">Visual Similarity Map <span style="color:#8080aa;font-weight:400;font-size:0.6rem;">{{ umap_points|length }} of {{ umap_total }} photos · colored by scene · hover for details</span></div>
-  <div class="card-desc" style="margin-bottom:0.8rem;">Each dot is a photo, positioned by visual similarity using <strong style="color:#9090b8;">UMAP</strong> — a dimensionality reduction algorithm that compresses 768-dimensional DINOv2 visual embeddings down to 2D while preserving neighbourhood structure. <strong style="color:#9090b8;">The axes have no literal meaning</strong> (no "horizontal = brightness" etc.) — only relative distance matters: dots close together look visually similar, dots far apart look visually different. A photo isolated at the edge simply has a visual character unlike most others in your library — unusual lighting, colour, or subject matter. Clusters that overlap scene colours reflect consistent visual style across different subject categories.</div>
+  <div class="card-title">Visual Similarity Map <span style="color:#8080aa;font-weight:400;font-size:0.6rem;">{{ umap_points|length }} of {{ umap_total }} images · colored by scene · hover for details</span></div>
+  <div class="card-desc" style="margin-bottom:0.8rem;">Each dot is an image, positioned by visual similarity using <strong style="color:#9090b8;">UMAP</strong> on 768-dimensional DINOv2 embeddings. Proximity = visual similarity — dots close together look alike, dots far apart look different. An image isolated at the edge has a visual character unlike most others in your library. Clusters that overlap scene colours reflect consistent visual style across different subject categories.</div>
   <div class="chart-h" style="height:280px;"><canvas id="umapChart" style="max-height:280px;"></canvas></div>
 </div>
 
 <!-- ══════════════════════════════════════ HOW YOU SHOOT ══════════════════ -->
+<div id="s-technical"></div>
 
 <!-- Focal / Aperture / ISO -->
 {% if focal_length_histogram or aperture_histogram or iso_histogram %}
@@ -361,105 +396,120 @@ canvas { max-height: 300px; }
 </div>
 {% endif %}
 
-<!-- Compositional Style + Grid Heatmap -->
+<!-- Composition Analysis -->
 <div class="row c7-5 mb">
+
+  <!-- LEFT: Composition Style — pattern list + metrics strip -->
   <div class="card">
-    <div class="card-title">Compositional Style</div>
+    <div class="card-title">Composition Style</div>
     {% if composition_patterns %}
-    <div class="cp-list" style="margin-bottom:1rem;">
+    {% set cp_descs = {
+      "Rule of Thirds": "Subject or key element placed near a thirds intersection, adding visual tension and naturally directing the viewer's eye across the frame.",
+      "Subject Isolation": "Centre zone is significantly sharper than the surroundings — the subject pops cleanly from its background via shallow depth of field or high contrast.",
+      "Strong Symmetry": "High left/right mirroring across the frame, common in architectural subjects, reflections, or deliberately geometric compositions.",
+      "Negative Space": "Unusually large empty areas surround the subject, giving it room to breathe and drawing the viewer's attention through contrast with the void.",
+      "Foreground Interest": "Complex edge density in the bottom zone indicates foreground elements that add depth, texture, or layering to the scene.",
+    } %}
+    <div class="cp-list" style="margin-bottom:1.25rem;">
       {% for p in composition_patterns %}
       <div class="cp-row">
-        <div class="cp-pct" style="color:#8080aa;">{{ p.pct }}%</div>
+        <div class="cp-pct">{{ p.pct }}%</div>
         <div class="cp-body" style="flex:1;">
           <div class="cp-name">{{ p.name }}</div>
-          <div class="cp-desc">{{ p.description }}</div>
+          <div class="cp-desc">{{ cp_descs.get(p.name, p.description) }}</div>
           <div class="cp-bar"><div class="cp-bar-fill" style="width:{{ [p.pct,100]|min }}%;"></div></div>
         </div>
       </div>
       {% endfor %}
     </div>
     {% endif %}
-    <div class="stat-grid">
+    <div class="strip">
       {% for lbl, val, sub in [
-        ("Thirds Score", composition_stats.avg_thirds_score, "0 centred · 1 off-centre"),
-        ("Symmetry", composition_stats.avg_symmetry_score, "mirror ratio"),
+        ("Thirds Score", composition_stats.avg_thirds_score, "0 = centred · 1 = off-centre"),
+        ("Symmetry", composition_stats.avg_symmetry_score, "left/right mirror ratio"),
         ("Negative Space", composition_stats.avg_negative_space, "empty-frame fraction"),
         ("Subject Isolation", composition_stats.avg_subject_isolation, "centre sharpness ratio"),
-        ("Foreground Clutter", composition_stats.avg_foreground_clutter, "lower = cleaner"),
+        ("Foreground Clutter", composition_stats.avg_foreground_clutter, "lower = cleaner frame"),
       ] %}
-      <div class="stat">
-        <div class="stat-l">{{ lbl }}</div>
-        <div class="stat-v">{{ "%.2f"|format(val or 0) }}</div>
-        <div class="stat-s">{{ sub }}</div>
+      <div class="strip-item">
+        <div class="strip-l" style="margin-bottom:0.25rem;">{{ lbl }}</div>
+        <div class="strip-v" style="font-size:1rem;">{{ "%.2f"|format(val or 0) }}</div>
+        <div class="strip-s">{{ sub }}</div>
       </div>
       {% endfor %}
     </div>
   </div>
+
+  <!-- RIGHT: Composition Grid -->
   <div class="card">
     <div class="card-title">Composition Grid</div>
-    <div class="card-desc">Avg edge activity per 3×3 zone.</div>
     {% if grid_heatmap %}
     {% set flat = [] %}{% for row in grid_heatmap %}{% for v in row %}{% set _ = flat.append(v) %}{% endfor %}{% endfor %}
     {% set mxv = flat | max %}
-    <div class="heatmap" style="margin-bottom:1.25rem;">
-      {% for row in grid_heatmap %}{% for v in row %}
-        <div class="hm-cell" style="background:rgba(124,106,247,{{ (v/(mxv+0.001))|round(2) }});">{{ "%.2f"|format(v) }}</div>
-      {% endfor %}{% endfor %}
+    {% set center_val = grid_heatmap[1][1] %}
+    {% set corner_avg = (grid_heatmap[0][0] + grid_heatmap[0][2] + grid_heatmap[2][0] + grid_heatmap[2][2]) / 4 %}
+    {% set edge_avg = (grid_heatmap[0][1] + grid_heatmap[1][0] + grid_heatmap[1][2] + grid_heatmap[2][1]) / 4 %}
+
+    <!-- Edge activity + Subject placement: equal 1fr 1fr columns so grids are same size -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.25rem;margin-bottom:1.25rem;align-items:start;">
+      <div>
+        <div style="font-size:0.65rem;color:#7878a0;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:0.5rem;">Edge Activity</div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:3px;">
+          {% for row in grid_heatmap %}{% for v in row %}
+          <div style="aspect-ratio:1;background:rgba(124,106,247,{{ (v/(mxv+0.001))|round(2) }});border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:0.65rem;color:#e0d8ff;font-weight:500;">{{ "%.2f"|format(v) }}</div>
+          {% endfor %}{% endfor %}
+        </div>
+        <div style="margin-top:0.5rem;font-size:0.75rem;color:#7878a8;line-height:1.45;">Brighter = more edges and detail in that zone. Centre <strong style="color:#c0c0d8;">{{ "%.2f"|format(center_val) }}</strong> vs corners avg <strong style="color:#c0c0d8;">{{ "%.2f"|format(corner_avg) }}</strong>.</div>
+      </div>
+
+      {% if saliency_stats and saliency_stats.total_analyzed > 0 %}
+      {% set sp = saliency_stats.placement_distribution %}
+      {% set sp_flat = [] %}{% for row in sp %}{% for v in row %}{% set _ = sp_flat.append(v) %}{% endfor %}{% endfor %}
+      {% set sp_max = sp_flat | max %}
+      <div>
+        <div style="font-size:0.65rem;color:#7878a0;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:0.5rem;">Subject Placement</div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:3px;">
+          {% for row in sp %}{% for v in row %}
+          <div style="aspect-ratio:1;background:rgba(16,185,129,{{ (v/(sp_max+0.001))|round(2) }});border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:0.65rem;font-weight:700;color:{% if v > sp_max*0.35 %}#d0f5e8{% else %}#2a4a3a{% endif %};">{{ (v*100)|round|int }}%</div>
+          {% endfor %}{% endfor %}
+        </div>
+        <div style="margin-top:0.5rem;font-size:0.75rem;color:#7878a8;line-height:1.45;">Darker green = more images placed in that zone. Subject fills avg <strong style="color:#c0c0d8;">{{ "%.0f"|format((saliency_stats.avg_subject_area or 0)*100) }}%</strong> of the frame; <strong style="color:#c0c0d8;">{{ "%.3f"|format(saliency_stats.avg_off_center or 0) }}</strong> off-centre (0 = perfectly centred).</div>
+      </div>
+      {% endif %}
     </div>
-    {% endif %}
+
+    <!-- Horizon position -->
     {% set hd = composition_stats.horizon_position_distribution %}
     {% set ht = (hd.high or 0) + (hd.mid or 0) + (hd.low or 0) + (hd.none or 0) %}
     {% if ht > 0 %}
-    <div style="font-size:0.78rem;color:#7878a0;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:0.55rem;">Horizon Position</div>
-    {% for pos, lbl in [("high","Top"),("mid","Mid"),("low","Bottom"),("none","None")] %}
+    <div style="margin-bottom:1.1rem;">
+      <div style="font-size:0.65rem;color:#7878a0;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:0.5rem;">Horizon Position</div>
+      {% for pos, lbl in [("high","Top"),("mid","Mid"),("low","Bottom"),("none","None")] %}
       {% set pct = ((hd[pos] or 0) / ht * 100)|round|int %}
       <div class="dbar">
         <div class="dbar-row"><span>{{ lbl }}</span><span>{{ pct }}%</span></div>
         <div class="dbar-bg"><div class="dbar-fill" style="width:{{ pct }}%;background:#7c6af7;"></div></div>
       </div>
-    {% endfor %}
+      {% endfor %}
+    </div>
     {% endif %}
 
-    <!-- Heatmap interpretation -->
-    {% if grid_heatmap %}
-    {% set center_val = grid_heatmap[1][1] %}
-    {% set corner_avg = (grid_heatmap[0][0] + grid_heatmap[0][2] + grid_heatmap[2][0] + grid_heatmap[2][2]) / 4 %}
-    {% set edge_avg = (grid_heatmap[0][1] + grid_heatmap[1][0] + grid_heatmap[1][2] + grid_heatmap[2][1]) / 4 %}
-    <div style="margin-top:0.9rem;padding-top:0.75rem;border-top:1px solid #1a1a28;">
-      <div style="font-size:0.65rem;color:#7878a0;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:0.4rem;">Zone Interpretation</div>
-      <div style="font-size:0.78rem;color:#9090b8;line-height:1.6;">
+    <!-- Zone interpretation -->
+    <div style="border-top:1px solid #1a1a28;padding-top:0.75rem;">
+      <div style="font-size:0.65rem;color:#7878a0;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:0.3rem;">Zone Interpretation</div>
+      <div style="font-size:0.75rem;color:#7878a8;line-height:1.45;">
         {% if center_val > corner_avg * 1.5 %}
-          <strong style="color:#c0c0d8;">Center-dominant</strong> — subjects and visual mass cluster in the middle of the frame.
+          <strong style="color:#ddd8f0;">Center-dominant</strong> — most visual detail and subject matter sits in the middle of the frame. The centre zone scores <strong style="color:#c0c0d8;">{{ "%.2f"|format(center_val) }}</strong> versus a corner average of <strong style="color:#c0c0d8;">{{ "%.2f"|format(corner_avg) }}</strong>, a ratio typical of telephoto or portrait-heavy libraries.
         {% elif edge_avg > center_val %}
-          <strong style="color:#c0c0d8;">Edge-driven</strong> — strong framing elements along the borders, subject off-center.
+          <strong style="color:#ddd8f0;">Edge-driven</strong> — borders and edges carry more detail than the centre, suggesting wide-angle framing, environmental context, or deliberate use of foreground and leading lines. Edge avg <strong style="color:#c0c0d8;">{{ "%.2f"|format(edge_avg) }}</strong> vs centre <strong style="color:#c0c0d8;">{{ "%.2f"|format(center_val) }}</strong>.
         {% else %}
-          <strong style="color:#c0c0d8;">Balanced</strong> — edge activity is distributed fairly evenly across the frame.
+          <strong style="color:#ddd8f0;">Balanced</strong> — edge activity is spread evenly across all zones with no single area dominating, indicating a varied mix of subject types and framing approaches.
         {% endif %}
-        Center zone activity: <strong style="color:#c0c0d8;">{{ "%.3f"|format(center_val) }}</strong> vs corner avg <strong style="color:#c0c0d8;">{{ "%.3f"|format(corner_avg) }}</strong>.
       </div>
     </div>
     {% endif %}
-
-    <!-- Saliency subject placement grid -->
-    {% if saliency_stats and saliency_stats.total_analyzed > 0 %}
-    {% set sp = saliency_stats.placement_distribution %}
-    {% set sp_flat = [] %}{% for row in sp %}{% for v in row %}{% set _ = sp_flat.append(v) %}{% endfor %}{% endfor %}
-    {% set sp_max = sp_flat | max %}
-    <div style="margin-top:1rem;padding-top:0.75rem;border-top:1px solid #1a1a28;">
-      <div style="font-size:0.65rem;color:#7878a0;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:0.55rem;">Subject Placement <span style="color:#5a5a78;font-weight:400;text-transform:none;">RMBG-1.4 · {{ saliency_stats.total_analyzed }} photos</span></div>
-      <div class="heatmap" style="margin-bottom:0.5rem;">
-        {% for row in sp %}{% for v in row %}
-          <div class="hm-cell" style="background:rgba(16,185,129,{{ (v/(sp_max+0.001))|round(2) }});">{{ (v*100)|round|int }}%</div>
-        {% endfor %}{% endfor %}
-      </div>
-      <div style="font-size:0.72rem;color:#8080aa;">
-        Avg subject area <strong style="color:#c0c0d8;">{{ "%.1f"|format((saliency_stats.avg_subject_area or 0)*100) }}%</strong> of frame ·
-        avg off-centre <strong style="color:#c0c0d8;">{{ "%.3f"|format(saliency_stats.avg_off_center or 0) }}</strong>
-      </div>
-    </div>
-    {% endif %}
-
   </div>
+
 </div>
 
 <!-- Depth strip + Sharpness -->
@@ -515,7 +565,7 @@ canvas { max-height: 300px; }
       <div class="strip-item">
         <div class="strip-v">{{ "%.1f"|format(exposure_stats.highlight_clipped_pct or 0) }}%</div>
         <div class="strip-l">Highlights Clipped</div>
-        <div class="strip-s">photos with blown highlights</div>
+        <div class="strip-s">images with blown highlights</div>
       </div>
     </div>
     {% if sharpness_stats.by_scene %}
@@ -530,15 +580,65 @@ canvas { max-height: 300px; }
       {% endfor %}
     </div>
     {% endif %}
-    {% set tod = exif_stats.time_of_day_distribution %}
-    {% if tod.values() | sum > 0 %}
-    <div style="font-size:0.78rem;color:#7878a0;text-transform:uppercase;letter-spacing:0.07em;margin:0.9rem 0 0.4rem;">Time of Day</div>
-    <div>{% for k, v in tod.items() %}{% if v > 0 %}<span class="badge">{{ k }}: {{ v }}</span>{% endif %}{% endfor %}</div>
-    {% endif %}
   </div>
 </div>
 
+<!-- Portrait Insights -->
+{% if pose_stats and pose_stats.portrait_count >= 20 %}
+{% set ft = pose_stats.framing_tiers %}
+{% set fa = pose_stats.framing_aesthetic %}
+{% set sg = pose_stats.solo_vs_group %}
+{% set pcd = pose_stats.person_count_dist %}
+<div class="card mb">
+  <div class="card-title">Portrait Insights <span style="color:#8080aa;font-weight:400;">{{ pose_stats.portrait_count }} images · YOLOv8-Pose</span></div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;align-items:start;">
+    <!-- Left: stat tiles -->
+    <div>
+      <div class="stat-grid" style="margin-bottom:0;">
+        {% if sg %}
+        <div class="stat"><div class="stat-l">Solo</div><div class="stat-v">{{ sg.solo }}</div></div>
+        <div class="stat"><div class="stat-l">Group</div><div class="stat-v">{{ sg.group }}</div></div>
+        {% endif %}
+        {% if pcd %}
+        <div class="stat"><div class="stat-l">2-Person</div><div class="stat-v">{{ pcd.get("2", 0) }}</div></div>
+        <div class="stat"><div class="stat-l">3-Person</div><div class="stat-v">{{ pcd.get("3", 0) }}</div></div>
+        <div class="stat"><div class="stat-l">Group 4+</div><div class="stat-v">{{ pcd.get("4+", 0) }}</div></div>
+        {% endif %}
+        {% if pose_stats.avg_body_coverage %}
+        <div class="stat"><div class="stat-l">Avg Coverage</div><div class="stat-v">{{ (pose_stats.avg_body_coverage * 100) | round(1) }}%</div></div>
+        {% endif %}
+      </div>
+    </div>
+    <!-- Right: framing chart -->
+    <div>
+      {% if ft %}
+      <div style="font-size:0.62rem;color:#7878a0;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:0.4rem;">Framing Style <span style="font-weight:400;text-transform:none;color:#5a5a78;">hover for avg aesthetic</span></div>
+      <div class="chart-h" style="height:130px;"><canvas id="framingChart"></canvas></div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+<script>
+(() => {
+  {% if ft %}
+  const elF = document.getElementById("framingChart");
+  if (elF) {
+    const tiers = {{ ft | tojson }};
+    const aesthetic = {{ fa | tojson }};
+    new Chart(elF, { type: "bar",
+      data: { labels: Object.keys(tiers).map(k => k.charAt(0).toUpperCase()+k.slice(1)), datasets: [{ data: Object.values(tiers), backgroundColor: ["#818cf8bb","#34d399bb","#60a5fabb"], borderRadius: 4 }] },
+      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false },
+        tooltip: { callbacks: { afterLabel: ctx => { const k = Object.keys(tiers)[ctx.dataIndex]; return aesthetic[k] != null ? "Avg aesthetic: "+aesthetic[k] : ""; }}}},
+        scales: { x: { grid: { color: "#14142a" }, ticks: { color: "#7878a0" }}, y: { grid: { color: "#14142a" }, ticks: { color: "#7878a0" }}}}
+    });
+  }
+  {% endif %}
+})();
+</script>
+{% endif %}
+
 <!-- ══════════════════════════════════════ EDITING STYLE ══════════════════ -->
+<div id="s-aesthetics"></div>
 
 <!-- Editing Style Analysis + Aesthetic Quality — side by side -->
 <div class="row two mb">
@@ -552,7 +652,7 @@ canvas { max-height: 300px; }
       <div class="style-conf">{{ "%.0f"|format(p.confidence * 100) }}% confidence · saturation, contrast &amp; brightness variation</div>
       <div class="style-meaning">
         {% if p.key == "varied" or "varied" in p.name.lower() or "eclectic" in p.name.lower() %}
-        Your photos don't follow a single visual recipe — saturation, contrast, and brightness vary widely.
+        Your images don't follow a single visual recipe — saturation, contrast, and brightness vary widely.
         This usually means different shoots, different subjects, and multiple creative moods rather than one applied preset.
         It's a sign of range, not inconsistency.
         {% else %}
@@ -582,10 +682,9 @@ canvas { max-height: 300px; }
   <div class="card">
     <div class="card-title">Aesthetic Quality <span style="font-weight:400;color:#7878a0;">LAION predictor</span></div>
     <div class="stat-grid" style="margin-bottom:1rem;">
-      <div class="stat"><div class="stat-l">Average</div><div class="stat-v">{{ "%.1f"|format(aesthetic_stats.avg_score or 0) }}</div><div class="stat-s">out of 100</div></div>
+      <div class="stat"><div class="stat-l">Average</div><div class="stat-v">{{ "%.1f"|format(aesthetic_stats.avg_score or 0) }}</div><div class="stat-s">{{ "%.0f"|format(aesthetic_stats.min_score or 0) }}–{{ "%.0f"|format(aesthetic_stats.max_score or 0) }} range · out of 100</div></div>
       <div class="stat"><div class="stat-l">Median</div><div class="stat-v">{{ "%.1f"|format(aesthetic_stats.median_score or 0) }}</div></div>
       <div class="stat"><div class="stat-l">Std Dev</div><div class="stat-v">{{ "%.2f"|format(aesthetic_stats.score_std or 0) }}</div><div class="stat-s">lower = more uniform</div></div>
-      <div class="stat"><div class="stat-l">Score Range</div><div class="stat-v" style="font-size:0.95rem;">{{ "%.0f"|format(aesthetic_stats.min_score or 0) }}–{{ "%.0f"|format(aesthetic_stats.max_score or 0) }}</div></div>
     </div>
     <div class="range-note">
       {% if aesthetic_stats.score_std and aesthetic_stats.score_std < 2 %}
@@ -597,14 +696,14 @@ canvas { max-height: 300px; }
   </div>
 </div>
 
-<!-- Aesthetic Score by Scene — dot plot with consistency bands -->
+{% if false %}<!-- Aesthetic Score by Scene removed — data merged into Color Profile by Scene tiles -->
 {% if aesthetic_by_scene %}
 {% set aes_sorted = aesthetic_by_scene.items() | sort(attribute='1.avg_score', reverse=True) | list %}
 {% set all_scores = aes_sorted | map(attribute='1') | map(attribute='avg_score') | list %}
 {% set s_min = all_scores | min %}
 {% set s_max = all_scores | max %}
 {% set s_range = s_max - s_min %}
-{% set s_pad = s_range * 0.8 %}
+{% set s_pad = s_range * 0.3 %}
 {% set axis_min = s_min - s_pad %}
 {% set axis_max = s_max + s_pad %}
 {% set axis_range = axis_max - axis_min %}
@@ -615,19 +714,10 @@ canvas { max-height: 300px; }
     <div>
       <div class="card-title" style="margin-bottom:0.25rem;">Aesthetic Score by Scene</div>
       <div style="font-size:0.75rem;color:#8080aa;line-height:1.5;">
-        Dot position = avg score on a zoomed axis · dot size = photo count · shaded band = ±1σ consistency
+        Dot position = avg score on a zoomed axis · dot size = image count · shaded band = ±1σ consistency
       </div>
     </div>
-    <div style="display:flex;gap:1.5rem;flex-shrink:0;">
-      <div style="text-align:center;">
-        <div style="font-size:1.1rem;font-weight:700;color:#ddd8f0;">{{ "%.2f"|format(s_min) }}–{{ "%.2f"|format(s_max) }}</div>
-        <div style="font-size:0.65rem;color:#8080aa;text-transform:uppercase;letter-spacing:0.06em;">score range</div>
-      </div>
-      <div style="text-align:center;">
-        <div style="font-size:1.1rem;font-weight:700;color:#ddd8f0;">{{ "%.2f"|format(s_range) }}</div>
-        <div style="font-size:0.65rem;color:#8080aa;text-transform:uppercase;letter-spacing:0.06em;">spread</div>
-      </div>
-    </div>
+    <div style="flex-shrink:0;font-size:0.72rem;color:#7878a0;">{{ "%.1f"|format(s_min) }}–{{ "%.1f"|format(s_max) }} range</div>
   </div>
 
   <!-- axis tick line -->
@@ -650,7 +740,7 @@ canvas { max-height: 300px; }
       <!-- scene label + count stacked -->
       <div style="min-width:165px;text-align:right;flex-shrink:0;">
         <div style="font-size:0.78rem;color:#c0c0d8;text-transform:capitalize;line-height:1.2;">{{ scene }}</div>
-        <div style="font-size:0.62rem;color:#7878a0;">{{ "{:,}".format(v.count) }} photos</div>
+        <div style="font-size:0.62rem;color:#7878a0;">{{ "{:,}".format(v.count) }} images</div>
       </div>
       <!-- dot-plot track -->
       <div style="flex:1;position:relative;height:22px;background:#141420;border-radius:4px;">
@@ -671,29 +761,30 @@ canvas { max-height: 300px; }
 
   <div style="margin-top:1rem;padding-top:0.75rem;border-top:1px solid #1a1a28;display:flex;gap:1.5rem;flex-wrap:wrap;">
     <div style="font-size:0.72rem;color:#7878a0;line-height:1.6;">
-      <strong style="color:#9090b8;">σ (sigma)</strong> = consistency within that scene — lower means your shots in that scene are more uniformly rated. All scenes cluster in the 52–53 range on the 0–100 scale, typical for a curated personal library.
+      <strong style="color:#9090b8;">σ (sigma)</strong> = consistency within that scene — lower means your shots in that scene are more uniformly rated. All scenes cluster in the {{ "%.1f"|format(s_min) }}–{{ "%.1f"|format(s_max) }} range on the 0–100 scale, typical for a curated personal library.
     </div>
   </div>
 </div>
+{% endif %}
 {% endif %}
 
 <!-- Color Grading + Color & Mood -->
 <div class="row c5-7 mb">
   <div class="card">
     <div class="card-title">Color Grading</div>
-    <div class="stat-grid" style="margin-bottom:1rem;">
+    {% set cgs = color_grading_stats %}
+    <div class="stat-grid" style="margin-bottom:1rem;grid-template-columns:1fr 1fr;">
       <div class="stat">
         <div class="stat-l">Tonal Style</div>
-        <div class="stat-v" style="font-size:0.9rem;text-transform:capitalize;">{{ color_grading_stats.tonal_style or "—" }}</div>
-        <div class="stat-s">{{ color_grading_stats.tonal_description or "" }}</div>
+        <div class="stat-v" style="font-size:0.9rem;text-transform:capitalize;">{{ cgs.tonal_style or "—" }}</div>
+        <div class="stat-s">{{ cgs.tonal_description or "" }}</div>
       </div>
       <div class="stat">
         <div class="stat-l">Color Temp.</div>
-        <div class="stat-v" style="font-size:0.9rem;text-transform:capitalize;">{{ color_grading_stats.color_temperature or "—" }}</div>
-        <div class="stat-s">{{ color_grading_stats.color_temperature_description or "" }}</div>
+        <div class="stat-v" style="font-size:0.9rem;text-transform:capitalize;">{{ cgs.color_temperature or "—" }}</div>
+        <div class="stat-s">{{ cgs.color_temperature_description or "" }}</div>
       </div>
     </div>
-    {% set cgs = color_grading_stats %}
     {% if cgs.avg_tonal_shadow_pct is not none %}
     <div style="font-size:0.78rem;color:#7878a0;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:0.5rem;">Tonal Zone Split</div>
     {% for lbl, val, col in [("Shadows", cgs.avg_tonal_shadow_pct,"#6366f1"),("Midtones",cgs.avg_tonal_mid_pct,"#f59e0b"),("Highlights",cgs.avg_tonal_highlight_pct,"#34d399")] %}
@@ -705,24 +796,39 @@ canvas { max-height: 300px; }
       {% endif %}
     {% endfor %}
     {% endif %}
-    {% set hps = color_grading_stats.harmony_pcts %}
+    {% set hps = cgs.harmony_pcts %}
     {% if hps %}
     <div style="font-size:0.78rem;color:#7878a0;text-transform:uppercase;letter-spacing:0.07em;margin:0.9rem 0 0.5rem;">Color Harmony</div>
     {% set hcols = {"analogous":"#7c6af7","complementary":"#f97316","triadic":"#10b981","monochromatic":"#94a3b8","mixed":"#f59e0b"} %}
     {% for htype, pct in hps.items() %}
     <div class="dbar">
       <div class="dbar-row">
-        <span style="text-transform:capitalize;">{{ htype }}{% if htype == color_grading_stats.dominant_harmony %} <span style="color:#8080aa;">·dom</span>{% endif %}</span>
+        <span style="text-transform:capitalize;">{{ htype }}{% if htype == cgs.dominant_harmony %} <span style="color:#8080aa;">·dom</span>{% endif %}</span>
         <span>{{ pct }}%</span>
       </div>
       <div class="dbar-bg"><div class="dbar-fill" style="width:{{ pct }}%;background:{{ hcols.get(htype,'#4b5563') }};"></div></div>
     </div>
     {% endfor %}
     {% endif %}
+    {% set st = cgs.split_toning %}
+    {% if st %}
+    <div style="font-size:0.78rem;color:#7878a0;text-transform:uppercase;letter-spacing:0.07em;margin:0.9rem 0 0.4rem;">Split Toning</div>
+    <div style="font-size:0.82rem;color:#b8b8d0;margin-bottom:0.6rem;">{{ st.toning_style }}</div>
+    <div style="display:flex;gap:0.8rem;align-items:flex-start;margin-bottom:0.6rem;">
+      {% for zone_label, zone_color, lum_shift in [("Shadows", st.shadow_color, st.shadow_lum_shift), ("Midtones", st.midtone_color, st.midtone_lum_shift), ("Highlights", st.highlight_color, st.highlight_lum_shift)] %}
+      <div style="text-align:center;">
+        <div style="width:36px;height:36px;border-radius:6px;background:{{ zone_color or '#1e1e2e' }};border:1px solid #2a2a3e;margin:0 auto 4px;" title="{{ zone_label }}{% if lum_shift %} · lum {{ '%+.0f'|format(lum_shift) }}{% endif %}"></div>
+        <div style="font-size:0.6rem;color:#7878a0;text-transform:uppercase;letter-spacing:0.05em;">{{ zone_label[:3] }}</div>
+        {% if lum_shift and lum_shift|abs > 0.5 %}<div style="font-size:0.6rem;color:{% if lum_shift > 1 %}#34d399{% elif lum_shift < -1 %}#f87171{% else %}#7878a0{% endif %};">{{ '%+.0f'|format(lum_shift) }}</div>{% else %}<div style="font-size:0.6rem;color:#5a5a78;">—</div>{% endif %}
+      </div>
+      {% endfor %}
+      <div style="margin-left:0.4rem;font-size:0.72rem;color:#7878a0;padding-top:4px;">Balance<br><strong style="color:#9090b8;">{{ '%+.0f'|format(st.avg_balance) }}</strong><br><span style="font-size:0.6rem;">−100 shad ↔ +100 hi</span></div>
+    </div>
+    {% endif %}
   </div>
 
   <div class="card">
-    <div class="card-title">Color & Mood</div>
+    <div class="card-title">Color &amp; Mood</div>
     {% set palette_colors = [] %}
     {% for photo in photos %}{% if photo.color and photo.color.palette %}{% for sw in photo.color.palette %}{% if palette_colors|length < 40 %}{% set _ = palette_colors.append(sw.rgb) %}{% endif %}{% endfor %}{% endif %}{% endfor %}
     <div class="swatches">{% for rgb in palette_colors %}<div class="swatch" style="background:rgb({{ rgb[0] }},{{ rgb[1] }},{{ rgb[2] }});"></div>{% endfor %}</div>
@@ -745,7 +851,7 @@ canvas { max-height: 300px; }
     {% endif %}
     <div style="display:flex;justify-content:space-between;align-items:baseline;margin:0.9rem 0 0.4rem;">
       <div style="font-size:0.78rem;color:#7878a0;text-transform:uppercase;letter-spacing:0.07em;">Hue Distribution</div>
-      <div style="font-size:0.65rem;color:#606080;">chromatic photos only (sat &gt; 15%)</div>
+      <div style="font-size:0.65rem;color:#606080;">chromatic images only (sat &gt; 15%)</div>
     </div>
     <div class="chart-h" style="max-height:160px;"><canvas id="hueChart" style="max-height:160px;"></canvas></div>
     <div style="font-size:0.78rem;color:#7878a0;text-transform:uppercase;letter-spacing:0.07em;margin:0.8rem 0 0.4rem;">Saturation Distribution</div>
@@ -812,9 +918,9 @@ canvas { max-height: 300px; }
 <!-- LR Develop Settings -->
 {% if develop_stats and develop_stats.total_with_develop > 0 %}
 <div class="card mb">
-  <div class="card-title">Lightroom Develop Settings <span style="color:#8080aa;font-weight:400;">{{ develop_stats.total_with_develop }} of {{ photo_count }} photos with develop metadata</span></div>
-  <div class="card-desc" style="margin-bottom:0.9rem;">Avg slider positions across your library. Only photos synced from Lightroom include develop settings — local folder imports don't carry this data. <strong style="color:#9090b8;">Lum. Noise</strong> = Luminance Smoothing, which reduces grain/texture noise in the brightness channel (high-ISO shots). <strong style="color:#9090b8;">Color NR</strong> = Color Noise Reduction, which removes coloured speckles (chroma noise) in shadow areas.</div>
-  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(145px,1fr));gap:8px;margin-top:4px;">
+  <div class="card-title">Lightroom Develop Settings <span style="color:#8080aa;font-weight:400;">{{ develop_stats.total_with_develop }} of {{ photo_count }} images with develop metadata</span></div>
+  <div class="card-desc" style="margin-bottom:0.9rem;">Avg slider positions across your library. Only images synced from Lightroom include develop settings — local folder imports don't carry this data. <strong style="color:#9090b8;">Lum. Noise</strong> = Luminance Smoothing, which reduces grain/texture noise in the brightness channel (high-ISO shots). <strong style="color:#9090b8;">Color NR</strong> = Color Noise Reduction, which removes coloured speckles (chroma noise) in shadow areas.</div>
+  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px;margin-top:4px;">
     {% for key, label in [("Contrast","Contrast"),("Shadows","Shadows"),("Vibrance","Vibrance"),("Saturation","Saturation"),("Sharpness","Sharpness"),("LuminanceSmoothing","Lum. Noise"),("ColorNoiseReduction","Color NR")] %}
     {% set val = develop_stats.avg.get(key) %}{% if val is not none %}
     <div style="background:#16161f;border-radius:7px;padding:10px;">
@@ -895,42 +1001,16 @@ canvas { max-height: 300px; }
   </div>
   {% endfor %}
   <div style="margin-top:0.5rem;font-size:0.68rem;color:#5a5a78;">Purple = raised &nbsp;·&nbsp; Red = lowered &nbsp;·&nbsp; Dark = near-zero</div>
-  {% if editing_intensity and editing_intensity.avg is not none %}
-  <div style="margin-top:1rem;padding-top:0.75rem;border-top:1px solid #1a1a28;">
-    <div style="font-size:0.65rem;color:#7878a0;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:0.55rem;">Editing Intensity by Scene</div>
-    <div class="strip mb">
-      <div class="strip-item">
-        <div class="strip-v">{{ editing_intensity.avg|round(0)|int }}</div>
-        <div class="strip-l">Avg Intensity</div>
-        <div class="strip-s">sum of slider deviations</div>
-      </div>
-      <div class="strip-item">
-        <div class="strip-v">{{ editing_intensity.most_edited_scene or "—" }}</div>
-        <div class="strip-l">Heaviest Touch</div>
-        <div class="strip-s">most-edited scene</div>
-      </div>
-    </div>
-    {% if editing_intensity.by_scene %}
-    {% set ei_max = editing_intensity.by_scene.values() | max %}
-    {% for scene, val in editing_intensity.by_scene.items() | sort(attribute=1, reverse=True) %}
-    <div class="dbar">
-      <div class="dbar-row"><span>{{ scene }}</span><span>{{ val|round(0)|int }}</span></div>
-      <div class="dbar-bg"><div class="dbar-fill" style="width:{{ ((val / (ei_max+0.001))*100)|round|int }}%;background:#7c6af7;"></div></div>
-    </div>
-    {% endfor %}
-    {% endif %}
-  </div>
-  {% endif %}
 </div>
 {% endif %}
 
 <!-- Color & Composition by Scene — visual tiles -->
 {% if color_by_scene %}
 <div class="card mb">
-  <div class="card-title">Color Profile by Scene</div>
+  <div class="card-title">Color Profile, Aesthetic Score &amp; Editing Intensity by Scene</div>
   <div class="color-scene-grid">
     {% set scene_colors_map = {"nature":"#10b981","architecture":"#7c6af7","urban street":"#f97316","people and portraits":"#f59e0b","abstract":"#ec4899","travel and landmarks":"#3b82f6","food":"#ef4444","interior":"#14b8a6","animals":"#a855f7","night scene":"#6366f1","unknown":"#64748b"} %}
-    {% for scene, d in color_by_scene.items() | sort(attribute='1.count', reverse=True) %}
+    {% for scene, d in color_by_scene.items() | sort(attribute='1.avg_aesthetic', reverse=True) %}
     {% if d.count > 0 %}
     {% set col = scene_colors_map.get(scene, "#7c6af7") %}
     <div class="color-scene-card" style="background:{{ col }}0d;border-color:{{ col }}22;">
@@ -942,15 +1022,19 @@ canvas { max-height: 300px; }
         <div style="width:{{ ((d.avg_saturation or 0)*100)|int }}%;height:3px;background:{{ col }};border-radius:2px;opacity:0.8;"></div>
       </div>
       <div class="cs-pills">
+        {% if d.avg_aesthetic %}<span class="cs-pill" style="color:{{ col }};">⬡ {{ "%.1f"|format(d.avg_aesthetic) }}</span>{% endif %}
+        {% if d.aesthetic_std is not none %}<span class="cs-pill">σ {{ "%.2f"|format(d.aesthetic_std) }}</span>{% endif %}
+        {% if d.editing_intensity is not none %}<span class="cs-pill">✏ {{ d.editing_intensity|round(0)|int }}</span>{% endif %}
         <span class="cs-pill">sat {{ "%.2f"|format(d.avg_saturation or 0) }}</span>
-        <span class="cs-pill">bright {{ "%.2f"|format(d.avg_brightness or 0) }}</span>
-        {% if d.avg_aesthetic %}<span class="cs-pill" style="color:{{ col }};opacity:0.9;">⬡ {{ "%.1f"|format(d.avg_aesthetic) }}</span>{% endif %}
-        <span class="cs-pill">{{ d.count }}ph</span>
+        <span class="cs-pill">bri {{ "%.2f"|format(d.avg_brightness or 0) }}</span>
+        {% if d.avg_contrast is not none %}<span class="cs-pill">con {{ "%.2f"|format(d.avg_contrast) }}</span>{% endif %}
+        <span class="cs-pill">{{ d.count }} images</span>
       </div>
     </div>
     {% endif %}
     {% endfor %}
   </div>
+  <div style="margin-top:0.75rem;font-size:0.68rem;color:#5a5a78;">⬡ = avg aesthetic score · σ = consistency (lower = more uniform) · ✏ = editing intensity (sum of Lr slider deviations)</div>
 </div>
 {% endif %}
 
@@ -962,7 +1046,113 @@ canvas { max-height: 300px; }
 </div>
 {% endif %}
 
+<!-- Portfolio Albums (moved before WHEN YOU SHOOT) -->
+{% if album_stats and album_stats.total_albums > 0 %}
+<div class="card mb">
+  <div class="card-title">Portfolio Albums <span style="color:#8080aa;font-weight:400;">Lightroom collections · curated selections</span></div>
+  <div class="card-desc">Images you've placed in albums represent your curated portfolio — the subset you've actively chosen to showcase. Comparing album images against the rest of your library shows how well the AI aesthetic model aligns with your own taste.</div>
+  <div class="strip mb">
+    <div class="strip-item">
+      <div class="strip-v">{{ album_stats.total_albums }}</div>
+      <div class="strip-l">Albums</div>
+      <div class="strip-s">Lightroom collections</div>
+    </div>
+    <div class="strip-item">
+      <div class="strip-v">{{ album_stats.total_in_albums }}</div>
+      <div class="strip-l">Curated Images</div>
+      <div class="strip-s">of {{ album_stats.total_trackable }} Lightroom images</div>
+    </div>
+    <div class="strip-item">
+      <div class="strip-v" style="color:#7c6af7;">{{ album_stats.curation_rate }}%</div>
+      <div class="strip-l">Curation Rate</div>
+      <div class="strip-s">in at least one album</div>
+    </div>
+  </div>
+
+  {% if album_stats.avg_aesthetic_in is not none and album_stats.avg_aesthetic_out is not none %}
+  <div style="margin-bottom:1rem;padding:0.75rem 1rem;background:#16161f;border-radius:8px;">
+    <div style="font-size:0.65rem;color:#7878a0;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:0.6rem;">AI Aesthetic Agreement</div>
+    <div style="display:flex;gap:2rem;align-items:center;flex-wrap:wrap;">
+      <div>
+        <div style="font-size:1.2rem;font-weight:700;color:#7c6af7;">{{ "%.1f"|format(album_stats.avg_aesthetic_in) }}</div>
+        <div style="font-size:0.65rem;color:#7878a0;">avg score · in albums</div>
+      </div>
+      <div style="font-size:1.4rem;color:#3a3a50;">vs</div>
+      <div>
+        <div style="font-size:1.2rem;font-weight:700;color:#9090b8;">{{ "%.1f"|format(album_stats.avg_aesthetic_out) }}</div>
+        <div style="font-size:0.65rem;color:#7878a0;">avg score · not in albums</div>
+      </div>
+      {% set delta = album_stats.avg_aesthetic_in - album_stats.avg_aesthetic_out %}
+      <div style="margin-left:auto;">
+        <div style="font-size:1rem;font-weight:700;color:{% if delta > 1 %}#34d399{% elif delta < -1 %}#f87171{% else %}#f59e0b{% endif %};">{{ "%+.1f"|format(delta) }}</div>
+        <div style="font-size:0.65rem;color:#7878a0;">model bias</div>
+      </div>
+    </div>
+    <div style="margin-top:0.6rem;font-size:0.7rem;color:#6060808;">
+      {% if delta > 2 %}The model strongly agrees with your curation — it scores your chosen images noticeably higher.
+      {% elif delta > 0.5 %}The model leans toward agreeing with your selections — a modest positive bias.
+      {% elif delta > -0.5 %}The model is essentially neutral — it doesn't distinguish your curated images from the rest.
+      {% else %}The model disagrees with your curation — it scores your non-album images higher. Your taste differs from the LAION training aesthetic.{% endif %}
+    </div>
+  </div>
+  {% endif %}
+
+  {% if album_stats.albums %}
+  <table style="width:100%;border-collapse:collapse;">
+    <thead><tr>
+      <th style="text-align:left;padding:4px 8px;font-size:0.68rem;color:#7878a0;border-bottom:1px solid #1a1a28;">Album</th>
+      <th style="text-align:right;padding:4px 8px;font-size:0.68rem;color:#7878a0;border-bottom:1px solid #1a1a28;">Images</th>
+      <th style="text-align:right;padding:4px 8px;font-size:0.68rem;color:#7878a0;border-bottom:1px solid #1a1a28;white-space:nowrap;">Avg. Aesthetic</th>
+      <th style="text-align:right;padding:4px 8px;font-size:0.68rem;color:#7878a0;border-bottom:1px solid #1a1a28;">σ</th>
+      <th style="text-align:right;padding:4px 8px;font-size:0.68rem;color:#7878a0;border-bottom:1px solid #1a1a28;white-space:nowrap;">Edit Intensity</th>
+      <th style="text-align:left;padding:4px 8px;font-size:0.68rem;color:#7878a0;border-bottom:1px solid #1a1a28;min-width:80px;">Saturation</th>
+      <th style="text-align:left;padding:4px 8px;font-size:0.68rem;color:#7878a0;border-bottom:1px solid #1a1a28;min-width:80px;">Brightness</th>
+      <th style="text-align:left;padding:4px 8px;font-size:0.68rem;color:#7878a0;border-bottom:1px solid #1a1a28;">Warmth</th>
+      <th style="text-align:left;padding:4px 8px;font-size:0.68rem;color:#7878a0;border-bottom:1px solid #1a1a28;">Palette</th>
+    </tr></thead>
+    <tbody>
+    {% for a in album_stats.albums %}
+    {% set s = a.avg_saturation or 0 %}{% set b2 = a.avg_brightness or 0 %}{% set w = a.avg_warmth or 0 %}
+    {% set wc = "#38bdf8" if w < 0.4 else ("#94a3b8" if w < 0.5 else ("#fb923c" if w < 0.62 else "#f97316")) %}
+    <tr>
+      <td style="padding:5px 8px;font-size:0.78rem;color:#c0c0d8;">{{ a.name }}</td>
+      <td style="padding:5px 8px;font-size:0.78rem;color:#9090b8;text-align:right;">{{ a.count }}</td>
+      <td style="padding:5px 8px;font-size:0.82rem;color:#7c6af7;text-align:right;font-weight:600;">{{ "%.1f"|format(a.avg_aesthetic) if a.avg_aesthetic is not none else "—" }}</td>
+      <td style="padding:5px 8px;font-size:0.72rem;color:#7878a0;text-align:right;">{{ "%.2f"|format(a.aesthetic_std) if a.aesthetic_std is not none else "—" }}</td>
+      <td style="padding:5px 8px;font-size:0.72rem;color:#9090b8;text-align:right;">{{ a.avg_editing_intensity|round(0)|int if a.avg_editing_intensity is not none else "—" }}</td>
+      <td style="padding:5px 8px;">
+        <div style="display:flex;align-items:center;gap:5px;">
+          <div style="flex:1;height:5px;background:#1a1a28;border-radius:3px;min-width:50px;max-width:80px;">
+            <div style="width:{{ '%.0f'|format(s*100) }}%;height:5px;background:#7c6af7;border-radius:3px;"></div>
+          </div>
+          <span style="font-size:0.65rem;color:#7878a0;min-width:26px;">{{ '%.0f'|format(s*100) }}%</span>
+        </div>
+      </td>
+      <td style="padding:5px 8px;">
+        <div style="display:flex;align-items:center;gap:5px;">
+          <div style="flex:1;height:5px;background:#1a1a28;border-radius:3px;min-width:50px;max-width:80px;">
+            <div style="width:{{ '%.0f'|format(b2*100) }}%;height:5px;background:#f59e0b;border-radius:3px;"></div>
+          </div>
+          <span style="font-size:0.65rem;color:#7878a0;min-width:26px;">{{ '%.0f'|format(b2*100) }}%</span>
+        </div>
+      </td>
+      <td style="padding:5px 8px;">
+        <div style="display:flex;align-items:center;gap:4px;">
+          <span style="display:inline-block;width:14px;height:14px;border-radius:3px;background:{{ wc }};" title="Warmth {{ '%.0f'|format(w*100) }}%"></span>
+          <span style="font-size:0.65rem;color:{{ wc }};">{{ '%.0f'|format(w*100) }}%</span>
+        </div>
+      </td>
+      <td style="padding:5px 8px;">{% if a.top_colors %}{% for c in a.top_colors %}<span style="display:inline-block;width:13px;height:13px;background:{{ c }};border-radius:2px;margin-right:1px;vertical-align:middle;" title="{{ c }}"></span>{% endfor %}{% else %}<span style="font-size:0.65rem;color:#5a5a78;">—</span>{% endif %}</td>
+    </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  {% endif %}
+</div>
+{% endif %}
+
 <!-- ══════════════════════════════════════ WHEN YOU SHOOT ══════════════════ -->
+<div id="s-when"></div>
 
 <div class="row two mb">
   <div class="card">
@@ -974,26 +1164,6 @@ canvas { max-height: 300px; }
     <div class="chart-h" style="height:220px;"><canvas id="monthlyChart" style="max-height:220px;"></canvas></div>
   </div>
 </div>
-
-<!-- Quality Issues -->
-{% if coach and coach.flags %}
-<div class="card mb">
-  <div class="card-title">Quality Issues <span style="color:#8080aa;font-weight:400;">{{ coach.total_analyzed }} photos · local rule engine</span></div>
-  {% for key, info in coach.flags.items() %}
-  <div class="flag-row">
-    <div class="flag-hd">
-      <div class="flag-pct {% if info.pct >= 30 %}hi{% elif info.pct >= 12 %}md{% else %}lo{% endif %}">{{ info.pct }}%</div>
-      <div class="flag-info">
-        <div class="flag-name">{{ info.label }}</div>
-        <div class="flag-meta">{{ info.count }} photos · most common in {{ info.top_scene }}</div>
-        <div class="flag-bar"><div class="flag-bar-fill" style="width:{{ [info.pct,100]|min|int }}%;"></div></div>
-      </div>
-    </div>
-    {% if info.description %}<div class="flag-desc">{{ info.description }}</div>{% endif %}
-  </div>
-  {% endfor %}
-</div>
-{% endif %}
 
 <!-- Pick / Reject Analysis -->
 {% if pick_stats and (pick_stats.picks.count or pick_stats.rejects.count) %}
@@ -1030,133 +1200,47 @@ canvas { max-height: 300px; }
 </div>
 {% endif %}
 
-<!-- Portfolio Albums -->
-{% if album_stats and album_stats.total_albums > 0 %}
+<!-- Photo Events -->
+{% if events and events.total_events > 0 %}
 <div class="card mb">
-  <div class="card-title">Portfolio Albums <span style="color:#8080aa;font-weight:400;">Lightroom collections · curated selections</span></div>
-  <div class="card-desc">Photos you've placed in albums represent your curated portfolio — the subset you've actively chosen to showcase. Comparing album photos against the rest of your library shows how well the AI aesthetic model aligns with your own taste.</div>
+  <div class="card-title">Photo Events <span style="color:#8080aa;font-weight:400;">time gaps &gt; 4 h = new event</span></div>
+  <div class="card-desc">Shooting sessions grouped by capture time. Narrative synthesized from the 3 most visually diverse images per event using existing BLIP captions.</div>
   <div class="strip mb">
     <div class="strip-item">
-      <div class="strip-v">{{ album_stats.total_albums }}</div>
-      <div class="strip-l">Albums</div>
-      <div class="strip-s">Lightroom collections</div>
+      <div class="strip-v">{{ events.total_events }}</div>
+      <div class="strip-l">Events</div>
+      <div class="strip-s">distinct shooting sessions</div>
     </div>
     <div class="strip-item">
-      <div class="strip-v">{{ album_stats.total_in_albums }}</div>
-      <div class="strip-l">Curated Photos</div>
-      <div class="strip-s">of {{ album_stats.total_trackable }} Lightroom photos</div>
+      <div class="strip-v">{{ events.avg_photos_per_event }}</div>
+      <div class="strip-l">Avg Images</div>
+      <div class="strip-s">per event</div>
     </div>
     <div class="strip-item">
-      <div class="strip-v" style="color:#7c6af7;">{{ album_stats.curation_rate }}%</div>
-      <div class="strip-l">Curation Rate</div>
-      <div class="strip-s">in at least one album</div>
+      <div class="strip-v">{{ events.largest_event }}</div>
+      <div class="strip-l">Largest Event</div>
+      <div class="strip-s">images in biggest session</div>
     </div>
   </div>
-
-  {% if album_stats.avg_aesthetic_in is not none and album_stats.avg_aesthetic_out is not none %}
-  <div style="margin-bottom:1rem;padding:0.75rem 1rem;background:#16161f;border-radius:8px;">
-    <div style="font-size:0.65rem;color:#7878a0;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:0.6rem;">AI Aesthetic Agreement</div>
-    <div style="display:flex;gap:2rem;align-items:center;flex-wrap:wrap;">
-      <div>
-        <div style="font-size:1.2rem;font-weight:700;color:#7c6af7;">{{ "%.1f"|format(album_stats.avg_aesthetic_in) }}</div>
-        <div style="font-size:0.65rem;color:#7878a0;">avg score · in albums</div>
-      </div>
-      <div style="font-size:1.4rem;color:#3a3a50;">vs</div>
-      <div>
-        <div style="font-size:1.2rem;font-weight:700;color:#9090b8;">{{ "%.1f"|format(album_stats.avg_aesthetic_out) }}</div>
-        <div style="font-size:0.65rem;color:#7878a0;">avg score · not in albums</div>
-      </div>
-      {% set delta = album_stats.avg_aesthetic_in - album_stats.avg_aesthetic_out %}
-      <div style="margin-left:auto;">
-        <div style="font-size:1rem;font-weight:700;color:{% if delta > 1 %}#34d399{% elif delta < -1 %}#f87171{% else %}#f59e0b{% endif %};">{{ "%+.1f"|format(delta) }}</div>
-        <div style="font-size:0.65rem;color:#7878a0;">model bias</div>
-      </div>
-    </div>
-    <div style="margin-top:0.6rem;font-size:0.7rem;color:#6060808;">
-      {% if delta > 2 %}The model strongly agrees with your curation — it scores your chosen photos noticeably higher.
-      {% elif delta > 0.5 %}The model leans toward agreeing with your selections — a modest positive bias.
-      {% elif delta > -0.5 %}The model is essentially neutral — it doesn't distinguish your curated photos from the rest.
-      {% else %}The model disagrees with your curation — it scores your non-album photos higher. Your taste differs from the LAION training aesthetic.{% endif %}
-    </div>
-  </div>
-  {% endif %}
-
-  <div class="row two" style="margin-bottom:0;">
-    <div>
-      {% if album_stats.scene_curation_rate %}
-      <div style="font-size:0.65rem;color:#7878a0;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:0.55rem;">Curation Rate by Scene</div>
-      {% set max_scr = album_stats.scene_curation_rate.values() | max %}
-      {% for scene, rate in album_stats.scene_curation_rate.items() | sort(attribute=1, reverse=True) %}
-      <div class="dbar">
-        <div class="dbar-row"><span>{{ scene }}</span><span>{{ rate }}%</span></div>
-        <div class="dbar-bg"><div class="dbar-fill" style="width:{{ rate }}%;background:#7c6af7;"></div></div>
-      </div>
-      {% endfor %}
-      {% endif %}
-    </div>
-    <div>
-      {% if album_stats.albums %}
-      <div style="font-size:0.65rem;color:#7878a0;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:0.55rem;">Albums</div>
-      <table style="width:100%;border-collapse:collapse;">
-        <thead><tr>
-          <th style="text-align:left;padding:4px 8px;font-size:0.68rem;color:#7878a0;border-bottom:1px solid #1a1a28;">Album</th>
-          <th style="text-align:right;padding:4px 8px;font-size:0.68rem;color:#7878a0;border-bottom:1px solid #1a1a28;">Photos</th>
-          <th style="text-align:right;padding:4px 8px;font-size:0.68rem;color:#7878a0;border-bottom:1px solid #1a1a28;">Avg Score</th>
-          <th style="text-align:left;padding:4px 8px;font-size:0.68rem;color:#7878a0;border-bottom:1px solid #1a1a28;">Top Scene</th>
-        </tr></thead>
-        <tbody>
-        {% for a in album_stats.albums %}
-        <tr>
-          <td style="padding:4px 8px;font-size:0.78rem;color:#c0c0d8;">{{ a.name }}</td>
-          <td style="padding:4px 8px;font-size:0.78rem;color:#9090b8;text-align:right;">{{ a.count }}</td>
-          <td style="padding:4px 8px;font-size:0.78rem;color:#7c6af7;text-align:right;">{{ "%.1f"|format(a.avg_aesthetic) if a.avg_aesthetic is not none else "—" }}</td>
-          <td style="padding:4px 8px;font-size:0.72rem;color:#7878a0;">{{ a.top_scene or "—" }}</td>
-        </tr>
-        {% endfor %}
-        </tbody>
-      </table>
-      {% endif %}
-    </div>
-  </div>
-</div>
-{% endif %}
-
-<!-- Burst & Near-Duplicates -->
-{% if burst_groups and burst_groups.total_bursts > 0 %}
-<div class="card mb">
-  <div class="card-title">Burst &amp; Near-Duplicates <span style="color:#8080aa;font-weight:400;">DINOv2 cosine sim &gt; 0.95</span></div>
-  <div class="card-desc">Photos that are visually near-identical (same scene shot in rapid succession). Useful for culling — only one from each group typically needs to be kept.</div>
-  <div class="strip mb">
-    <div class="strip-item">
-      <div class="strip-v">{{ burst_groups.total_bursts }}</div>
-      <div class="strip-l">Burst Groups</div>
-      <div class="strip-s">near-duplicate clusters</div>
-    </div>
-    <div class="strip-item">
-      <div class="strip-v">{{ burst_groups.photos_in_bursts }}</div>
-      <div class="strip-l">Photos in Bursts</div>
-      <div class="strip-s">potentially culling candidates</div>
-    </div>
-    <div class="strip-item">
-      <div class="strip-v">{{ burst_groups.largest_burst }}</div>
-      <div class="strip-l">Largest Burst</div>
-      <div class="strip-s">photos in biggest group</div>
-    </div>
-  </div>
-  {% if burst_groups.groups %}
-  <div style="font-size:0.65rem;color:#7878a0;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:0.55rem;">Top Groups</div>
+  {% if events.events %}
   <table style="width:100%;border-collapse:collapse;">
     <thead><tr>
-      <th style="text-align:left;padding:4px 8px;font-size:0.68rem;color:#7878a0;border-bottom:1px solid #1a1a28;">Photos</th>
+      <th style="text-align:left;padding:4px 8px;font-size:0.68rem;color:#7878a0;border-bottom:1px solid #1a1a28;">Date</th>
+      <th style="text-align:right;padding:4px 8px;font-size:0.68rem;color:#7878a0;border-bottom:1px solid #1a1a28;">Images</th>
+      <th style="text-align:right;padding:4px 8px;font-size:0.68rem;color:#7878a0;border-bottom:1px solid #1a1a28;">Duration</th>
       <th style="text-align:left;padding:4px 8px;font-size:0.68rem;color:#7878a0;border-bottom:1px solid #1a1a28;">Scene</th>
-      <th style="text-align:right;padding:4px 8px;font-size:0.68rem;color:#7878a0;border-bottom:1px solid #1a1a28;">Best Score</th>
+      <th style="text-align:left;padding:4px 8px;font-size:0.68rem;color:#7878a0;border-bottom:1px solid #1a1a28;">Narrative</th>
     </tr></thead>
     <tbody>
-    {% for g in burst_groups.groups[:8] %}
+    {% for ev in events.events %}
     <tr>
-      <td style="padding:4px 8px;font-size:0.78rem;color:#c0c0d8;">{{ g.size }}</td>
-      <td style="padding:4px 8px;font-size:0.78rem;color:#9090b8;">{{ g.scene or "—" }}</td>
-      <td style="padding:4px 8px;font-size:0.78rem;color:#7c6af7;text-align:right;">{{ g.best_score }}</td>
+      <td style="padding:5px 8px;font-size:0.78rem;color:#c0c0d8;white-space:nowrap;">{{ ev.date }}</td>
+      <td style="padding:5px 8px;font-size:0.78rem;color:#9090b8;text-align:right;">{{ ev.photo_count }}</td>
+      <td style="padding:5px 8px;font-size:0.78rem;color:#9090b8;text-align:right;">
+        {% if ev.duration_mins >= 60 %}{{ (ev.duration_mins / 60)|round(1) }}h{% else %}{{ ev.duration_mins|int }}m{% endif %}
+      </td>
+      <td style="padding:5px 8px;font-size:0.72rem;color:#7c6af7;white-space:nowrap;">{{ ev.top_scene or "—" }}</td>
+      <td style="padding:5px 8px;font-size:0.72rem;color:#7878a0;font-style:italic;">{{ ev.narrative or "" }}</td>
     </tr>
     {% endfor %}
     </tbody>
@@ -1165,12 +1249,61 @@ canvas { max-height: 300px; }
 </div>
 {% endif %}
 
+<!-- Similar Image Groups -->
+{% set has_cull = storage_tiers and storage_tiers.cluster_count > 0 %}
+{% if has_cull %}
+<div class="card mb">
+  <div class="card-title">Similar Image Groups <span style="color:#8080aa;font-weight:400;">DINOv2 · DBSCAN ε=0.05</span></div>
+  <div class="card-desc">Images grouped by visual similarity using DINOv2 embeddings and DBSCAN clustering — the best-scoring image in each group is the keep candidate; the rest are safe to cull. Groups of 5 or more shown below.</div>
+  <div class="strip mb">
+    <div class="strip-item">
+      <div class="strip-l" style="margin-bottom:0.25rem;">Groups Found</div>
+      <div class="strip-v">{{ storage_tiers.cluster_count }}</div>
+      <div class="strip-s">similarity clusters</div>
+    </div>
+    <div class="strip-item">
+      <div class="strip-l" style="margin-bottom:0.25rem;">Redundant Images</div>
+      <div class="strip-v">{{ storage_tiers.redundant_count }}</div>
+      <div class="strip-s">safe to cull</div>
+    </div>
+    <div class="strip-item">
+      <div class="strip-l" style="margin-bottom:0.25rem;">Redundancy Rate</div>
+      <div class="strip-v" style="color:#7c6af7;">{{ storage_tiers.redundancy_pct }}%</div>
+      <div class="strip-s">of analysed library</div>
+    </div>
+    <div class="strip-item">
+      <div class="strip-l" style="margin-bottom:0.25rem;">Unique Images</div>
+      <div class="strip-v">{{ storage_tiers.unclustered_count }}</div>
+      <div class="strip-s">no similar match found</div>
+    </div>
+  </div>
+  <table style="width:100%;border-collapse:collapse;">
+    <thead><tr>
+      <th style="text-align:left;padding:4px 8px;font-size:0.68rem;color:#7878a0;border-bottom:1px solid #1a1a28;">Scene</th>
+      <th style="text-align:right;padding:4px 8px;font-size:0.68rem;color:#7878a0;border-bottom:1px solid #1a1a28;">Group Size</th>
+      <th style="text-align:right;padding:4px 8px;font-size:0.68rem;color:#7878a0;border-bottom:1px solid #1a1a28;">Best Score</th>
+      <th style="text-align:right;padding:4px 8px;font-size:0.68rem;color:#7878a0;border-bottom:1px solid #1a1a28;">To Cull</th>
+    </tr></thead>
+    <tbody>
+    {% for g in storage_tiers.tiers if g.size >= 5 %}
+    <tr>
+      <td style="padding:4px 8px;font-size:0.78rem;color:#9090b8;">{{ g.scene or "—" }}</td>
+      <td style="padding:4px 8px;font-size:0.78rem;color:#c0c0d8;text-align:right;">{{ g.size }}</td>
+      <td style="padding:4px 8px;font-size:0.78rem;color:#7c6af7;text-align:right;">{{ g.best_score }}</td>
+      <td style="padding:4px 8px;font-size:0.78rem;color:#f87171;text-align:right;">{{ g.size - 1 }}</td>
+    </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endif %}
+
 <!-- Ratings & Keywords -->
 {% set has_ratings = lightroom_stats and lightroom_stats.ratings | selectattr('count','gt',0) | selectattr('stars','gt',0) | list | length > 0 %}
 {% set has_keywords = keyword_map and keyword_map.top_keywords | length > 0 %}
 {% if has_ratings or has_keywords %}
 <div class="card mb">
-  <div class="card-title">Ratings, Labels &amp; Keywords <span style="color:#8080aa;font-weight:400;">{{ lightroom_stats.total_with_lightroom }} Lightroom photos</span></div>
+  <div class="card-title">Ratings, Labels &amp; Keywords <span style="color:#8080aa;font-weight:400;">{{ lightroom_stats.total_with_lightroom }} Lightroom images</span></div>
   <div class="row two" style="margin-bottom:0;">
     <div>
       {% if has_ratings %}
@@ -1230,10 +1363,11 @@ canvas { max-height: 300px; }
 {% endif %}
 
 <!-- ELA Forensics -->
+<div id="s-forensics"></div>
 {% if ela_stats and ela_stats.total_jpegs > 0 %}
 <div class="card mb">
   <div class="card-title">ELA Forensics <span style="color:#8080aa;font-weight:400;">JPEG compression analysis</span></div>
-  <div class="card-desc">Error Level Analysis detects regions with inconsistent JPEG compression — a technique used in forensic contexts to identify locally edited or composited areas. <strong style="color:#f59e0b;">Note:</strong> photos that have been processed in Lightroom and exported as JPEG (as most in this library are) will naturally score higher than unedited camera originals. This is expected — Lightroom applies sharpening, noise reduction, and local adjustments that create compression-level variation across regions. A high score here reflects <em>editing activity</em>, not AI generation or deceptive manipulation. Use it as a relative signal — outliers with an unusually high score compared to the rest of your library are worth a closer look.</div>
+  <div class="card-desc">Error Level Analysis detects regions with inconsistent JPEG compression — a technique used in forensic contexts to identify locally edited or composited areas. <strong style="color:#f59e0b;">Note:</strong> images that have been processed in Lightroom and exported as JPEG (as most in this library are) will naturally score higher than unedited camera originals. This is expected — Lightroom applies sharpening, noise reduction, and local adjustments that create compression-level variation across regions. A high score here reflects <em>editing activity</em>, not AI generation or deceptive manipulation. Use it as a relative signal — outliers with an unusually high score compared to the rest of your library are worth a closer look.</div>
   <div class="strip mb">
     <div class="strip-item">
       <div class="strip-v">{{ ela_stats.total_jpegs }}</div>
@@ -1254,105 +1388,29 @@ canvas { max-height: 300px; }
 </div>
 {% endif %}
 
-<!-- Smart Culling -->
-{% if storage_tiers and storage_tiers.cluster_count > 0 %}
+<!-- Quality Issues -->
+{% if coach and coach.flags %}
 <div class="card mb">
-  <div class="card-title">Smart Culling <span style="color:#8080aa;font-weight:400;">DBSCAN cosine distance ≤ 0.05</span></div>
-  <div class="card-desc">Visual clusters of near-identical photos. Each cluster has one recommended hero (highest aesthetic score) — all others are candidates to archive or delete.</div>
-  <div class="strip mb">
-    <div class="strip-item">
-      <div class="strip-v">{{ storage_tiers.cluster_count }}</div>
-      <div class="strip-l">Clusters</div>
-      <div class="strip-s">groups of similar photos</div>
+  <div class="card-title">Quality Issues <span style="color:#8080aa;font-weight:400;">{{ coach.total_analyzed }} images · local rule engine</span></div>
+  {% for key, info in coach.flags.items() %}
+  {% set sev_col = "#f87171" if info.pct >= 30 else ("#f59e0b" if info.pct >= 12 else "#34d399") %}
+  <div style="margin-bottom:1rem;">
+    <div style="display:flex;align-items:center;gap:0.6rem;margin-bottom:0.25rem;">
+      <span style="font-size:0.85rem;font-weight:700;color:{{ sev_col }};min-width:38px;flex-shrink:0;">{{ info.pct }}%</span>
+      <span style="font-size:0.82rem;color:#c0c0d8;flex:1;">{{ info.label }}</span>
+      <span style="font-size:0.68rem;color:#7878a0;white-space:nowrap;">{{ info.count }} images · {{ info.top_scene }}</span>
     </div>
-    <div class="strip-item">
-      <div class="strip-v">{{ storage_tiers.redundant_count }}</div>
-      <div class="strip-l">Redundant</div>
-      <div class="strip-s">non-hero photos in clusters</div>
-    </div>
-    <div class="strip-item">
-      <div class="strip-v" style="color:#7c6af7;">{{ storage_tiers.redundancy_pct }}%</div>
-      <div class="strip-l">Redundancy</div>
-      <div class="strip-s">{{ storage_tiers.unclustered_count }} unique / unclustered</div>
-    </div>
+    {% if info.description %}<div style="font-size:0.72rem;color:#7878a0;margin-bottom:0.35rem;line-height:1.5;padding-left:0;">{{ info.description }}</div>{% endif %}
+    <div class="dbar-bg"><div class="dbar-fill" style="width:{{ [info.pct,100]|min|int }}%;background:{{ sev_col }};"></div></div>
   </div>
-  {% if storage_tiers.tiers %}
-  <div style="font-size:0.65rem;color:#7878a0;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:0.55rem;">Top Clusters</div>
-  <table style="width:100%;border-collapse:collapse;">
-    <thead><tr>
-      <th style="text-align:left;padding:4px 8px;font-size:0.68rem;color:#7878a0;border-bottom:1px solid #1a1a28;">Size</th>
-      <th style="text-align:left;padding:4px 8px;font-size:0.68rem;color:#7878a0;border-bottom:1px solid #1a1a28;">Scene</th>
-      <th style="text-align:right;padding:4px 8px;font-size:0.68rem;color:#7878a0;border-bottom:1px solid #1a1a28;">Hero Score</th>
-      <th style="text-align:right;padding:4px 8px;font-size:0.68rem;color:#7878a0;border-bottom:1px solid #1a1a28;">Redundant</th>
-    </tr></thead>
-    <tbody>
-    {% for t in storage_tiers.tiers if t.size >= 10 %}
-    <tr>
-      <td style="padding:4px 8px;font-size:0.78rem;color:#c0c0d8;">{{ t.size }}</td>
-      <td style="padding:4px 8px;font-size:0.78rem;color:#9090b8;">{{ t.scene or "—" }}</td>
-      <td style="padding:4px 8px;font-size:0.78rem;color:#7c6af7;text-align:right;">{{ t.best_score }}</td>
-      <td style="padding:4px 8px;font-size:0.78rem;color:#7878a0;text-align:right;">{{ t.size - 1 }}</td>
-    </tr>
-    {% endfor %}
-    </tbody>
-  </table>
-  {% endif %}
-</div>
-{% endif %}
-
-<!-- Photo Events -->
-{% if events and events.total_events > 0 %}
-<div class="card mb">
-  <div class="card-title">Photo Events <span style="color:#8080aa;font-weight:400;">time gaps &gt; 4 h = new event</span></div>
-  <div class="card-desc">Shooting sessions grouped by capture time. Narrative synthesized from the 3 most visually diverse photos per event using existing BLIP captions.</div>
-  <div class="strip mb">
-    <div class="strip-item">
-      <div class="strip-v">{{ events.total_events }}</div>
-      <div class="strip-l">Events</div>
-      <div class="strip-s">distinct shooting sessions</div>
-    </div>
-    <div class="strip-item">
-      <div class="strip-v">{{ events.avg_photos_per_event }}</div>
-      <div class="strip-l">Avg Photos</div>
-      <div class="strip-s">per event</div>
-    </div>
-    <div class="strip-item">
-      <div class="strip-v">{{ events.largest_event }}</div>
-      <div class="strip-l">Largest Event</div>
-      <div class="strip-s">photos in biggest session</div>
-    </div>
-  </div>
-  {% if events.events %}
-  <table style="width:100%;border-collapse:collapse;">
-    <thead><tr>
-      <th style="text-align:left;padding:4px 8px;font-size:0.68rem;color:#7878a0;border-bottom:1px solid #1a1a28;">Date</th>
-      <th style="text-align:right;padding:4px 8px;font-size:0.68rem;color:#7878a0;border-bottom:1px solid #1a1a28;">Photos</th>
-      <th style="text-align:right;padding:4px 8px;font-size:0.68rem;color:#7878a0;border-bottom:1px solid #1a1a28;">Duration</th>
-      <th style="text-align:left;padding:4px 8px;font-size:0.68rem;color:#7878a0;border-bottom:1px solid #1a1a28;">Scene</th>
-      <th style="text-align:left;padding:4px 8px;font-size:0.68rem;color:#7878a0;border-bottom:1px solid #1a1a28;">Narrative</th>
-    </tr></thead>
-    <tbody>
-    {% for ev in events.events[:20] %}
-    <tr>
-      <td style="padding:5px 8px;font-size:0.78rem;color:#c0c0d8;white-space:nowrap;">{{ ev.date }}</td>
-      <td style="padding:5px 8px;font-size:0.78rem;color:#9090b8;text-align:right;">{{ ev.photo_count }}</td>
-      <td style="padding:5px 8px;font-size:0.78rem;color:#9090b8;text-align:right;">
-        {% if ev.duration_mins >= 60 %}{{ (ev.duration_mins / 60)|round(1) }}h{% else %}{{ ev.duration_mins|int }}m{% endif %}
-      </td>
-      <td style="padding:5px 8px;font-size:0.72rem;color:#7c6af7;white-space:nowrap;">{{ ev.top_scene or "—" }}</td>
-      <td style="padding:5px 8px;font-size:0.72rem;color:#7878a0;font-style:italic;">{{ ev.narrative or "" }}</td>
-    </tr>
-    {% endfor %}
-    </tbody>
-  </table>
-  {% endif %}
+  {% endfor %}
 </div>
 {% endif %}
 
 </div><!-- /page -->
 
 <script>
-const SC = ["#7c6af7","#f97316","#10b981","#f59e0b","#3b82f6","#ec4899","#14b8a6","#a855f7","#06b6d4","#e11d48","#84cc16","#ef4444"];
+const SC = ["#f87171","#fb923c","#fbbf24","#a3e635","#4ade80","#34d399","#22d3ee","#60a5fa","#818cf8","#e879f9","#f472b6","#38bdf8"];
 const GD = { responsive: true, plugins: { legend: { display: false } }, scales: {
   x: { grid: { color: "#14142a" }, ticks: { color: "#8080aa", font: { size: 13 } } },
   y: { grid: { color: "#14142a" }, ticks: { color: "#8080aa", font: { size: 13 } } },
@@ -1370,7 +1428,7 @@ const GD = { responsive: true, plugins: { legend: { display: false } }, scales: 
     options: { responsive: true, cutout: "62%",
       plugins: { legend: { display: true, position: "bottom",
         labels: { color: "#6060881", boxWidth: 10, font: { size: 12 }, color: "#9090b8", padding: 10 }},
-        tooltip: { callbacks: { label: ctx => ` ${ctx.raw} photos (${Math.round(ctx.raw/total*100)}%)` }}
+        tooltip: { callbacks: { label: ctx => ` ${ctx.raw} images (${Math.round(ctx.raw/total*100)}%)` }}
       }
     }
   });
@@ -1385,18 +1443,48 @@ const GD = { responsive: true, plugins: { legend: { display: false } }, scales: 
   const ds = {};
   pts.forEach(p => {
     if (!ds[p.scene_type]) ds[p.scene_type] = { label: p.scene_type, data: [], backgroundColor: sc[p.scene_type] + "88", pointRadius: 3, pointHoverRadius: 6 };
-    ds[p.scene_type].data.push({ x: p.x, y: p.y, path: p.path, score: p.aesthetic_score });
+    ds[p.scene_type].data.push({ x: p.x, y: p.y, path: p.path, score: p.aesthetic_score, thumb: p.thumb, scene_type: p.scene_type });
   });
+
+  // Custom thumbnail tooltip overlay
+  const umapWrap = document.getElementById("umapChart").parentElement;
+  umapWrap.style.position = "relative";
+  const tip = document.createElement("div");
+  tip.style.cssText = "position:absolute;pointer-events:none;display:none;background:#10101a;border:1px solid #2a2a3a;border-radius:8px;padding:8px;z-index:10;box-shadow:0 4px 16px #00000088;min-width:100px;text-align:center;";
+  umapWrap.appendChild(tip);
+
   new Chart(document.getElementById("umapChart"), {
     type: "scatter", data: { datasets: Object.values(ds) },
     options: { responsive: true, maintainAspectRatio: false,
       plugins: {
         legend: { display: true, labels: { color: "#9090b8", boxWidth: 9, font: { size: 12 } }},
-        tooltip: { callbacks: { label: ctx => { const d = ctx.raw; return [d.path.split("/").pop(), ctx.dataset.label, d.score != null ? "Score: "+d.score.toFixed(1) : ""]; }}}
+        tooltip: { enabled: false, external: (ctx) => {
+          const el = ctx.chart.canvas;
+          const rect = el.getBoundingClientRect();
+          if (!ctx.tooltip.dataPoints || !ctx.tooltip.dataPoints.length) { tip.style.display = "none"; return; }
+          const d = ctx.tooltip.dataPoints[0].raw;
+          let html = "";
+          if (d.thumb) {
+            html += `<img src="data:image/jpeg;base64,${d.thumb}" style="width:72px;height:72px;object-fit:cover;border-radius:5px;display:block;margin:0 auto 5px;">`;
+            html += `<div style="font-size:10px;color:#7c6af7;font-weight:600;margin-bottom:2px;">★ Album</div>`;
+          } else {
+            html += `<div style="font-size:10px;color:#7878a0;font-family:monospace;margin-bottom:3px;">${d.path || ""}</div>`;
+          }
+          html += `<div style="font-size:11px;color:#9090b8;text-transform:capitalize;">${d.scene_type || ""}</div>`;
+          if (d.score != null) html += `<div style="font-size:11px;color:#a78bfa;font-weight:600;">Score ${d.score.toFixed(1)}</div>`;
+          tip.innerHTML = html;
+          tip.style.display = "block";
+          const tipW = 100, tipH = 120;
+          let left = ctx.tooltip.caretX + 10, top = ctx.tooltip.caretY - tipH / 2;
+          if (left + tipW > el.offsetWidth) left = ctx.tooltip.caretX - tipW - 10;
+          top = Math.max(0, Math.min(top, el.offsetHeight - tipH));
+          tip.style.left = left + "px"; tip.style.top = top + "px";
+        }}
       },
       scales: { x: { grid: { color: "#14142a" }, ticks: { display: false } }, y: { grid: { color: "#14142a" }, ticks: { display: false } } }
     }
   });
+  document.getElementById("umapChart").addEventListener("mouseleave", () => { tip.style.display = "none"; });
 })();
 
 // Focal length
@@ -1541,5 +1629,62 @@ const GD = { responsive: true, plugins: { legend: { display: false } }, scales: 
   });
 })();
 </script>
+
+<!-- Technical IQ Stats -->
+{% if iq_stats and not iq_stats.unavailable %}
+<div class="card mb">
+  <div class="card-title">Technical IQ Score <span style="color:#8080aa;font-weight:400;">MUSIQ · 0–1 scale · higher = better sharpness &amp; exposure</span></div>
+  <div class="strip mb">
+    <div class="strip-item">
+      <div class="strip-v">{{ "%.2f"|format(iq_stats.avg) if iq_stats.avg is not none else "—" }}</div>
+      <div class="strip-l">Avg IQ Score</div>
+      <div class="strip-s">std {{ "%.2f"|format(iq_stats.std) if iq_stats.std is not none else "—" }}</div>
+    </div>
+    {% if iq_stats.high_aesthetic_low_iq_count > 0 %}
+    <div class="strip-item">
+      <div class="strip-v" style="color:#fbbf24;">{{ iq_stats.high_aesthetic_low_iq_count }}</div>
+      <div class="strip-l">High Aesthetic, Low IQ</div>
+      <div class="strip-s">beautiful but technically soft</div>
+    </div>
+    {% endif %}
+  </div>
+  {% if iq_stats.distribution %}
+  <div style="font-size:0.65rem;color:#7878a0;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:0.5rem;">Score Distribution</div>
+  <div class="chart-h" style="height:140px;"><canvas id="iqDistChart"></canvas></div>
+  <script>
+  (() => {
+    const el = document.getElementById("iqDistChart");
+    if (!el) return;
+    const dist = {{ iq_stats.distribution | tojson }};
+    const labels = dist.map((_, i) => (i/10).toFixed(1) + "–" + ((i+1)/10).toFixed(1));
+    new Chart(el, { type: "bar",
+      data: { labels, datasets: [{ data: dist, backgroundColor: "#34d399bb", borderRadius: 3 }] },
+      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }},
+        scales: { x: { grid: { color: "#14142a" }, ticks: { color: "#7878a0", font: { size: 10 }}}, y: { grid: { color: "#14142a" }, ticks: { color: "#7878a0" }}}}
+    });
+  })();
+  </script>
+  {% endif %}
+</div>
+{% endif %}
+
+
+</div><!-- /.page -->
+</div><!-- /#main-content -->
+
+<script>
+(function() {
+  const sbLinks = Array.from(document.querySelectorAll("#sidebar a"));
+  const targets = sbLinks.map(a => document.querySelector(a.getAttribute("href")));
+  function update() {
+    let current = 0;
+    targets.forEach((el, i) => { if (el && el.getBoundingClientRect().top <= 90) current = i; });
+    sbLinks.forEach((a, i) => a.classList.toggle("sb-active", i === current));
+  }
+  window.addEventListener("scroll", update, { passive: true });
+  update();
+})();
+</script>
+
 </body>
 </html>

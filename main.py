@@ -23,14 +23,19 @@ from extractors import (
     extract_ela,
     extract_embedding_batch,
     extract_exif,
+    extract_iq_batch,
+    extract_pose_batch,
     extract_saliency_batch,
     load_aesthetic_predictor,
     load_caption_model,
     load_clip_models,
     load_depth_model,
     load_dino_model,
+    load_musiq_metric,
+    load_pose_model,
     load_saliency_model,
     unload_model,
+    unload_pose_model,
 )
 from sources import load_sources
 from report import generate_html, generate_json
@@ -43,6 +48,9 @@ BATCH_SIZE = 16
 
 def _download_renditions() -> bool:
     return os.environ.get("LIGHTROOM_DOWNLOAD_RENDITIONS", "false").lower() == "true"
+
+def _skip_musiq() -> bool:
+    return os.environ.get("SKIP_MUSIQ", "false").lower() == "true"
 
 _lr_token: str = ""
 _lr_catalog_id: str = ""
@@ -228,7 +236,7 @@ def main() -> None:
             and (r.get("path") or (r.get("source") in ("lightroom", "both")
                  and _download_renditions()))]
     if todo:
-        console.print(f"[bold]Pass 1/5:[/bold] EXIF · Color · Composition ({len(todo)} photos)")
+        console.print(f"[bold]Pass 1/8:[/bold] EXIF · Color · Composition ({len(todo)} photos)")
 
         def _process_cheap(r: dict) -> None:
             img_path = _ensure_path(r)
@@ -259,7 +267,7 @@ def main() -> None:
     # ── 3. Pass 2 — CLIP: scene + aesthetic (batched) ────────────────────────
     todo = needs_path("scene")
     if todo:
-        console.print(f"[bold]Pass 2/5:[/bold] CLIP scene + aesthetic ({len(todo)} photos, batch={batch_size})")
+        console.print(f"[bold]Pass 2/8:[/bold] CLIP scene + aesthetic ({len(todo)} photos, batch={batch_size})")
         with console.status("Loading CLIP (ViT-L/14) + aesthetic predictor..."):
             clip_model, clip_preprocess, clip_tokenizer = load_clip_models()
             device = _device()
@@ -287,11 +295,50 @@ def main() -> None:
         gc.collect()
         console.print()
 
-    # ── 4. Pass 3 — DINOv2 embeddings (batched) ──────────────────────────────
+    # ── 4. Pass 3 — MUSIQ technical IQ score (CPU, no GPU needed) ────────────
+    todo = needs_path("iq_score")
+    # Also retry records where iq_score was cached as null (prior failed run)
+    # Use r.get("path") check only — avoid calling _ensure_path() here as it has download side effects
+    null_iq = [r for r in records.values()
+               if "iq_score" in r and r["iq_score"] is None
+               and (r.get("path") or r.get("source") in ("lightroom", "both"))]
+    if _skip_musiq():
+        console.print("[bold]Pass 3/8:[/bold] MUSIQ IQ score [dim]skipped (SKIP_MUSIQ=true)[/dim]\n")
+        for r in todo:
+            r["iq_score"] = None
+        _save_batch(todo)
+    elif todo or null_iq:
+        iq_todo = todo + null_iq
+        console.print(f"[bold]Pass 3/8:[/bold] MUSIQ IQ score ({len(iq_todo)} photos)")
+        with console.status("Loading MUSIQ (pyiqa, CPU)..."):
+            iq_metric = load_musiq_metric()
+
+        if iq_metric is None:
+            console.print("  [yellow]MUSIQ not available (pyiqa not installed or model download failed). Skipping.[/yellow]\n")
+            for r in todo:
+                r["iq_score"] = None
+        else:
+            with _progress(SpinnerColumn(), BarColumn(), TextColumn("{task.description}"),
+                           MofNCompleteColumn(), TaskProgressColumn()) as p:
+                task = p.add_task("Scoring technical quality...", total=len(iq_todo))
+                for start in range(0, len(iq_todo), batch_size):
+                    batch = iq_todo[start:start + batch_size]
+                    paths = [_ensure_path(r) for r in batch]
+                    iq_scores = extract_iq_batch(paths, iq_metric)
+                    for r, iq in zip(batch, iq_scores):
+                        r["iq_score"] = iq
+                    p.advance(task, len(batch))
+            del iq_metric
+            gc.collect()
+
+        _save_batch(iq_todo)
+        console.print()
+
+    # ── 5. Pass 4 — DINOv2 embeddings (batched) ──────────────────────────────
     todo = needs_path("dinov2")
     if todo:
-        console.print(f"[bold]Pass 3/5:[/bold] DINOv2 embeddings ({len(todo)} photos, batch={batch_size})")
-        with console.status("Loading DINOv2 (small)..."):
+        console.print(f"[bold]Pass 4/8:[/bold] DINOv2 embeddings ({len(todo)} photos, batch={batch_size})")
+        with console.status("Loading DINOv2 (base)..."):
             dino_model, dino_processor, device = load_dino_model()
 
         with _progress(SpinnerColumn(), BarColumn(), TextColumn("{task.description}"),
@@ -310,10 +357,10 @@ def main() -> None:
         gc.collect()
         console.print()
 
-    # ── 5. Pass 4 — Depth Anything v2 (batched) ──────────────────────────────
+    # ── 6. Pass 5 — Depth Anything v2 (batched) ──────────────────────────────
     todo = needs_path("depth")
     if todo:
-        console.print(f"[bold]Pass 4/5:[/bold] Depth Anything v2 ({len(todo)} photos, batch={batch_size})")
+        console.print(f"[bold]Pass 5/8:[/bold] Depth Anything v2 ({len(todo)} photos, batch={batch_size})")
         with console.status("Loading Depth Anything v2 (Small)..."):
             depth_pipe = load_depth_model(_device())
 
@@ -341,11 +388,11 @@ def main() -> None:
         gc.collect()
         console.print()
 
-    # ── 6. Pass 5 — BLIP captions (batched, all questions per photo in one call)
+    # ── 7. Pass 6 — Florence-2 captions + VQA (batched) ──────────────────────
     todo = needs_path("caption")
     if todo:
-        console.print(f"[bold]Pass 5/6:[/bold] BLIP captions ({len(todo)} photos, batch={batch_size})")
-        with console.status("Loading BLIP VQA..."):
+        console.print(f"[bold]Pass 6/8:[/bold] Florence-2 captions ({len(todo)} photos, batch={batch_size})")
+        with console.status("Loading Florence-2-base..."):
             caption_model, caption_tokenizer = load_caption_model(_device())
 
         paths = [_ensure_path(r) for r in todo]
@@ -374,10 +421,10 @@ def main() -> None:
         gc.collect()
         console.print()
 
-    # ── 7. Pass 6 — U²-Net saliency (batched) ────────────────────────────────
+    # ── 8. Pass 7 — U²-Net saliency (batched) ────────────────────────────────
     todo = needs_path("saliency")
     if todo:
-        console.print(f"[bold]Pass 6/6:[/bold] Saliency ({len(todo)} photos, batch={batch_size})")
+        console.print(f"[bold]Pass 7/8:[/bold] Saliency ({len(todo)} photos, batch={batch_size})")
         with console.status("Loading RMBG-1.4 saliency (briaai/RMBG-1.4)..."):
             saliency_pipe = load_saliency_model(_device())
 
@@ -394,6 +441,35 @@ def main() -> None:
 
         _save_batch(todo)
         del saliency_pipe
+        gc.collect()
+        console.print()
+
+    # ── 9. Pass 8 — YOLOv8-Pose: object detection + pose (portrait photos) ───
+    todo = [
+        r for r in records.values()
+        if "pose_data" not in r
+        and r.get("caption", {}).get("has_person", "").startswith("yes")
+        and (r.get("path") or (r.get("source") in ("lightroom", "both") and _download_renditions()))
+    ]
+    if todo:
+        console.print(f"[bold]Pass 8/8:[/bold] YOLOv8-Pose object detection ({len(todo)} portrait photos)")
+        device = _device()
+        with console.status("Loading YOLOv8n-pose..."):
+            pose_model = load_pose_model(device)
+
+        with _progress(SpinnerColumn(), BarColumn(), TextColumn("{task.description}"),
+                       MofNCompleteColumn(), TaskProgressColumn()) as p:
+            task = p.add_task("Detecting objects + pose...", total=len(todo))
+            for start in range(0, len(todo), batch_size):
+                batch = todo[start:start + batch_size]
+                paths = [_ensure_path(r) for r in batch]
+                pose_results = extract_pose_batch(paths, pose_model, device)
+                for r, pr in zip(batch, pose_results):
+                    r["pose_data"] = pr
+                p.advance(task, len(batch))
+
+        _save_batch(todo)
+        unload_pose_model(pose_model)
         gc.collect()
         console.print()
 
