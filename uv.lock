@@ -901,6 +901,12 @@ dependencies = [
     { name = "umap-learn" },
 ]
 
+[package.dev-dependencies]
+dev = [
+    { name = "pre-commit" },
+    { name = "ruff" },
+]
+
 [package.metadata]
 requires-dist = [
     { name = "cryptography", specifier = ">=48.0.0" },
@@ -921,6 +927,12 @@ requires-dist = [
     { name = "transformers", specifier = ">=5.8.0" },
     { name = "ultralytics", specifier = ">=8.3.0" },
     { name = "umap-learn", specifier = ">=0.5.12" },
+]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "pre-commit", specifier = ">=4.6.0" },
+    { name = "ruff", specifier = ">=0.9" },
 ]
 
 [[package]]

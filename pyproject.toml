@@ -23,3 +23,25 @@ dependencies = [
     "ultralytics>=8.3.0",
     "umap-learn>=0.5.12",
 ]
+
+[dependency-groups]
+dev = [
+    "pre-commit>=4.6.0",
+    "ruff>=0.9",
+]
+
+[tool.ruff]
+target-version = "py313"
+line-length = 160
+
+[tool.ruff.lint]
+select = ["E", "W", "F", "I", "B", "UP", "RUF"]
+ignore = [
+    "RUF001",  # EN-dash/special chars in display strings are intentional (report labels)
+    "RUF003",  # Same for comments with EN-dash or × in mathematical/display context
+]
+
+[tool.ruff.lint.per-file-ignores]
+"analysis.py" = ["E402", "E741"]          # lazy imports after guard fn; l/ll in math code
+"extractors/composition.py" = ["E741"]    # l for line in HoughLines CV code
+"extractors/caption.py" = ["B023"]        # intentional loop-closure pattern in batch fn

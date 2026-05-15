@@ -9,11 +9,13 @@ from huggingface_hub import snapshot_download
 from PIL import Image
 from torchvision import transforms
 
-_TRANSFORM = transforms.Compose([
-    transforms.Resize((1024, 1024)),
-    transforms.ToTensor(),
-    transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
-])
+_TRANSFORM = transforms.Compose(
+    [
+        transforms.Resize((1024, 1024)),
+        transforms.ToTensor(),
+        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+    ]
+)
 
 
 def _load_briarmbg(repo_dir: str):
@@ -75,12 +77,14 @@ def extract_saliency_batch(paths: list, model, batch_size: int = 8) -> list[dict
             else:
                 cx, cy = 0.5, 0.5
             off_center = float(np.hypot(cx - 0.5, cy - 0.5))
-            results.append({
-                "subject_area_pct": round(area_pct, 4),
-                "subject_cx": round(cx, 4),
-                "subject_cy": round(cy, 4),
-                "subject_off_center": round(off_center, 4),
-            })
+            results.append(
+                {
+                    "subject_area_pct": round(area_pct, 4),
+                    "subject_cx": round(cx, 4),
+                    "subject_cy": round(cy, 4),
+                    "subject_off_center": round(off_center, 4),
+                }
+            )
         except Exception:
             results.append(dict(null_result))
     return results

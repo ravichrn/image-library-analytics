@@ -1,8 +1,8 @@
 from pathlib import Path
 
+import open_clip
 import torch
 import torch.nn as nn
-import open_clip
 from PIL import Image
 
 SCENE_LABELS = [
@@ -18,10 +18,7 @@ SCENE_LABELS = [
     "night scene",
 ]
 
-_AESTHETIC_WEIGHTS_URL = (
-    "https://raw.githubusercontent.com/christophschuhmann/improved-aesthetic-predictor"
-    "/main/sac%2Blogos%2Bava1-l14-linearMSE.pth"
-)
+_AESTHETIC_WEIGHTS_URL = "https://raw.githubusercontent.com/christophschuhmann/improved-aesthetic-predictor/main/sac%2Blogos%2Bava1-l14-linearMSE.pth"
 _AESTHETIC_CACHE = Path.home() / ".cache" / "aesthetic_predictor" / "mlp_weights.pth"
 
 
@@ -29,9 +26,12 @@ class _AestheticMLP(nn.Module):
     def __init__(self):
         super().__init__()
         self.layers = nn.Sequential(
-            nn.Linear(768, 1024), nn.ReLU(),
-            nn.Linear(1024, 128), nn.ReLU(),
-            nn.Linear(128, 64), nn.ReLU(),
+            nn.Linear(768, 1024),
+            nn.ReLU(),
+            nn.Linear(1024, 128),
+            nn.ReLU(),
+            nn.Linear(128, 64),
+            nn.ReLU(),
             nn.Linear(64, 16),
             nn.Linear(16, 1),
         )
@@ -44,6 +44,7 @@ def load_musiq_metric():
     """Load MUSIQ IQA metric on CPU (avoids MPS op compatibility issues)."""
     try:
         import pyiqa
+
         return pyiqa.create_metric("musiq", device="cpu")
     except Exception:
         return None
@@ -55,11 +56,13 @@ def extract_iq_batch(paths: list, iq_metric, batch_size: int = 16) -> list[float
     from PIL import Image
     from torchvision import transforms
 
-    preprocess = transforms.Compose([
-        transforms.Resize((224, 224)),
-        transforms.ToTensor(),
-        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
-    ])
+    preprocess = transforms.Compose(
+        [
+            transforms.Resize((224, 224)),
+            transforms.ToTensor(),
+            transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+        ]
+    )
 
     results: list[float | None] = [None] * len(paths)
     valid: list[tuple[int, Path]] = [(i, p) for i, p in enumerate(paths) if p is not None]
@@ -87,11 +90,11 @@ def extract_iq_batch(paths: list, iq_metric, batch_size: int = 16) -> list[float
                 scores = scores.flatten().tolist()
             else:
                 scores = list(scores)
-            for idx, score in zip(indices, scores):
+            for idx, score in zip(indices, scores, strict=False):
                 results[idx] = round(float(score), 4)
         except Exception:
             # fallback: per-image if batched call fails
-            for idx, tensor in zip(indices, tensors):
+            for idx, tensor in zip(indices, tensors, strict=False):
                 try:
                     with torch.no_grad():
                         s = iq_metric(tensor.unsqueeze(0))
@@ -113,6 +116,7 @@ def load_aesthetic_predictor(device: str) -> nn.Module:
     _AESTHETIC_CACHE.parent.mkdir(parents=True, exist_ok=True)
     if not _AESTHETIC_CACHE.exists():
         import requests
+
         r = requests.get(_AESTHETIC_WEIGHTS_URL, stream=True, timeout=30)
         r.raise_for_status()
         with open(_AESTHETIC_CACHE, "wb") as f:
@@ -154,8 +158,7 @@ def classify_scene_and_aesthetic_batch(
         except Exception:
             pass
 
-    results = [{"scene": {"scene_type": "unknown", "scene_scores": {}}, "aesthetic_score": None}
-               for _ in paths]
+    results = [{"scene": {"scene_type": "unknown", "scene_scores": {}}, "aesthetic_score": None} for _ in paths]
 
     if not imgs:
         return results
@@ -168,8 +171,8 @@ def classify_scene_and_aesthetic_batch(
         scene_probs = scene_sims.softmax(dim=-1).cpu().tolist()
         raw_scores = aesthetic_mlp(image_features.float()).squeeze(-1).cpu().tolist()
 
-    for out_i, (probs, raw) in zip(valid_idx, zip(scene_probs, raw_scores)):
-        scores = {label: round(p, 4) for label, p in zip(SCENE_LABELS, probs)}
+    for out_i, (probs, raw) in zip(valid_idx, zip(scene_probs, raw_scores, strict=False), strict=False):
+        scores = {label: round(p, 4) for label, p in zip(SCENE_LABELS, probs, strict=False)}
         results[out_i] = {
             "scene": {"scene_type": max(scores, key=scores.__getitem__), "scene_scores": scores},
             "aesthetic_score": round(max(0.0, min(100.0, raw * 10)), 2),

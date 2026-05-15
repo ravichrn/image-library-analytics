@@ -43,8 +43,8 @@ def _make_ssl_context() -> tuple[ssl.SSLContext, str, str]:
         .issuer_name(issuer)
         .public_key(key.public_key())
         .serial_number(x509.random_serial_number())
-        .not_valid_before(datetime.datetime.now(datetime.timezone.utc))
-        .not_valid_after(datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(hours=1))
+        .not_valid_before(datetime.datetime.now(datetime.UTC))
+        .not_valid_after(datetime.datetime.now(datetime.UTC) + datetime.timedelta(hours=1))
         .add_extension(x509.SubjectAlternativeName([x509.DNSName("localhost")]), critical=False)
         .sign(key, hashes.SHA256())
     )
@@ -54,11 +54,13 @@ def _make_ssl_context() -> tuple[ssl.SSLContext, str, str]:
     with open(cert_path, "wb") as f:
         f.write(cert.public_bytes(serialization.Encoding.PEM))
     with open(key_path, "wb") as f:
-        f.write(key.private_bytes(
-            serialization.Encoding.PEM,
-            serialization.PrivateFormat.TraditionalOpenSSL,
-            serialization.NoEncryption(),
-        ))
+        f.write(
+            key.private_bytes(
+                serialization.Encoding.PEM,
+                serialization.PrivateFormat.TraditionalOpenSSL,
+                serialization.NoEncryption(),
+            )
+        )
     ctx = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
     ctx.load_cert_chain(cert_path, key_path)
     return ctx, cert_path, key_path, tmp
@@ -66,9 +68,7 @@ def _make_ssl_context() -> tuple[ssl.SSLContext, str, str]:
 
 def _pkce() -> tuple[str, str]:
     verifier = base64.urlsafe_b64encode(secrets.token_bytes(32)).rstrip(b"=").decode()
-    challenge = base64.urlsafe_b64encode(
-        hashlib.sha256(verifier.encode()).digest()
-    ).rstrip(b"=").decode()
+    challenge = base64.urlsafe_b64encode(hashlib.sha256(verifier.encode()).digest()).rstrip(b"=").decode()
     return verifier, challenge
 
 
@@ -80,14 +80,16 @@ def _clipboard() -> str:
 
 
 def _exchange_code(code: str, verifier: str, client_id: str, client_secret: str, redirect_uri: str) -> dict:
-    data = urllib.parse.urlencode({
-        "grant_type": "authorization_code",
-        "client_id": client_id,
-        "client_secret": client_secret,
-        "code": code,
-        "code_verifier": verifier,
-        "redirect_uri": redirect_uri,
-    }).encode()
+    data = urllib.parse.urlencode(
+        {
+            "grant_type": "authorization_code",
+            "client_id": client_id,
+            "client_secret": client_secret,
+            "code": code,
+            "code_verifier": verifier,
+            "redirect_uri": redirect_uri,
+        }
+    ).encode()
     req = urllib.request.Request(TOKEN_URL, data=data, method="POST")
     req.add_header("Content-Type", "application/x-www-form-urlencoded")
     with urllib.request.urlopen(req, timeout=30) as resp:
@@ -95,12 +97,14 @@ def _exchange_code(code: str, verifier: str, client_id: str, client_secret: str,
 
 
 def refresh_access_token(client_id: str, client_secret: str, refresh_token: str) -> str:
-    data = urllib.parse.urlencode({
-        "grant_type": "refresh_token",
-        "client_id": client_id,
-        "client_secret": client_secret,
-        "refresh_token": refresh_token,
-    }).encode()
+    data = urllib.parse.urlencode(
+        {
+            "grant_type": "refresh_token",
+            "client_id": client_id,
+            "client_secret": client_secret,
+            "refresh_token": refresh_token,
+        }
+    ).encode()
     req = urllib.request.Request(TOKEN_URL, data=data, method="POST")
     req.add_header("Content-Type", "application/x-www-form-urlencoded")
     with urllib.request.urlopen(req, timeout=30) as resp:
@@ -132,15 +136,17 @@ def login(client_id: str, client_secret: str, redirect_uri: str) -> str:
     verifier, challenge = _pkce()
     state = secrets.token_urlsafe(16)
 
-    params = urllib.parse.urlencode({
-        "client_id": client_id,
-        "redirect_uri": redirect_uri,
-        "scope": SCOPES,
-        "response_type": "code",
-        "state": state,
-        "code_challenge": challenge,
-        "code_challenge_method": "S256",
-    })
+    params = urllib.parse.urlencode(
+        {
+            "client_id": client_id,
+            "redirect_uri": redirect_uri,
+            "scope": SCOPES,
+            "response_type": "code",
+            "state": state,
+            "code_challenge": challenge,
+            "code_challenge_method": "S256",
+        }
+    )
     auth_url = f"{AUTHORIZE_URL}?{params}"
 
     # ── https server (Chrome path) ────────────────────────────────────────────
@@ -184,9 +190,10 @@ def login(client_id: str, client_secret: str, redirect_uri: str) -> str:
         server_error.append(str(e))
         cert_path = key_path = tmp_dir = None
 
-    print(f"\nOpening Adobe login in your browser...")
+    print("\nOpening Adobe login in your browser...")
     try:
         import webbrowser
+
         webbrowser.open(auth_url)
     except Exception:
         print(f"Open this URL manually:\n  {auth_url}\n")
@@ -249,6 +256,7 @@ def login(client_id: str, client_secret: str, redirect_uri: str) -> str:
 def get_access_token() -> str:
     """Return a valid access token, running login flow if no token exists."""
     from dotenv import load_dotenv
+
     load_dotenv()
     client_id = os.environ.get("LIGHTROOM_CLIENT_ID", "")
     client_secret = os.environ.get("LIGHTROOM_CLIENT_SECRET", "")
@@ -266,10 +274,7 @@ def get_access_token() -> str:
         return refresh_access_token(client_id, client_secret, refresh_token)
     except Exception as e:
         _write_refresh_token("")
-        raise RuntimeError(
-            f"Refresh token invalid ({e}). It has been cleared from .env.\n"
-            "Re-run authentication: uv run python auth/lightroom.py"
-        ) from None
+        raise RuntimeError(f"Refresh token invalid ({e}). It has been cleared from .env.\nRe-run authentication: uv run python auth/lightroom.py") from None
 
 
 if __name__ == "__main__":

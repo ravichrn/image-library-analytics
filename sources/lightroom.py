@@ -62,11 +62,13 @@ def _fetch_all_albums(catalog_id: str, token: str) -> list[dict]:
         for r in data.get("resources", []):
             subtype = r.get("payload", {}).get("subtype", "")
             if subtype != "collection_set":
-                albums.append({
-                    "id": r["id"],
-                    "name": r["payload"].get("name", r["id"]),
-                    "subtype": subtype,
-                })
+                albums.append(
+                    {
+                        "id": r["id"],
+                        "name": r["payload"].get("name", r["id"]),
+                        "subtype": subtype,
+                    }
+                )
         nxt = data.get("links", {}).get("next", {}).get("href")
         if not nxt:
             break
@@ -165,6 +167,7 @@ def fetch_current_hashes(token: str, catalog_id: str) -> set[str]:
 def get_token_and_catalog() -> tuple[str, str]:
     """Return (access_token, catalog_id) — used by main.py for on-demand downloads."""
     from auth.lightroom import get_access_token
+
     token = get_access_token()
     return token, _get_catalog_id(token)
 
@@ -180,6 +183,7 @@ def load_lightroom(sample: int | None = None) -> list[dict]:
     """
     from rich.console import Console
     from rich.progress import BarColumn, MofNCompleteColumn, Progress, SpinnerColumn, TaskProgressColumn, TextColumn
+
     from auth.lightroom import get_access_token
     from cache import load_all_cached, save_cache
 
@@ -210,27 +214,35 @@ def load_lightroom(sample: int | None = None) -> list[dict]:
                         if r["lightroom_album_names"]:
                             tagged += 1
                         save_cache(r["hash"], r)
-                console.print(f"  Albums: [green]{len(albums)}[/green] found, "
-                              f"[green]{tagged}[/green] photos in at least one album.")
+                console.print(f"  Albums: [green]{len(albums)}[/green] found, [green]{tagged}[/green] photos in at least one album.")
             else:
                 console.print("  [yellow]No albums found — your Lightroom library may have no collections.[/yellow]")
         except Exception as exc:
             import traceback
+
             console.print(f"  [red]Album fetch failed:[/red] {type(exc).__name__}: {exc}")
             console.print(f"  [dim]{traceback.format_exc()}[/dim]")
         if sample and sample < len(cached_records):
             import random
+
             cached_records = random.sample(cached_records, sample)
         return cached_records
 
     # First run or delta present — parse and persist new/updated assets
     if sample and sample < len(assets):
         import random
+
         assets = random.sample(assets, sample)
 
     new_records = []
-    with Progress(SpinnerColumn(), BarColumn(), TextColumn("{task.description}"),
-                  MofNCompleteColumn(), TaskProgressColumn(), console=console) as progress:
+    with Progress(
+        SpinnerColumn(),
+        BarColumn(),
+        TextColumn("{task.description}"),
+        MofNCompleteColumn(),
+        TaskProgressColumn(),
+        console=console,
+    ) as progress:
         task = progress.add_task("Syncing metadata", total=len(assets))
         for asset in assets:
             sha256 = _asset_sha256(asset)
@@ -271,8 +283,7 @@ def load_lightroom(sample: int | None = None) -> list[dict]:
                     if r["lightroom_album_names"]:
                         tagged += 1
                     save_cache(r["hash"], r)
-            console.print(f"  Albums: [green]{len(albums)}[/green] found, "
-                          f"[green]{tagged}[/green] photos in at least one album.")
+            console.print(f"  Albums: [green]{len(albums)}[/green] found, [green]{tagged}[/green] photos in at least one album.")
         else:
             console.print("  [yellow]No albums found — your Lightroom library may have no collections.[/yellow]")
             for r in all_by_hash.values():
@@ -280,6 +291,7 @@ def load_lightroom(sample: int | None = None) -> list[dict]:
                     r["lightroom_album_names"] = []
     except Exception as exc:
         import traceback
+
         console.print(f"  [red]Album fetch failed:[/red] {type(exc).__name__}: {exc}")
         console.print(f"  [dim]{traceback.format_exc()}[/dim]")
 
@@ -297,7 +309,12 @@ def _read_sync_state() -> dict:
 
 def _write_sync_state(total_assets: int) -> None:
     SYNC_STATE_PATH.parent.mkdir(exist_ok=True)
-    SYNC_STATE_PATH.write_text(json.dumps({
-        "last_synced": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
-        "total_assets": total_assets,
-    }, indent=2))
+    SYNC_STATE_PATH.write_text(
+        json.dumps(
+            {
+                "last_synced": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+                "total_assets": total_assets,
+            },
+            indent=2,
+        )
+    )

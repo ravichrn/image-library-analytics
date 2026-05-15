@@ -24,9 +24,11 @@ def load_local(sample: int | None = None) -> list[dict]:
         paths = random.sample(paths, sample)
     records = []
     for path in sorted(paths):
-        records.append({
-            "path": str(path),
-            "hash": _file_hash(path),
-            "source": "local",
-        })
+        records.append(
+            {
+                "path": str(path),
+                "hash": _file_hash(path),
+                "source": "local",
+            }
+        )
     return records

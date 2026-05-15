@@ -4,11 +4,7 @@ from transformers import AutoImageProcessor, AutoModel
 
 
 def load_dino_model() -> tuple:
-    device = (
-        "cuda" if torch.cuda.is_available()
-        else "mps" if torch.backends.mps.is_available()
-        else "cpu"
-    )
+    device = "cuda" if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else "cpu"
     processor = AutoImageProcessor.from_pretrained("facebook/dinov2-base")
     model = AutoModel.from_pretrained(
         "facebook/dinov2-base",
@@ -21,6 +17,7 @@ def load_dino_model() -> tuple:
 
 def unload_model(model) -> None:
     import gc
+
     del model
     gc.collect()
     if torch.cuda.is_available():
@@ -29,9 +26,7 @@ def unload_model(model) -> None:
         torch.mps.empty_cache()
 
 
-def extract_embedding_batch(
-    paths: list, dino_model, dino_processor, device: str
-) -> list[list[float] | None]:
+def extract_embedding_batch(paths: list, dino_model, dino_processor, device: str) -> list[list[float] | None]:
     """Process a batch of images in one forward pass. Returns one embedding per path."""
     imgs = []
     valid_idx = []
@@ -52,7 +47,7 @@ def extract_embedding_batch(
         outputs = dino_model(**inputs)
     cls_tokens = outputs.last_hidden_state[:, 0, :].cpu().float().tolist()
 
-    for out_i, emb in zip(valid_idx, cls_tokens):
+    for out_i, emb in zip(valid_idx, cls_tokens, strict=False):
         results[out_i] = emb
 
     return results

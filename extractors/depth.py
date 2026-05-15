@@ -4,6 +4,7 @@ from PIL import Image
 
 def load_depth_model(device: str):
     from transformers import pipeline as hf_pipeline
+
     return hf_pipeline(
         "depth-estimation",
         model="depth-anything/Depth-Anything-V2-Small-hf",
@@ -22,11 +23,8 @@ def _depth_stats(depth_img) -> dict:
     h, w = norm.shape
     cx, cy = w // 2, h // 2
     cr = max(1, min(cx, cy) // 3)
-    center_depth = float(norm[cy - cr:cy + cr, cx - cr:cx + cr].mean())
-    edges = np.concatenate(
-        [norm[:10, :].ravel(), norm[-10:, :].ravel(),
-         norm[:, :10].ravel(), norm[:, -10:].ravel()]
-    )
+    center_depth = float(norm[cy - cr : cy + cr, cx - cr : cx + cr].mean())
+    edges = np.concatenate([norm[:10, :].ravel(), norm[-10:, :].ravel(), norm[:, :10].ravel(), norm[:, -10:].ravel()])
     subject_depth_score = round(abs(center_depth - float(edges.mean())), 4)
     return {
         "depth_range": depth_range,
@@ -48,11 +46,11 @@ def extract_depth_batch(paths: list, pipe, batch_size: int = 8) -> list[dict]:
 
     results = [{}] * len(paths)
     for start in range(0, len(imgs), batch_size):
-        batch_imgs = imgs[start:start + batch_size]
-        batch_idx = valid_idx[start:start + batch_size]
+        batch_imgs = imgs[start : start + batch_size]
+        batch_idx = valid_idx[start : start + batch_size]
         try:
             outputs = pipe(batch_imgs)
-            for out_i, output in zip(batch_idx, outputs):
+            for out_i, output in zip(batch_idx, outputs, strict=False):
                 results[out_i] = _depth_stats(output["depth"])
         except Exception:
             pass

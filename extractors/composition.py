@@ -17,7 +17,7 @@ def extract_composition(img: Image.Image) -> dict:
     grid = np.zeros((3, 3))
     for r in range(3):
         for c in range(3):
-            cell = edges[r * cell_h:(r + 1) * cell_h, c * cell_w:(c + 1) * cell_w]
+            cell = edges[r * cell_h : (r + 1) * cell_h, c * cell_w : (c + 1) * cell_w]
             grid[r, c] = cell.mean()
     total = grid.sum() or 1
     grid_weights = (grid / total).tolist()
@@ -25,8 +25,8 @@ def extract_composition(img: Image.Image) -> dict:
     center_weight = grid[1, 1] / total
     thirds_score = round(1.0 - float(center_weight), 3)
 
-    left = arr[:, :w // 2]
-    right = np.fliplr(arr[:, w // 2:])
+    left = arr[:, : w // 2]
+    right = np.fliplr(arr[:, w // 2 :])
     min_w = min(left.shape[1], right.shape[1])
     diff = np.abs(left[:, :min_w].astype(float) - right[:, :min_w].astype(float))
     symmetry_score = round(1.0 - diff.mean() / 255.0, 3)
@@ -48,12 +48,12 @@ def extract_composition(img: Image.Image) -> dict:
             tilt_rad = avg_theta - np.pi / 2
             horizon_tilt_deg = round(float(np.degrees(tilt_rad)), 2)
 
-    bottom_quarter = edges[int(h * 0.75):, :]
+    bottom_quarter = edges[int(h * 0.75) :, :]
     foreground_clutter = round(float(bottom_quarter.mean()) / 255.0, 3)
 
     cx, cy = w // 2, h // 2
     cr = min(cx, cy) // 2
-    center_crop = arr[cy - cr:cy + cr, cx - cr:cx + cr]
+    center_crop = arr[cy - cr : cy + cr, cx - cr : cx + cr]
     center_lap = float(cv2.Laplacian(center_crop, cv2.CV_64F).var())
     full_lap = float(cv2.Laplacian(arr, cv2.CV_64F).var())
     subject_isolation = round(center_lap / (full_lap + 1e-6), 3)

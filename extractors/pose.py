@@ -1,5 +1,6 @@
-import numpy as np
 from pathlib import Path
+
+import numpy as np
 
 _MODEL_NAME = "yolov8n-pose.pt"
 _CACHE_PATH = Path.home() / ".cache" / "ultralytics" / _MODEL_NAME
@@ -12,12 +13,14 @@ _KP_L_ANKLE, _KP_R_ANKLE = 15, 16
 
 def load_pose_model(device: str):
     from ultralytics import YOLO
+
     _CACHE_PATH.parent.mkdir(parents=True, exist_ok=True)
     return YOLO(str(_CACHE_PATH))
 
 
 def unload_pose_model(model) -> None:
     import gc
+
     del model
     gc.collect()
 
@@ -59,10 +62,12 @@ def extract_pose_batch(paths: list, model, device: str) -> list[dict]:
                     cls_id = int(box.cls[0])
                     conf = float(box.conf[0])
                     if conf >= 0.3:
-                        detected_objects.append({
-                            "label": model.names[cls_id],
-                            "confidence": round(conf, 3),
-                        })
+                        detected_objects.append(
+                            {
+                                "label": model.names[cls_id],
+                                "confidence": round(conf, 3),
+                            }
+                        )
 
             person_count = 0
             pose_type = None
@@ -74,10 +79,7 @@ def extract_pose_batch(paths: list, model, device: str) -> list[dict]:
                     kpts_xy = preds.keypoints.xy[0].cpu().numpy()
                     pose_type = _classify_pose(kpts_xy)
 
-                    person_boxes = [
-                        b for b in (preds.boxes or [])
-                        if model.names[int(b.cls[0])] == "person"
-                    ]
+                    person_boxes = [b for b in (preds.boxes or []) if model.names[int(b.cls[0])] == "person"]
                     if person_boxes:
                         img_h, img_w = preds.orig_shape
                         best = max(person_boxes, key=lambda b: float(b.conf[0]))

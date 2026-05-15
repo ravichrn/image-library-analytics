@@ -3,11 +3,11 @@ from PIL import Image
 _MODEL_ID = "microsoft/Florence-2-base"
 
 QUESTIONS = {
-    "has_person":  "Is there a person in this photo?",
-    "setting":     "Is this photo taken indoors or outdoors?",
+    "has_person": "Is there a person in this photo?",
+    "setting": "Is this photo taken indoors or outdoors?",
     "time_of_day": "What time of day is shown in this photo?",
-    "weather":     "What is the weather like in this photo?",
-    "season":      "What season does this photo appear to be taken in?",
+    "weather": "What is the weather like in this photo?",
+    "season": "What season does this photo appear to be taken in?",
 }
 _KEYS = list(QUESTIONS.keys())
 _TEXTS = list(QUESTIONS.values())
@@ -16,6 +16,7 @@ _TEXTS = list(QUESTIONS.values())
 def load_caption_model(device: str):
     import torch
     from transformers import AutoModelForCausalLM, AutoProcessor
+
     processor = AutoProcessor.from_pretrained(_MODEL_ID, trust_remote_code=True)
     model = AutoModelForCausalLM.from_pretrained(
         _MODEL_ID,
@@ -27,9 +28,7 @@ def load_caption_model(device: str):
     return model, processor
 
 
-def extract_caption_batch(
-    paths: list, model, processor, batch_size: int = 8
-) -> list[dict]:
+def extract_caption_batch(paths: list, model, processor, batch_size: int = 8) -> list[dict]:
     """
     For each batch of images, runs one forward pass per task (6 total):
     one for detailed caption + one per VQA question. Returns one dict per path.
@@ -40,7 +39,7 @@ def extract_caption_batch(
     results: list[dict] = [{}] * len(paths)
 
     for start in range(0, len(paths), batch_size):
-        batch_paths = paths[start:start + batch_size]
+        batch_paths = paths[start : start + batch_size]
         imgs: list = []
         valid_idx: list[int] = []
         for rel_i, path in enumerate(batch_paths):
@@ -57,9 +56,7 @@ def extract_caption_batch(
 
         def _run(task_token: str, suffix: str = "", max_tokens: int = 64) -> list[str]:
             texts = [task_token + suffix] * len(imgs)
-            inputs = processor(
-                text=texts, images=imgs, return_tensors="pt", padding=True
-            ).to(device)
+            inputs = processor(text=texts, images=imgs, return_tensors="pt", padding=True).to(device)
             with torch.no_grad():
                 out = model.generate(
                     input_ids=inputs["input_ids"],
@@ -71,10 +68,8 @@ def extract_caption_batch(
                 )
             decoded = processor.batch_decode(out, skip_special_tokens=False)
             return [
-                processor.post_process_generation(
-                    d, task=task_token, image_size=(img.width, img.height)
-                ).get(task_token, "").strip()
-                for d, img in zip(decoded, imgs)
+                processor.post_process_generation(d, task=task_token, image_size=(img.width, img.height)).get(task_token, "").strip()
+                for d, img in zip(decoded, imgs, strict=False)
             ]
 
         try:
@@ -91,7 +86,7 @@ def extract_caption_batch(
             except Exception:
                 pass
 
-        for out_i, d in zip(valid_idx, batch_data):
+        for out_i, d in zip(valid_idx, batch_data, strict=False):
             results[out_i] = d
 
     return results

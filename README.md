@@ -99,6 +99,19 @@ LIGHTROOM_DOWNLOAD_RENDITIONS=false  # download 2048px renditions for ML
 LIGHTROOM_KEEP_RENDITIONS=true       # keep on disk for faster re-runs
 ```
 
+---
+
+## Dev
+
+```bash
+uv sync --group dev       # install dev deps
+uv run pre-commit install # wire hooks into .git
+```
+
+Ruff (lint + format) and file hygiene checks run automatically on `git commit` and auto-fix what they can.
+
+---
+
 **Partial cache refresh** — clear one analysis key without re-running everything:
 
 ```bash

@@ -19,7 +19,7 @@ def extract_color(img: Image.Image) -> dict:
     counts = np.bincount(km.labels_, minlength=5)
     weights = (counts / counts.sum()).tolist()
 
-    palette = [{"rgb": c.tolist(), "weight": round(w, 3)} for c, w in zip(centers, weights)]
+    palette = [{"rgb": c.tolist(), "weight": round(w, 3)} for c, w in zip(centers, weights, strict=False)]
 
     hsv = np.array(img.convert("HSV")) / 255.0
     avg_saturation = float(hsv[:, :, 1].mean())

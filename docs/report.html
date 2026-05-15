@@ -276,6 +276,41 @@ canvas { max-height: 300px; }
 .ptn-pct { font-size: var(--fs-sub); color: #7878a0; min-width: 38px; text-align: right; }
 .ptn-desc { font-size: var(--fs-body); color: #8080aa; line-height: 1.55; margin-top: 0.3rem; }
 
+/* ── Mobile overrides (≤ 600px) ─────────────────────────────────── */
+@media (max-width: 600px) {
+  body { font-size: 14px; }
+  .page { padding: 0 0.85rem 4rem; }
+  .card { padding: 1rem 1rem; }
+  .hero { padding: 1.8rem 0 1.4rem; margin-bottom: 1.8rem; }
+  .hero-digest { grid-template-columns: 1fr 1fr; }
+  .hero-digest-item { border-right: none; border-bottom: 1px solid #17172a; }
+  .hero-digest-item:nth-child(odd) { border-right: 1px solid #17172a; }
+  .hero-digest-item:last-child, .hero-digest-item:nth-last-child(-n+2):nth-child(odd):last-child { border-bottom: none; }
+
+  /* Strip: wrap so each item gets full width on very narrow screens */
+  .strip { flex-wrap: wrap; border-radius: 8px; }
+  .strip-item { flex: 1 1 45%; border-right: none; border-bottom: 1px solid #1c1c2e; }
+  .strip-item:last-child { border-bottom: none; }
+
+  /* Aesthetic score by scene — label was 140px, shrink it */
+  .aes-scene-name { min-width: 80px; font-size: 0.72rem; }
+  .aes-scene-count { min-width: 40px; }
+
+  /* Flag rows — remove deep left indent on description */
+  .flag-desc { padding-left: 0; }
+
+  /* Tables — make them scrollable rather than overflowing */
+  table { display: block; overflow-x: auto; -webkit-overflow-scrolling: touch; width: max-content; max-width: 100%; }
+  th, td { padding: 0.3rem 0.55rem; white-space: nowrap; }
+
+  /* Scene tiles and color cards — allow smaller min-width */
+  .scene-tiles { grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); }
+  .color-scene-grid { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); }
+
+  /* Pattern grid already stacks via the .row media query, but ensure it here */
+  .pattern-grid { grid-template-columns: 1fr; }
+}
+
 /* ── Back to top ────────────────────────────────────────────────── */
 #back-to-top {
   position: fixed;
@@ -326,7 +361,7 @@ canvas { max-height: 300px; }
   <div class="stat-grid">
     <div class="stat">
       <div class="stat-l">Dominant Scene</div>
-      
+
       <div class="stat-v" style="font-size:1.1rem;text-transform:capitalize;">travel and landmarks</div>
       <div class="stat-s">54% of library</div>
     </div>
@@ -355,20 +390,20 @@ canvas { max-height: 300px; }
       <div class="stat-v" style="font-size:1.0rem;">Varied / Eclectic</div>
       <div class="stat-s">91% confidence</div>
     </div>
-    
+
     <div class="stat">
       <div class="stat-l">Redundant Images</div>
       <div class="stat-v">279</div>
       <div class="stat-s">similar image duplicates</div>
     </div>
-    
-    
+
+
     <div class="stat">
       <div class="stat-l">ELA Outliers</div>
       <div class="stat-v">1</div>
       <div class="stat-s">unusual compression artifacts</div>
     </div>
-    
+
   </div>
 </div>
 
@@ -381,17 +416,17 @@ canvas { max-height: 300px; }
     <div class="card-title">Scene Preferences</div>
     <div class="chart-h"><canvas id="sceneChart"></canvas></div>
   </div>
-  
-  
+
+
   <div class="card">
     <div class="card-title">Visual Attributes <span style="color:#8080aa;font-size:0.6rem;font-weight:400;">Florence-2 VQA · 5107 images</span></div>
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1rem;">
-      
-      
-      
+
+
+
       <div>
         <div style="font-size:0.68rem;color:#7878a0;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:0.5rem;">Season</div>
-        
+
         <div style="margin-bottom:4px;">
           <div style="display:flex;justify-content:space-between;margin-bottom:2px;">
             <span style="font-size:0.78rem;color:#7878a0;text-transform:capitalize;">summer</span>
@@ -401,7 +436,7 @@ canvas { max-height: 300px; }
             <div style="width:54.9%;background:#ec4899;border-radius:3px;height:5px;opacity:0.75;"></div>
           </div>
         </div>
-        
+
         <div style="margin-bottom:4px;">
           <div style="display:flex;justify-content:space-between;margin-bottom:2px;">
             <span style="font-size:0.78rem;color:#7878a0;text-transform:capitalize;">fall</span>
@@ -411,7 +446,7 @@ canvas { max-height: 300px; }
             <div style="width:21.2%;background:#ec4899;border-radius:3px;height:5px;opacity:0.75;"></div>
           </div>
         </div>
-        
+
         <div style="margin-bottom:4px;">
           <div style="display:flex;justify-content:space-between;margin-bottom:2px;">
             <span style="font-size:0.78rem;color:#7878a0;text-transform:capitalize;">winter</span>
@@ -421,7 +456,7 @@ canvas { max-height: 300px; }
             <div style="width:20.7%;background:#ec4899;border-radius:3px;height:5px;opacity:0.75;"></div>
           </div>
         </div>
-        
+
         <div style="margin-bottom:4px;">
           <div style="display:flex;justify-content:space-between;margin-bottom:2px;">
             <span style="font-size:0.78rem;color:#7878a0;text-transform:capitalize;">spring</span>
@@ -431,7 +466,7 @@ canvas { max-height: 300px; }
             <div style="width:3.1%;background:#ec4899;border-radius:3px;height:5px;opacity:0.75;"></div>
           </div>
         </div>
-        
+
         <div style="margin-bottom:4px;">
           <div style="display:flex;justify-content:space-between;margin-bottom:2px;">
             <span style="font-size:0.78rem;color:#7878a0;text-transform:capitalize;">christmas</span>
@@ -441,13 +476,13 @@ canvas { max-height: 300px; }
             <div style="width:0.1%;background:#ec4899;border-radius:3px;height:5px;opacity:0.75;"></div>
           </div>
         </div>
-        
+
       </div>
-      
-      
+
+
       <div>
         <div style="font-size:0.68rem;color:#7878a0;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:0.5rem;">People Present</div>
-        
+
         <div style="margin-bottom:4px;">
           <div style="display:flex;justify-content:space-between;margin-bottom:2px;">
             <span style="font-size:0.78rem;color:#7878a0;text-transform:capitalize;">no</span>
@@ -457,7 +492,7 @@ canvas { max-height: 300px; }
             <div style="width:56.1%;background:#7c6af7;border-radius:3px;height:5px;opacity:0.75;"></div>
           </div>
         </div>
-        
+
         <div style="margin-bottom:4px;">
           <div style="display:flex;justify-content:space-between;margin-bottom:2px;">
             <span style="font-size:0.78rem;color:#7878a0;text-transform:capitalize;">yes</span>
@@ -467,13 +502,13 @@ canvas { max-height: 300px; }
             <div style="width:43.9%;background:#7c6af7;border-radius:3px;height:5px;opacity:0.75;"></div>
           </div>
         </div>
-        
+
       </div>
-      
-      
+
+
       <div>
         <div style="font-size:0.68rem;color:#7878a0;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:0.5rem;">Setting</div>
-        
+
         <div style="margin-bottom:4px;">
           <div style="display:flex;justify-content:space-between;margin-bottom:2px;">
             <span style="font-size:0.78rem;color:#7878a0;text-transform:capitalize;">outdoors</span>
@@ -483,7 +518,7 @@ canvas { max-height: 300px; }
             <div style="width:82.8%;background:#10b981;border-radius:3px;height:5px;opacity:0.75;"></div>
           </div>
         </div>
-        
+
         <div style="margin-bottom:4px;">
           <div style="display:flex;justify-content:space-between;margin-bottom:2px;">
             <span style="font-size:0.78rem;color:#7878a0;text-transform:capitalize;">indoors</span>
@@ -493,7 +528,7 @@ canvas { max-height: 300px; }
             <div style="width:17.1%;background:#10b981;border-radius:3px;height:5px;opacity:0.75;"></div>
           </div>
         </div>
-        
+
         <div style="margin-bottom:4px;">
           <div style="display:flex;justify-content:space-between;margin-bottom:2px;">
             <span style="font-size:0.78rem;color:#7878a0;text-transform:capitalize;">no</span>
@@ -503,13 +538,13 @@ canvas { max-height: 300px; }
             <div style="width:0.1%;background:#10b981;border-radius:3px;height:5px;opacity:0.75;"></div>
           </div>
         </div>
-        
+
       </div>
-      
-      
+
+
       <div>
         <div style="font-size:0.68rem;color:#7878a0;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:0.5rem;">Time of Day</div>
-        
+
         <div style="margin-bottom:4px;">
           <div style="display:flex;justify-content:space-between;margin-bottom:2px;">
             <span style="font-size:0.78rem;color:#7878a0;text-transform:capitalize;">daytime</span>
@@ -519,7 +554,7 @@ canvas { max-height: 300px; }
             <div style="width:33.6%;background:#f59e0b;border-radius:3px;height:5px;opacity:0.75;"></div>
           </div>
         </div>
-        
+
         <div style="margin-bottom:4px;">
           <div style="display:flex;justify-content:space-between;margin-bottom:2px;">
             <span style="font-size:0.78rem;color:#7878a0;text-transform:capitalize;">afternoon</span>
@@ -529,7 +564,7 @@ canvas { max-height: 300px; }
             <div style="width:28.5%;background:#f59e0b;border-radius:3px;height:5px;opacity:0.75;"></div>
           </div>
         </div>
-        
+
         <div style="margin-bottom:4px;">
           <div style="display:flex;justify-content:space-between;margin-bottom:2px;">
             <span style="font-size:0.78rem;color:#7878a0;text-transform:capitalize;">night</span>
@@ -539,7 +574,7 @@ canvas { max-height: 300px; }
             <div style="width:15.3%;background:#f59e0b;border-radius:3px;height:5px;opacity:0.75;"></div>
           </div>
         </div>
-        
+
         <div style="margin-bottom:4px;">
           <div style="display:flex;justify-content:space-between;margin-bottom:2px;">
             <span style="font-size:0.78rem;color:#7878a0;text-transform:capitalize;">evening</span>
@@ -549,7 +584,7 @@ canvas { max-height: 300px; }
             <div style="width:10.5%;background:#f59e0b;border-radius:3px;height:5px;opacity:0.75;"></div>
           </div>
         </div>
-        
+
         <div style="margin-bottom:4px;">
           <div style="display:flex;justify-content:space-between;margin-bottom:2px;">
             <span style="font-size:0.78rem;color:#7878a0;text-transform:capitalize;">morning</span>
@@ -559,7 +594,7 @@ canvas { max-height: 300px; }
             <div style="width:6.0%;background:#f59e0b;border-radius:3px;height:5px;opacity:0.75;"></div>
           </div>
         </div>
-        
+
         <div style="margin-bottom:4px;">
           <div style="display:flex;justify-content:space-between;margin-bottom:2px;">
             <span style="font-size:0.78rem;color:#7878a0;text-transform:capitalize;">noon</span>
@@ -569,13 +604,13 @@ canvas { max-height: 300px; }
             <div style="width:2.8%;background:#f59e0b;border-radius:3px;height:5px;opacity:0.75;"></div>
           </div>
         </div>
-        
+
       </div>
-      
-      
+
+
       <div>
         <div style="font-size:0.68rem;color:#7878a0;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:0.5rem;">Weather</div>
-        
+
         <div style="margin-bottom:4px;">
           <div style="display:flex;justify-content:space-between;margin-bottom:2px;">
             <span style="font-size:0.78rem;color:#7878a0;text-transform:capitalize;">sunny</span>
@@ -585,7 +620,7 @@ canvas { max-height: 300px; }
             <div style="width:51.8%;background:#3b82f6;border-radius:3px;height:5px;opacity:0.75;"></div>
           </div>
         </div>
-        
+
         <div style="margin-bottom:4px;">
           <div style="display:flex;justify-content:space-between;margin-bottom:2px;">
             <span style="font-size:0.78rem;color:#7878a0;text-transform:capitalize;">cloudy</span>
@@ -595,7 +630,7 @@ canvas { max-height: 300px; }
             <div style="width:22.3%;background:#3b82f6;border-radius:3px;height:5px;opacity:0.75;"></div>
           </div>
         </div>
-        
+
         <div style="margin-bottom:4px;">
           <div style="display:flex;justify-content:space-between;margin-bottom:2px;">
             <span style="font-size:0.78rem;color:#7878a0;text-transform:capitalize;">clear</span>
@@ -605,7 +640,7 @@ canvas { max-height: 300px; }
             <div style="width:10.3%;background:#3b82f6;border-radius:3px;height:5px;opacity:0.75;"></div>
           </div>
         </div>
-        
+
         <div style="margin-bottom:4px;">
           <div style="display:flex;justify-content:space-between;margin-bottom:2px;">
             <span style="font-size:0.78rem;color:#7878a0;text-transform:capitalize;">cold</span>
@@ -615,7 +650,7 @@ canvas { max-height: 300px; }
             <div style="width:7.5%;background:#3b82f6;border-radius:3px;height:5px;opacity:0.75;"></div>
           </div>
         </div>
-        
+
         <div style="margin-bottom:4px;">
           <div style="display:flex;justify-content:space-between;margin-bottom:2px;">
             <span style="font-size:0.78rem;color:#7878a0;text-transform:capitalize;">overcast</span>
@@ -625,7 +660,7 @@ canvas { max-height: 300px; }
             <div style="width:1.9%;background:#3b82f6;border-radius:3px;height:5px;opacity:0.75;"></div>
           </div>
         </div>
-        
+
         <div style="margin-bottom:4px;">
           <div style="display:flex;justify-content:space-between;margin-bottom:2px;">
             <span style="font-size:0.78rem;color:#7878a0;text-transform:capitalize;">partly cloudy</span>
@@ -635,14 +670,14 @@ canvas { max-height: 300px; }
             <div style="width:1.1%;background:#3b82f6;border-radius:3px;height:5px;opacity:0.75;"></div>
           </div>
         </div>
-        
+
       </div>
-      
+
     </div>
 
 
   </div>
-  
+
 </div>
 
 <!-- UMAP — compact -->
@@ -664,10 +699,10 @@ canvas { max-height: 300px; }
   <!-- LEFT: Composition Style — pattern list + metrics strip -->
   <div class="card">
     <div class="card-title">Composition Style</div>
-    
-    
+
+
     <div class="cp-list" style="margin-bottom:1.25rem;">
-      
+
       <div class="cp-row">
         <div class="cp-pct">88.0%</div>
         <div class="cp-body" style="flex:1;">
@@ -676,7 +711,7 @@ canvas { max-height: 300px; }
           <div class="cp-bar"><div class="cp-bar-fill" style="width:88.0%;"></div></div>
         </div>
       </div>
-      
+
       <div class="cp-row">
         <div class="cp-pct">42.2%</div>
         <div class="cp-body" style="flex:1;">
@@ -685,7 +720,7 @@ canvas { max-height: 300px; }
           <div class="cp-bar"><div class="cp-bar-fill" style="width:42.2%;"></div></div>
         </div>
       </div>
-      
+
       <div class="cp-row">
         <div class="cp-pct">41.9%</div>
         <div class="cp-body" style="flex:1;">
@@ -694,7 +729,7 @@ canvas { max-height: 300px; }
           <div class="cp-bar"><div class="cp-bar-fill" style="width:41.9%;"></div></div>
         </div>
       </div>
-      
+
       <div class="cp-row">
         <div class="cp-pct">36.0%</div>
         <div class="cp-body" style="flex:1;">
@@ -703,7 +738,7 @@ canvas { max-height: 300px; }
           <div class="cp-bar"><div class="cp-bar-fill" style="width:36.0%;"></div></div>
         </div>
       </div>
-      
+
       <div class="cp-row">
         <div class="cp-pct">30.4%</div>
         <div class="cp-body" style="flex:1;">
@@ -712,165 +747,165 @@ canvas { max-height: 300px; }
           <div class="cp-bar"><div class="cp-bar-fill" style="width:30.4%;"></div></div>
         </div>
       </div>
-      
+
     </div>
-    
+
     <div class="strip">
-      
+
       <div class="strip-item">
         <div class="strip-l" style="margin-bottom:0.25rem;">Thirds Score</div>
         <div class="strip-v" style="font-size:1rem;">0.83</div>
         <div class="strip-s">0 = centred · 1 = off-centre</div>
       </div>
-      
+
       <div class="strip-item">
         <div class="strip-l" style="margin-bottom:0.25rem;">Symmetry</div>
         <div class="strip-v" style="font-size:1rem;">0.85</div>
         <div class="strip-s">left/right mirror ratio</div>
       </div>
-      
+
       <div class="strip-item">
         <div class="strip-l" style="margin-bottom:0.25rem;">Negative Space</div>
         <div class="strip-v" style="font-size:1rem;">0.86</div>
         <div class="strip-s">empty-frame fraction</div>
       </div>
-      
+
       <div class="strip-item">
         <div class="strip-l" style="margin-bottom:0.25rem;">Subject Isolation</div>
         <div class="strip-v" style="font-size:1rem;">1.49</div>
         <div class="strip-s">centre sharpness ratio</div>
       </div>
-      
+
       <div class="strip-item">
         <div class="strip-l" style="margin-bottom:0.25rem;">Foreground Clutter</div>
         <div class="strip-v" style="font-size:1rem;">0.15</div>
         <div class="strip-s">lower = cleaner frame</div>
       </div>
-      
+
     </div>
   </div>
 
   <!-- RIGHT: Composition Grid -->
   <div class="card">
     <div class="card-title">Composition Grid</div>
-    
-    
-    
-    
-    
-    
+
+
+
+
+
+
 
     <!-- Edge activity + Subject placement: equal 1fr 1fr columns so grids are same size -->
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.25rem;margin-bottom:1.25rem;align-items:start;">
       <div>
         <div style="font-size:0.68rem;color:#7878a0;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:0.5rem;">Edge Activity</div>
         <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:3px;">
-          
+
           <div style="aspect-ratio:1;background:rgba(124,106,247,0.36);border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:0.65rem;color:#e0d8ff;font-weight:500;">0.06</div>
-          
+
           <div style="aspect-ratio:1;background:rgba(124,106,247,0.42);border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:0.65rem;color:#e0d8ff;font-weight:500;">0.07</div>
-          
+
           <div style="aspect-ratio:1;background:rgba(124,106,247,0.36);border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:0.65rem;color:#e0d8ff;font-weight:500;">0.06</div>
-          
+
           <div style="aspect-ratio:1;background:rgba(124,106,247,0.72);border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:0.65rem;color:#e0d8ff;font-weight:500;">0.12</div>
-          
+
           <div style="aspect-ratio:1;background:rgba(124,106,247,0.99);border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:0.65rem;color:#e0d8ff;font-weight:500;">0.17</div>
-          
+
           <div style="aspect-ratio:1;background:rgba(124,106,247,0.75);border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:0.65rem;color:#e0d8ff;font-weight:500;">0.13</div>
-          
+
           <div style="aspect-ratio:1;background:rgba(124,106,247,0.71);border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:0.65rem;color:#e0d8ff;font-weight:500;">0.12</div>
-          
+
           <div style="aspect-ratio:1;background:rgba(124,106,247,0.84);border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:0.65rem;color:#e0d8ff;font-weight:500;">0.14</div>
-          
+
           <div style="aspect-ratio:1;background:rgba(124,106,247,0.73);border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:0.65rem;color:#e0d8ff;font-weight:500;">0.12</div>
-          
+
         </div>
         <div style="margin-top:0.5rem;font-size:0.75rem;color:#7878a8;line-height:1.5;">Brighter = more edges and detail in that zone. Centre <strong style="color:#c0c0d8;">0.17</strong> vs corners avg <strong style="color:#c0c0d8;">0.09</strong>.</div>
       </div>
 
-      
-      
-      
-      
+
+
+
+
       <div>
         <div style="font-size:0.68rem;color:#7878a0;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:0.5rem;">Subject Placement</div>
         <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:3px;">
-          
+
           <div style="aspect-ratio:1;background:rgba(16,185,129,0.01);border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:0.65rem;font-weight:700;color:#2a4a3a;">1%</div>
-          
+
           <div style="aspect-ratio:1;background:rgba(16,185,129,0.03);border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:0.65rem;font-weight:700;color:#2a4a3a;">2%</div>
-          
+
           <div style="aspect-ratio:1;background:rgba(16,185,129,0.0);border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:0.65rem;font-weight:700;color:#2a4a3a;">0%</div>
-          
+
           <div style="aspect-ratio:1;background:rgba(16,185,129,0.08);border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:0.65rem;font-weight:700;color:#2a4a3a;">5%</div>
-          
+
           <div style="aspect-ratio:1;background:rgba(16,185,129,1.0);border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:0.65rem;font-weight:700;color:#d0f5e8;">72%</div>
-          
+
           <div style="aspect-ratio:1;background:rgba(16,185,129,0.01);border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:0.65rem;font-weight:700;color:#2a4a3a;">1%</div>
-          
+
           <div style="aspect-ratio:1;background:rgba(16,185,129,0.02);border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:0.65rem;font-weight:700;color:#2a4a3a;">1%</div>
-          
+
           <div style="aspect-ratio:1;background:rgba(16,185,129,0.23);border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:0.65rem;font-weight:700;color:#2a4a3a;">17%</div>
-          
+
           <div style="aspect-ratio:1;background:rgba(16,185,129,0.0);border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:0.65rem;font-weight:700;color:#2a4a3a;">0%</div>
-          
+
         </div>
         <div style="margin-top:0.5rem;font-size:0.75rem;color:#7878a8;line-height:1.5;">Darker green = more images placed in that zone. Subject fills avg <strong style="color:#c0c0d8;">66%</strong> of the frame; <strong style="color:#c0c0d8;">0.119</strong> off-centre (0 = perfectly centred).</div>
       </div>
-      
+
     </div>
 
     <!-- Horizon position -->
-    
-    
-    
+
+
+
     <div style="margin-bottom:1.1rem;">
       <div style="font-size:0.68rem;color:#7878a0;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:0.5rem;">Horizon Position</div>
-      
-      
+
+
       <div class="dbar">
         <div class="dbar-row"><span>Top</span><span>7%</span></div>
         <div class="dbar-bg"><div class="dbar-fill" style="width:7%;background:#7c6af7;"></div></div>
       </div>
-      
-      
+
+
       <div class="dbar">
         <div class="dbar-row"><span>Mid</span><span>50%</span></div>
         <div class="dbar-bg"><div class="dbar-fill" style="width:50%;background:#7c6af7;"></div></div>
       </div>
-      
-      
+
+
       <div class="dbar">
         <div class="dbar-row"><span>Bottom</span><span>32%</span></div>
         <div class="dbar-bg"><div class="dbar-fill" style="width:32%;background:#7c6af7;"></div></div>
       </div>
-      
-      
+
+
       <div class="dbar">
         <div class="dbar-row"><span>None</span><span>11%</span></div>
         <div class="dbar-bg"><div class="dbar-fill" style="width:11%;background:#7c6af7;"></div></div>
       </div>
-      
+
     </div>
-    
+
 
     <!-- Zone interpretation -->
     <div style="border-top:1px solid #1a1a28;padding-top:0.75rem;">
       <div style="font-size:0.68rem;color:#7878a0;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:0.3rem;">Zone Interpretation</div>
       <div style="font-size:0.75rem;color:#7878a8;line-height:1.5;">
-        
+
           <strong style="color:#ddd8f0;">Center-dominant</strong> — most visual detail and subject matter sits in the middle of the frame. The centre zone scores <strong style="color:#c0c0d8;">0.17</strong> versus a corner average of <strong style="color:#c0c0d8;">0.09</strong>, a ratio typical of telephoto or portrait-heavy libraries.
-        
+
       </div>
     </div>
-    
+
   </div>
 
 </div>
 
 <!-- Depth strip + Sharpness -->
 <div class="row two mb">
-  
+
   <div class="card">
     <div class="card-title">Depth & Spatial Composition <span style="color:#8080aa;font-weight:400;">Depth Anything v2</span></div>
     <div class="strip mb">
@@ -890,79 +925,79 @@ canvas { max-height: 300px; }
         <div class="strip-s">center vs edge</div>
       </div>
     </div>
-    
-    
+
+
     <div class="bar-list">
-      
+
       <div class="bar-row">
         <div class="bar-lbl" style="min-width:110px;font-size:0.78rem;text-transform:capitalize;">night scene</div>
         <div class="bar-track"><div class="bar-fill" style="width:99%;background:#7c6af7;opacity:0.65;"></div></div>
         <div class="bar-val">0.805</div>
       </div>
-      
+
       <div class="bar-row">
         <div class="bar-lbl" style="min-width:110px;font-size:0.78rem;text-transform:capitalize;">food</div>
         <div class="bar-track"><div class="bar-fill" style="width:96%;background:#7c6af7;opacity:0.65;"></div></div>
         <div class="bar-val">0.781</div>
       </div>
-      
+
       <div class="bar-row">
         <div class="bar-lbl" style="min-width:110px;font-size:0.78rem;text-transform:capitalize;">people and portraits</div>
         <div class="bar-track"><div class="bar-fill" style="width:96%;background:#7c6af7;opacity:0.65;"></div></div>
         <div class="bar-val">0.780</div>
       </div>
-      
+
       <div class="bar-row">
         <div class="bar-lbl" style="min-width:110px;font-size:0.78rem;text-transform:capitalize;">urban street</div>
         <div class="bar-track"><div class="bar-fill" style="width:94%;background:#7c6af7;opacity:0.65;"></div></div>
         <div class="bar-val">0.759</div>
       </div>
-      
+
       <div class="bar-row">
         <div class="bar-lbl" style="min-width:110px;font-size:0.78rem;text-transform:capitalize;">abstract</div>
         <div class="bar-track"><div class="bar-fill" style="width:93%;background:#7c6af7;opacity:0.65;"></div></div>
         <div class="bar-val">0.756</div>
       </div>
-      
+
       <div class="bar-row">
         <div class="bar-lbl" style="min-width:110px;font-size:0.78rem;text-transform:capitalize;">travel and landmarks</div>
         <div class="bar-track"><div class="bar-fill" style="width:93%;background:#7c6af7;opacity:0.65;"></div></div>
         <div class="bar-val">0.751</div>
       </div>
-      
+
       <div class="bar-row">
         <div class="bar-lbl" style="min-width:110px;font-size:0.78rem;text-transform:capitalize;">animals</div>
         <div class="bar-track"><div class="bar-fill" style="width:92%;background:#7c6af7;opacity:0.65;"></div></div>
         <div class="bar-val">0.744</div>
       </div>
-      
+
       <div class="bar-row">
         <div class="bar-lbl" style="min-width:110px;font-size:0.78rem;text-transform:capitalize;">architecture</div>
         <div class="bar-track"><div class="bar-fill" style="width:91%;background:#7c6af7;opacity:0.65;"></div></div>
         <div class="bar-val">0.737</div>
       </div>
-      
+
       <div class="bar-row">
         <div class="bar-lbl" style="min-width:110px;font-size:0.78rem;text-transform:capitalize;">nature</div>
         <div class="bar-track"><div class="bar-fill" style="width:90%;background:#7c6af7;opacity:0.65;"></div></div>
         <div class="bar-val">0.732</div>
       </div>
-      
+
       <div class="bar-row">
         <div class="bar-lbl" style="min-width:110px;font-size:0.78rem;text-transform:capitalize;">interior</div>
         <div class="bar-track"><div class="bar-fill" style="width:90%;background:#7c6af7;opacity:0.65;"></div></div>
         <div class="bar-val">0.732</div>
       </div>
-      
+
     </div>
-    
+
   </div>
-  
+
   <div class="card">
     <div class="card-title">Sharpness & Exposure</div>
     <div class="strip mb">
       <div class="strip-item">
-        
+
         <div class="strip-v">Very Sharp</div>
         <div class="strip-l">Avg Sharpness</div>
         <div class="strip-s">score 1087 · &gt;800 = crisp, &lt;150 = blurry</div>
@@ -978,72 +1013,72 @@ canvas { max-height: 300px; }
         <div class="strip-s">images with blown highlights</div>
       </div>
     </div>
-    
-    
+
+
     <div class="bar-list">
-      
+
       <div class="bar-row">
         <div class="bar-lbl" style="min-width:110px;font-size:0.78rem;text-transform:capitalize;">urban street</div>
         <div class="bar-track"><div class="bar-fill" style="width:99%;background:#10b981;opacity:0.65;"></div></div>
         <div class="bar-val">1721</div>
       </div>
-      
+
       <div class="bar-row">
         <div class="bar-lbl" style="min-width:110px;font-size:0.78rem;text-transform:capitalize;">architecture</div>
         <div class="bar-track"><div class="bar-fill" style="width:94%;background:#10b981;opacity:0.65;"></div></div>
         <div class="bar-val">1624</div>
       </div>
-      
+
       <div class="bar-row">
         <div class="bar-lbl" style="min-width:110px;font-size:0.78rem;text-transform:capitalize;">nature</div>
         <div class="bar-track"><div class="bar-fill" style="width:74%;background:#10b981;opacity:0.65;"></div></div>
         <div class="bar-val">1289</div>
       </div>
-      
+
       <div class="bar-row">
         <div class="bar-lbl" style="min-width:110px;font-size:0.78rem;text-transform:capitalize;">travel and landmarks</div>
         <div class="bar-track"><div class="bar-fill" style="width:69%;background:#10b981;opacity:0.65;"></div></div>
         <div class="bar-val">1198</div>
       </div>
-      
+
       <div class="bar-row">
         <div class="bar-lbl" style="min-width:110px;font-size:0.78rem;text-transform:capitalize;">interior</div>
         <div class="bar-track"><div class="bar-fill" style="width:48%;background:#10b981;opacity:0.65;"></div></div>
         <div class="bar-val">828</div>
       </div>
-      
+
       <div class="bar-row">
         <div class="bar-lbl" style="min-width:110px;font-size:0.78rem;text-transform:capitalize;">animals</div>
         <div class="bar-track"><div class="bar-fill" style="width:45%;background:#10b981;opacity:0.65;"></div></div>
         <div class="bar-val">789</div>
       </div>
-      
+
       <div class="bar-row">
         <div class="bar-lbl" style="min-width:110px;font-size:0.78rem;text-transform:capitalize;">night scene</div>
         <div class="bar-track"><div class="bar-fill" style="width:42%;background:#10b981;opacity:0.65;"></div></div>
         <div class="bar-val">735</div>
       </div>
-      
+
       <div class="bar-row">
         <div class="bar-lbl" style="min-width:110px;font-size:0.78rem;text-transform:capitalize;">food</div>
         <div class="bar-track"><div class="bar-fill" style="width:41%;background:#10b981;opacity:0.65;"></div></div>
         <div class="bar-val">707</div>
       </div>
-      
+
       <div class="bar-row">
         <div class="bar-lbl" style="min-width:110px;font-size:0.78rem;text-transform:capitalize;">people and portraits</div>
         <div class="bar-track"><div class="bar-fill" style="width:40%;background:#10b981;opacity:0.65;"></div></div>
         <div class="bar-val">689</div>
       </div>
-      
+
       <div class="bar-row">
         <div class="bar-lbl" style="min-width:110px;font-size:0.78rem;text-transform:capitalize;">abstract</div>
         <div class="bar-track"><div class="bar-fill" style="width:35%;background:#10b981;opacity:0.65;"></div></div>
         <div class="bar-val">609</div>
       </div>
-      
+
     </div>
-    
+
   </div>
 </div>
 
@@ -1059,32 +1094,32 @@ canvas { max-height: 300px; }
     <!-- Left: stat tiles -->
     <div>
       <div class="stat-grid" style="margin-bottom:0;">
-        
+
         <div class="stat"><div class="stat-l">Solo</div><div class="stat-v">1451</div></div>
         <div class="stat"><div class="stat-l">Group</div><div class="stat-v">792</div></div>
-        
-        
+
+
         <div class="stat"><div class="stat-l">2-Person</div><div class="stat-v">349</div></div>
         <div class="stat"><div class="stat-l">3-Person</div><div class="stat-v">137</div></div>
         <div class="stat"><div class="stat-l">Group 4+</div><div class="stat-v">306</div></div>
-        
-        
+
+
         <div class="stat"><div class="stat-l">Avg Coverage</div><div class="stat-v">23.0%</div></div>
-        
+
       </div>
     </div>
     <!-- Right: framing chart -->
     <div>
-      
+
       <div style="font-size:0.62rem;color:#7878a0;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:0.4rem;">Framing Style <span style="font-weight:400;text-transform:none;color:#5a5a78;">hover for avg aesthetic</span></div>
       <div class="chart-h" style="height:130px;"><canvas id="framingChart"></canvas></div>
-      
+
     </div>
   </div>
 </div>
 <script>
 (() => {
-  
+
   const elF = document.getElementById("framingChart");
   if (elF) {
     const tiers = {"tight": 1182, "medium": 463, "wide": 176};
@@ -1096,7 +1131,7 @@ canvas { max-height: 300px; }
         scales: { x: { grid: { color: "#14142a" }, ticks: { color: "#7878a0" }}, y: { grid: { color: "#14142a" }, ticks: { color: "#7878a0" }}}}
     });
   }
-  
+
 })();
 </script>
 
@@ -1106,25 +1141,25 @@ canvas { max-height: 300px; }
 
 <!-- Editing Style Analysis + Aesthetic Quality — side by side -->
 <div class="row two mb">
-  
+
   <div class="card">
     <div class="card-title">Editing Style Analysis</div>
-    
-    
+
+
     <div class="style-editorial" style="padding:0.75rem 0;">
       <div class="style-name">Varied / Eclectic</div>
       <div class="style-conf">91% confidence · saturation, contrast &amp; brightness variation</div>
       <div class="style-meaning">
-        
+
         Your images don't follow a single visual recipe — saturation, contrast, and brightness vary widely.
         This usually means different shoots, different subjects, and multiple creative moods rather than one applied preset.
         It's a sign of range, not inconsistency.
-        
+
       </div>
     </div>
-    
+
   </div>
-  
+
   <div class="card">
     <div class="card-title">Aesthetic Quality <span style="font-weight:400;color:#7878a0;">LAION predictor</span></div>
     <div class="stat-grid" style="margin-bottom:1rem;">
@@ -1133,9 +1168,9 @@ canvas { max-height: 300px; }
       <div class="stat"><div class="stat-l">Std Dev</div><div class="stat-v">0.48</div><div class="stat-s">lower = more uniform</div></div>
     </div>
     <div class="range-note">
-      
+
       Scores cluster tightly (σ=0.48) across the 51–55 range — the model sees your editing as highly consistent. Scores of 50–65 indicate competently edited photography.
-      
+
     </div>
   </div>
 </div>
@@ -1146,7 +1181,7 @@ canvas { max-height: 300px; }
 <div class="row c5-7 mb">
   <div class="card">
     <div class="card-title">Color Grading</div>
-    
+
     <div class="stat-grid" style="margin-bottom:1rem;grid-template-columns:1fr 1fr;">
       <div class="stat">
         <div class="stat-l">Tonal Style</div>
@@ -1159,36 +1194,36 @@ canvas { max-height: 300px; }
         <div class="stat-s">No strong colour temperature bias (~5500K). Daylight-balanced or mixed conditions.</div>
       </div>
     </div>
-    
+
     <div style="font-size:0.68rem;color:#7878a0;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:0.5rem;">Tonal Zone Split</div>
-    
-      
+
+
       <div class="dbar">
         <div class="dbar-row"><span>Shadows</span><span>39.6%</span></div>
         <div class="dbar-bg"><div class="dbar-fill" style="width:40%;background:#6366f1;"></div></div>
       </div>
-      
-    
-      
+
+
+
       <div class="dbar">
         <div class="dbar-row"><span>Midtones</span><span>30.3%</span></div>
         <div class="dbar-bg"><div class="dbar-fill" style="width:30%;background:#f59e0b;"></div></div>
       </div>
-      
-    
-      
+
+
+
       <div class="dbar">
         <div class="dbar-row"><span>Highlights</span><span>30.2%</span></div>
         <div class="dbar-bg"><div class="dbar-fill" style="width:30%;background:#34d399;"></div></div>
       </div>
-      
-    
-    
-    
-    
+
+
+
+
+
     <div style="font-size:0.68rem;color:#7878a0;text-transform:uppercase;letter-spacing:0.07em;margin:0.9rem 0 0.5rem;">Color Harmony</div>
-    
-    
+
+
     <div class="dbar">
       <div class="dbar-row">
         <span style="text-transform:capitalize;">analogous <span style="color:#8080aa;">·dom</span></span>
@@ -1196,7 +1231,7 @@ canvas { max-height: 300px; }
       </div>
       <div class="dbar-bg"><div class="dbar-fill" style="width:45.8%;background:#7c6af7;"></div></div>
     </div>
-    
+
     <div class="dbar">
       <div class="dbar-row">
         <span style="text-transform:capitalize;">monochromatic</span>
@@ -1204,7 +1239,7 @@ canvas { max-height: 300px; }
       </div>
       <div class="dbar-bg"><div class="dbar-fill" style="width:32.8%;background:#94a3b8;"></div></div>
     </div>
-    
+
     <div class="dbar">
       <div class="dbar-row">
         <span style="text-transform:capitalize;">complementary</span>
@@ -1212,7 +1247,7 @@ canvas { max-height: 300px; }
       </div>
       <div class="dbar-bg"><div class="dbar-fill" style="width:12.5%;background:#f97316;"></div></div>
     </div>
-    
+
     <div class="dbar">
       <div class="dbar-row">
         <span style="text-transform:capitalize;">mixed</span>
@@ -1220,7 +1255,7 @@ canvas { max-height: 300px; }
       </div>
       <div class="dbar-bg"><div class="dbar-fill" style="width:5.0%;background:#f59e0b;"></div></div>
     </div>
-    
+
     <div class="dbar">
       <div class="dbar-row">
         <span style="text-transform:capitalize;">triadic</span>
@@ -1228,41 +1263,41 @@ canvas { max-height: 300px; }
       </div>
       <div class="dbar-bg"><div class="dbar-fill" style="width:4.0%;background:#10b981;"></div></div>
     </div>
-    
-    
-    
-    
+
+
+
+
     <div style="font-size:0.68rem;color:#7878a0;text-transform:uppercase;letter-spacing:0.07em;margin:0.9rem 0 0.4rem;">Split Toning</div>
     <div style="font-size:0.82rem;color:#b8b8d0;margin-bottom:0.6rem;">Green highlights · green shadows</div>
     <div style="display:flex;gap:0.8rem;align-items:flex-start;margin-bottom:0.6rem;">
-      
+
       <div style="text-align:center;">
         <div style="width:36px;height:36px;border-radius:6px;background:#343e32;border:1px solid #2a2a3e;margin:0 auto 4px;" title="Shadows · lum +19"></div>
         <div style="font-size:0.6rem;color:#7878a0;text-transform:uppercase;letter-spacing:0.05em;">Sha</div>
         <div style="font-size:0.6rem;color:#34d399;">+19</div>
       </div>
-      
+
       <div style="text-align:center;">
         <div style="width:36px;height:36px;border-radius:6px;background:#8c8372;border:1px solid #2a2a3e;margin:0 auto 4px;" title="Midtones · lum +2"></div>
         <div style="font-size:0.6rem;color:#7878a0;text-transform:uppercase;letter-spacing:0.05em;">Mid</div>
         <div style="font-size:0.6rem;color:#34d399;">+2</div>
       </div>
-      
+
       <div style="text-align:center;">
         <div style="width:36px;height:36px;border-radius:6px;background:#c5cdc0;border:1px solid #2a2a3e;margin:0 auto 4px;" title="Highlights · lum +5"></div>
         <div style="font-size:0.6rem;color:#7878a0;text-transform:uppercase;letter-spacing:0.05em;">Hig</div>
         <div style="font-size:0.6rem;color:#34d399;">+5</div>
       </div>
-      
+
       <div style="margin-left:0.4rem;font-size:0.72rem;color:#7878a0;padding-top:4px;">Balance<br><strong style="color:#9090b8;">-2</strong><br><span style="font-size:0.6rem;">−100 shad ↔ +100 hi</span></div>
     </div>
-    
+
   </div>
 
   <div class="card">
     <div class="card-title">Color &amp; Mood</div>
-    
-    
+
+
     <div class="swatches"><div class="swatch" style="background:rgb(204,205,203);"></div><div class="swatch" style="background:rgb(68,61,43);"></div><div class="swatch" style="background:rgb(132,112,83);"></div><div class="swatch" style="background:rgb(229,232,233);"></div><div class="swatch" style="background:rgb(178,157,131);"></div><div class="swatch" style="background:rgb(87,54,22);"></div><div class="swatch" style="background:rgb(211,152,90);"></div><div class="swatch" style="background:rgb(158,97,43);"></div><div class="swatch" style="background:rgb(24,20,18);"></div><div class="swatch" style="background:rgb(240,216,179);"></div><div class="swatch" style="background:rgb(188,199,218);"></div><div class="swatch" style="background:rgb(90,96,104);"></div><div class="swatch" style="background:rgb(129,136,149);"></div><div class="swatch" style="background:rgb(229,233,241);"></div><div class="swatch" style="background:rgb(52,58,61);"></div><div class="swatch" style="background:rgb(161,168,179);"></div><div class="swatch" style="background:rgb(88,90,93);"></div><div class="swatch" style="background:rgb(213,201,201);"></div><div class="swatch" style="background:rgb(30,26,26);"></div><div class="swatch" style="background:rgb(125,131,139);"></div><div class="swatch" style="background:rgb(71,63,47);"></div><div class="swatch" style="background:rgb(232,235,237);"></div><div class="swatch" style="background:rgb(150,148,141);"></div><div class="swatch" style="background:rgb(132,109,85);"></div><div class="swatch" style="background:rgb(187,183,173);"></div><div class="swatch" style="background:rgb(233,237,241);"></div><div class="swatch" style="background:rgb(113,104,85);"></div><div class="swatch" style="background:rgb(188,187,186);"></div><div class="swatch" style="background:rgb(155,144,136);"></div><div class="swatch" style="background:rgb(60,57,42);"></div><div class="swatch" style="background:rgb(233,236,239);"></div><div class="swatch" style="background:rgb(74,70,51);"></div><div class="swatch" style="background:rgb(164,155,145);"></div><div class="swatch" style="background:rgb(133,120,97);"></div><div class="swatch" style="background:rgb(197,192,186);"></div><div class="swatch" style="background:rgb(48,46,37);"></div><div class="swatch" style="background:rgb(227,226,223);"></div><div class="swatch" style="background:rgb(87,80,63);"></div><div class="swatch" style="background:rgb(192,190,191);"></div><div class="swatch" style="background:rgb(128,128,126);"></div></div>
     <div class="stat-grid" style="margin-bottom:1rem;">
       <div class="stat"><div class="stat-l">Saturation</div><div class="stat-v">0.23</div><div class="stat-s">0 grey · 1 vivid</div></div>
@@ -1270,29 +1305,29 @@ canvas { max-height: 300px; }
       <div class="stat"><div class="stat-l">Brightness</div><div class="stat-v">0.51</div></div>
       <div class="stat"><div class="stat-l">Contrast</div><div class="stat-v">0.21</div></div>
     </div>
-    
-    
-    
-    
-      
+
+
+
+
+
       <div class="dbar">
         <div class="dbar-row"><span>Warm</span><span>58%</span></div>
         <div class="dbar-bg"><div class="dbar-fill" style="width:58%;background:#f97316;"></div></div>
       </div>
-    
-      
+
+
       <div class="dbar">
         <div class="dbar-row"><span>Cool</span><span>42%</span></div>
         <div class="dbar-bg"><div class="dbar-fill" style="width:42%;background:#38bdf8;"></div></div>
       </div>
-    
-      
+
+
       <div class="dbar">
         <div class="dbar-row"><span>Neutral</span><span>0%</span></div>
         <div class="dbar-bg"><div class="dbar-fill" style="width:0%;background:#94a3b8;"></div></div>
       </div>
-    
-    
+
+
     <div style="display:flex;justify-content:space-between;align-items:baseline;margin:0.9rem 0 0.4rem;">
       <div style="font-size:0.68rem;color:#7878a0;text-transform:uppercase;letter-spacing:0.07em;">Hue Distribution</div>
       <div style="font-size:0.65rem;color:#606080;">chromatic images only (sat &gt; 15%)</div>
@@ -1307,146 +1342,146 @@ canvas { max-height: 300px; }
 
 <div class="card card-purple card-accent-top mb">
   <div class="card-title">Signature Edit</div>
-  
+
   <div class="pull">Heavy tonal recovery — pulling highlights (-72) while lifting shadows (+60) for maximum dynamic range. Rich selective colour — vibrance +40 over global saturation (-15) keeps skin tones natural. Brightening exposure by 0.5 stop.</div>
-  
+
   <div class="row two" style="margin-bottom:0;">
     <div>
       <div style="font-size:0.68rem;color:#7878a0;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:0.6rem;">Tone</div>
-      
-      
+
+
       <div class="sig-row">
         <div class="sig-lbl"><span>Exposure</span><span>+0.5 ±1</span></div>
         <div class="sig-track">
           <div class="sig-center"></div>
-          
-          
+
+
           <div class="sig-pos" style="left:50%;width:5.0%;background:#7c6af7;"></div>
-          
+
         </div>
       </div>
-      
-      
+
+
       <div class="sig-row">
         <div class="sig-lbl"><span>Highlights</span><span>-72.0 ±35</span></div>
         <div class="sig-track">
           <div class="sig-center"></div>
-          
-          
+
+
           <div class="sig-neg" style="width:36.0%;background:#f97316;"></div>
         </div>
       </div>
-      
-      
+
+
       <div class="sig-row">
         <div class="sig-lbl"><span>Shadows</span><span>+60.0 ±30</span></div>
         <div class="sig-track">
           <div class="sig-center"></div>
-          
-          
+
+
           <div class="sig-pos" style="left:50%;width:30.0%;background:#7c6af7;"></div>
-          
+
         </div>
       </div>
-      
-      
+
+
       <div class="sig-row">
         <div class="sig-lbl"><span>Whites</span><span>-58.0 ±35</span></div>
         <div class="sig-track">
           <div class="sig-center"></div>
-          
-          
+
+
           <div class="sig-neg" style="width:28.999999999999996%;background:#f97316;"></div>
         </div>
       </div>
-      
-      
+
+
       <div class="sig-row">
         <div class="sig-lbl"><span>Blacks</span><span>+3.0 ±13</span></div>
         <div class="sig-track">
           <div class="sig-center"></div>
-          
-          
+
+
           <div class="sig-pos" style="left:50%;width:1.5%;background:#7c6af7;"></div>
-          
+
         </div>
       </div>
-      
-      
+
+
       <div class="sig-row">
         <div class="sig-lbl"><span>Contrast</span><span>+5.0 ±16</span></div>
         <div class="sig-track">
           <div class="sig-center"></div>
-          
-          
+
+
           <div class="sig-pos" style="left:50%;width:2.5%;background:#7c6af7;"></div>
-          
+
         </div>
       </div>
-      
+
     </div>
     <div>
       <div style="font-size:0.68rem;color:#7878a0;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:0.6rem;">Presence & Color</div>
-      
-      
+
+
       <div class="sig-row">
         <div class="sig-lbl"><span>Texture</span><span>-5.0 ±10</span></div>
         <div class="sig-track">
           <div class="sig-center"></div>
-          
-          
+
+
           <div class="sig-neg" style="width:2.5%;background:#f97316;"></div>
         </div>
       </div>
-      
-      
-      
+
+
+
       <div class="sig-row">
         <div class="sig-lbl"><span>Dehaze</span><span>+0.0 ±9</span></div>
         <div class="sig-track">
           <div class="sig-center"></div>
-          
-          
+
+
           <div class="sig-pos" style="left:50%;width:0.0%;background:#7c6af7;"></div>
-          
+
         </div>
       </div>
-      
-      
+
+
       <div class="sig-row">
         <div class="sig-lbl"><span>Vibrance</span><span>+40.0 ±22</span></div>
         <div class="sig-track">
           <div class="sig-center"></div>
-          
-          
+
+
           <div class="sig-pos" style="left:50%;width:20.0%;background:#7c6af7;"></div>
-          
+
         </div>
       </div>
-      
-      
+
+
       <div class="sig-row">
         <div class="sig-lbl"><span>Saturation</span><span>-15.0 ±13</span></div>
         <div class="sig-track">
           <div class="sig-center"></div>
-          
-          
+
+
           <div class="sig-neg" style="width:7.5%;background:#f97316;"></div>
         </div>
       </div>
-      
-      
+
+
       <div class="sig-row">
         <div class="sig-lbl"><span>White Balance</span><span>6105K · warm</span></div>
         <div class="sig-track">
           <div class="sig-center"></div>
-          
-          
+
+
           <div class="sig-pos" style="left:50%;width:5.5%;background:#f59e0b;"></div>
-          
+
         </div>
       </div>
-      
+
     </div>
   </div>
 </div>
@@ -1458,81 +1493,81 @@ canvas { max-height: 300px; }
   <div class="card-title">Adobe Lightroom Develop Settings <span style="color:#8080aa;font-weight:400;">2917 of 5107 images with develop metadata</span></div>
   <div class="card-desc" style="margin-bottom:0.9rem;">Avg slider positions across your library. Only images synced from Lightroom include develop settings — local folder imports don't carry this data. <strong style="color:#9090b8;">Lum. Noise</strong> = Luminance Smoothing, which reduces grain/texture noise in the brightness channel (high-ISO shots). <strong style="color:#9090b8;">Color NR</strong> = Color Noise Reduction, which removes coloured speckles (chroma noise) in shadow areas.</div>
   <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px;margin-top:4px;">
-    
-    
+
+
     <div style="background:#16161f;border-radius:7px;padding:10px;">
       <div style="color:#7878a0;font-size:10px;margin-bottom:2px;">Contrast</div>
       <div style="font-size:1.1rem;font-weight:700;color:#34d399;">+25.0</div>
       <div style="height:3px;background:#1e1e2e;border-radius:2px;margin-top:6px;">
-        
+
         <div style="width:62%;height:3px;background:#34d399;border-radius:2px;"></div>
       </div>
     </div>
-    
-    
+
+
     <div style="background:#16161f;border-radius:7px;padding:10px;">
       <div style="color:#7878a0;font-size:10px;margin-bottom:2px;">Shadows</div>
       <div style="font-size:1.1rem;font-weight:700;color:#34d399;">+5.0</div>
       <div style="height:3px;background:#1e1e2e;border-radius:2px;margin-top:6px;">
-        
+
         <div style="width:52%;height:3px;background:#34d399;border-radius:2px;"></div>
       </div>
     </div>
-    
-    
+
+
     <div style="background:#16161f;border-radius:7px;padding:10px;">
       <div style="color:#7878a0;font-size:10px;margin-bottom:2px;">Vibrance</div>
       <div style="font-size:1.1rem;font-weight:700;color:#34d399;">+30.3</div>
       <div style="height:3px;background:#1e1e2e;border-radius:2px;margin-top:6px;">
-        
+
         <div style="width:65%;height:3px;background:#34d399;border-radius:2px;"></div>
       </div>
     </div>
-    
-    
+
+
     <div style="background:#16161f;border-radius:7px;padding:10px;">
       <div style="color:#7878a0;font-size:10px;margin-bottom:2px;">Saturation</div>
       <div style="font-size:1.1rem;font-weight:700;color:#f87171;">-14.5</div>
       <div style="height:3px;background:#1e1e2e;border-radius:2px;margin-top:6px;">
-        
+
         <div style="width:42%;height:3px;background:#f87171;border-radius:2px;"></div>
       </div>
     </div>
-    
-    
+
+
     <div style="background:#16161f;border-radius:7px;padding:10px;">
       <div style="color:#7878a0;font-size:10px;margin-bottom:2px;">Sharpness</div>
       <div style="font-size:1.1rem;font-weight:700;color:#34d399;">+43.4</div>
       <div style="height:3px;background:#1e1e2e;border-radius:2px;margin-top:6px;">
-        
+
         <div style="width:71%;height:3px;background:#34d399;border-radius:2px;"></div>
       </div>
     </div>
-    
-    
+
+
     <div style="background:#16161f;border-radius:7px;padding:10px;">
       <div style="color:#7878a0;font-size:10px;margin-bottom:2px;">Lum. Noise</div>
       <div style="font-size:1.1rem;font-weight:700;color:#34d399;">+5.4</div>
       <div style="height:3px;background:#1e1e2e;border-radius:2px;margin-top:6px;">
-        
+
         <div style="width:52%;height:3px;background:#34d399;border-radius:2px;"></div>
       </div>
     </div>
-    
-    
+
+
     <div style="background:#16161f;border-radius:7px;padding:10px;">
       <div style="color:#7878a0;font-size:10px;margin-bottom:2px;">Color NR</div>
       <div style="font-size:1.1rem;font-weight:700;color:#34d399;">+23.5</div>
       <div style="height:3px;background:#1e1e2e;border-radius:2px;margin-top:6px;">
-        
+
         <div style="width:61%;height:3px;background:#34d399;border-radius:2px;"></div>
       </div>
     </div>
-    
+
   </div>
-  
-  
-  
+
+
+
   <div style="margin-top:1.4rem;overflow-x:auto;">
     <div style="font-size:0.68rem;color:#7878a0;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:0.6rem;">Avg Slider Value by Scene</div>
     <table style="width:100%;border-collapse:separate;border-spacing:2px;font-size:0.68rem;table-layout:fixed;">
@@ -1543,498 +1578,498 @@ canvas { max-height: 300px; }
       <thead>
         <tr>
           <th style="text-align:left;padding:3px 8px;color:#7878a0;font-weight:400;"></th>
-          
+
           <th style="padding:3px 5px;color:#8080aa;font-weight:400;text-transform:capitalize;font-size:0.62rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">travel &amp; landmarks</th>
-          
+
           <th style="padding:3px 5px;color:#8080aa;font-weight:400;text-transform:capitalize;font-size:0.62rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">night scene</th>
-          
+
           <th style="padding:3px 5px;color:#8080aa;font-weight:400;text-transform:capitalize;font-size:0.62rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">abstract</th>
-          
+
           <th style="padding:3px 5px;color:#8080aa;font-weight:400;text-transform:capitalize;font-size:0.62rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">urban street</th>
-          
+
           <th style="padding:3px 5px;color:#8080aa;font-weight:400;text-transform:capitalize;font-size:0.62rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">architecture</th>
-          
+
           <th style="padding:3px 5px;color:#8080aa;font-weight:400;text-transform:capitalize;font-size:0.62rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">people &amp; portraits</th>
-          
+
           <th style="padding:3px 5px;color:#8080aa;font-weight:400;text-transform:capitalize;font-size:0.62rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">nature</th>
-          
+
           <th style="padding:3px 5px;color:#8080aa;font-weight:400;text-transform:capitalize;font-size:0.62rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">animals</th>
-          
+
           <th style="padding:3px 5px;color:#8080aa;font-weight:400;text-transform:capitalize;font-size:0.62rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">interior</th>
-          
+
           <th style="padding:3px 5px;color:#8080aa;font-weight:400;text-transform:capitalize;font-size:0.62rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">food</th>
-          
+
         </tr>
       </thead>
       <tbody>
-      
-      
-      
-      
+
+
+
+
       <tr>
         <td style="padding:3px 8px;color:#9090b8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Contrast</td>
-        
-        
-        
-        
-        
+
+
+
+
+
         <td style="text-align:center;padding:4px 6px;background:rgba(52,211,153,0.62);border-radius:4px;color:#e8e8f8;font-variant-numeric:tabular-nums;">+25</td>
-        
-        
-        
-        
+
+
+
+
         <td style="text-align:center;padding:4px 6px;color:#303044;font-size:0.6rem;">—</td>
-        
-        
-        
-        
-        
-        
+
+
+
+
+
+
         <td style="text-align:center;padding:4px 6px;background:rgba(52,211,153,0.62);border-radius:4px;color:#e8e8f8;font-variant-numeric:tabular-nums;">+25</td>
-        
-        
-        
-        
+
+
+
+
         <td style="text-align:center;padding:4px 6px;color:#303044;font-size:0.6rem;">—</td>
-        
-        
-        
-        
+
+
+
+
         <td style="text-align:center;padding:4px 6px;color:#303044;font-size:0.6rem;">—</td>
-        
-        
-        
-        
-        
-        
+
+
+
+
+
+
         <td style="text-align:center;padding:4px 6px;background:rgba(52,211,153,0.62);border-radius:4px;color:#e8e8f8;font-variant-numeric:tabular-nums;">+25</td>
-        
-        
-        
-        
-        
-        
+
+
+
+
+
+
         <td style="text-align:center;padding:4px 6px;background:rgba(52,211,153,0.62);border-radius:4px;color:#e8e8f8;font-variant-numeric:tabular-nums;">+25</td>
-        
-        
-        
-        
-        
-        
+
+
+
+
+
+
         <td style="text-align:center;padding:4px 6px;background:rgba(52,211,153,0.62);border-radius:4px;color:#e8e8f8;font-variant-numeric:tabular-nums;">+25</td>
-        
-        
-        
-        
+
+
+
+
         <td style="text-align:center;padding:4px 6px;color:#303044;font-size:0.6rem;">—</td>
-        
-        
-        
-        
+
+
+
+
         <td style="text-align:center;padding:4px 6px;color:#303044;font-size:0.6rem;">—</td>
-        
-        
+
+
       </tr>
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
+
+
+
+
+
+
+
+
+
+
+
       <tr>
         <td style="padding:3px 8px;color:#9090b8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Vibrance</td>
-        
-        
-        
-        
-        
+
+
+
+
+
         <td style="text-align:center;padding:4px 6px;background:rgba(52,211,153,0.75);border-radius:4px;color:#e8e8f8;font-variant-numeric:tabular-nums;">+33</td>
-        
-        
-        
-        
-        
-        
+
+
+
+
+
+
         <td style="text-align:center;padding:4px 6px;background:rgba(52,211,153,0.48);border-radius:4px;color:#e8e8f8;font-variant-numeric:tabular-nums;">+19</td>
-        
-        
-        
-        
-        
-        
+
+
+
+
+
+
         <td style="text-align:center;padding:4px 6px;background:rgba(52,211,153,0.62);border-radius:4px;color:#e8e8f8;font-variant-numeric:tabular-nums;">+25</td>
-        
-        
-        
-        
-        
-        
+
+
+
+
+
+
         <td style="text-align:center;padding:4px 6px;background:rgba(52,211,153,0.75);border-radius:4px;color:#e8e8f8;font-variant-numeric:tabular-nums;">+33</td>
-        
-        
-        
-        
-        
-        
+
+
+
+
+
+
         <td style="text-align:center;padding:4px 6px;background:rgba(52,211,153,0.27);border-radius:4px;color:#e8e8f8;font-variant-numeric:tabular-nums;">+11</td>
-        
-        
-        
-        
-        
-        
+
+
+
+
+
+
         <td style="text-align:center;padding:4px 6px;background:rgba(52,211,153,0.75);border-radius:4px;color:#e8e8f8;font-variant-numeric:tabular-nums;">+34</td>
-        
-        
-        
-        
-        
-        
+
+
+
+
+
+
         <td style="text-align:center;padding:4px 6px;background:rgba(52,211,153,0.67);border-radius:4px;color:#e8e8f8;font-variant-numeric:tabular-nums;">+27</td>
-        
-        
-        
-        
-        
-        
+
+
+
+
+
+
         <td style="text-align:center;padding:4px 6px;background:rgba(52,211,153,0.61);border-radius:4px;color:#e8e8f8;font-variant-numeric:tabular-nums;">+25</td>
-        
-        
-        
-        
-        
-        
+
+
+
+
+
+
         <td style="text-align:center;padding:4px 6px;background:rgba(52,211,153,0.66);border-radius:4px;color:#e8e8f8;font-variant-numeric:tabular-nums;">+26</td>
-        
-        
-        
-        
-        
-        
+
+
+
+
+
+
         <td style="text-align:center;padding:4px 6px;background:rgba(52,211,153,0.75);border-radius:4px;color:#e8e8f8;font-variant-numeric:tabular-nums;">+31</td>
-        
-        
+
+
       </tr>
-      
-      
-      
+
+
+
       <tr>
         <td style="padding:3px 8px;color:#9090b8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Saturation</td>
-        
-        
-        
-        
-        
+
+
+
+
+
         <td style="text-align:center;padding:4px 6px;background:rgba(248,113,113,0.36);border-radius:4px;color:#e8e8f8;font-variant-numeric:tabular-nums;">-16</td>
-        
-        
-        
-        
-        
-        
+
+
+
+
+
+
         <td style="text-align:center;padding:4px 6px;background:rgba(248,113,113,0.17);border-radius:4px;color:#e8e8f8;font-variant-numeric:tabular-nums;">-7</td>
-        
-        
-        
-        
-        
-        
+
+
+
+
+
+
         <td style="text-align:center;padding:4px 6px;background:rgba(248,113,113,0.32);border-radius:4px;color:#e8e8f8;font-variant-numeric:tabular-nums;">-14</td>
-        
-        
-        
-        
-        
-        
+
+
+
+
+
+
         <td style="text-align:center;padding:4px 6px;background:rgba(248,113,113,0.37);border-radius:4px;color:#e8e8f8;font-variant-numeric:tabular-nums;">-16</td>
-        
-        
-        
-        
-        
-        
+
+
+
+
+
+
         <td style="text-align:center;padding:4px 6px;background:rgba(248,113,113,0.07);border-radius:4px;color:#7878a0;font-variant-numeric:tabular-nums;">-3</td>
-        
-        
-        
-        
-        
-        
+
+
+
+
+
+
         <td style="text-align:center;padding:4px 6px;background:rgba(248,113,113,0.35);border-radius:4px;color:#e8e8f8;font-variant-numeric:tabular-nums;">-15</td>
-        
-        
-        
-        
-        
-        
+
+
+
+
+
+
         <td style="text-align:center;padding:4px 6px;background:rgba(248,113,113,0.32);border-radius:4px;color:#e8e8f8;font-variant-numeric:tabular-nums;">-14</td>
-        
-        
-        
-        
-        
-        
+
+
+
+
+
+
         <td style="text-align:center;padding:4px 6px;background:rgba(248,113,113,0.34);border-radius:4px;color:#e8e8f8;font-variant-numeric:tabular-nums;">-14</td>
-        
-        
-        
-        
-        
-        
+
+
+
+
+
+
         <td style="text-align:center;padding:4px 6px;background:rgba(248,113,113,0.26);border-radius:4px;color:#e8e8f8;font-variant-numeric:tabular-nums;">-11</td>
-        
-        
-        
-        
-        
-        
+
+
+
+
+
+
         <td style="text-align:center;padding:4px 6px;background:rgba(248,113,113,0.28);border-radius:4px;color:#e8e8f8;font-variant-numeric:tabular-nums;">-12</td>
-        
-        
+
+
       </tr>
-      
-      
-      
+
+
+
       <tr>
         <td style="padding:3px 8px;color:#9090b8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Sharpness</td>
-        
-        
-        
-        
-        
+
+
+
+
+
         <td style="text-align:center;padding:4px 6px;background:rgba(52,211,153,0.75);border-radius:4px;color:#e8e8f8;font-variant-numeric:tabular-nums;">+43</td>
-        
-        
-        
-        
-        
-        
+
+
+
+
+
+
         <td style="text-align:center;padding:4px 6px;background:rgba(52,211,153,0.75);border-radius:4px;color:#e8e8f8;font-variant-numeric:tabular-nums;">+45</td>
-        
-        
-        
-        
-        
-        
+
+
+
+
+
+
         <td style="text-align:center;padding:4px 6px;background:rgba(52,211,153,0.75);border-radius:4px;color:#e8e8f8;font-variant-numeric:tabular-nums;">+43</td>
-        
-        
-        
-        
-        
-        
+
+
+
+
+
+
         <td style="text-align:center;padding:4px 6px;background:rgba(52,211,153,0.75);border-radius:4px;color:#e8e8f8;font-variant-numeric:tabular-nums;">+39</td>
-        
-        
-        
-        
-        
-        
+
+
+
+
+
+
         <td style="text-align:center;padding:4px 6px;background:rgba(52,211,153,0.75);border-radius:4px;color:#e8e8f8;font-variant-numeric:tabular-nums;">+42</td>
-        
-        
-        
-        
-        
-        
+
+
+
+
+
+
         <td style="text-align:center;padding:4px 6px;background:rgba(52,211,153,0.75);border-radius:4px;color:#e8e8f8;font-variant-numeric:tabular-nums;">+40</td>
-        
-        
-        
-        
-        
-        
+
+
+
+
+
+
         <td style="text-align:center;padding:4px 6px;background:rgba(52,211,153,0.75);border-radius:4px;color:#e8e8f8;font-variant-numeric:tabular-nums;">+47</td>
-        
-        
-        
-        
-        
-        
+
+
+
+
+
+
         <td style="text-align:center;padding:4px 6px;background:rgba(52,211,153,0.75);border-radius:4px;color:#e8e8f8;font-variant-numeric:tabular-nums;">+47</td>
-        
-        
-        
-        
-        
-        
+
+
+
+
+
+
         <td style="text-align:center;padding:4px 6px;background:rgba(52,211,153,0.75);border-radius:4px;color:#e8e8f8;font-variant-numeric:tabular-nums;">+51</td>
-        
-        
-        
-        
-        
-        
+
+
+
+
+
+
         <td style="text-align:center;padding:4px 6px;background:rgba(52,211,153,0.75);border-radius:4px;color:#e8e8f8;font-variant-numeric:tabular-nums;">+41</td>
-        
-        
+
+
       </tr>
-      
-      
-      
+
+
+
       <tr>
         <td style="padding:3px 8px;color:#9090b8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Lum. Noise</td>
-        
-        
-        
-        
-        
+
+
+
+
+
         <td style="text-align:center;padding:4px 6px;background:rgba(52,211,153,0.1);border-radius:4px;color:#7878a0;font-variant-numeric:tabular-nums;">+4</td>
-        
-        
-        
-        
-        
-        
+
+
+
+
+
+
         <td style="text-align:center;padding:4px 6px;background:rgba(52,211,153,0.12);border-radius:4px;color:#7878a0;font-variant-numeric:tabular-nums;">+5</td>
-        
-        
-        
-        
-        
-        
+
+
+
+
+
+
         <td style="text-align:center;padding:4px 6px;background:rgba(52,211,153,0.12);border-radius:4px;color:#7878a0;font-variant-numeric:tabular-nums;">+5</td>
-        
-        
-        
-        
-        
-        
+
+
+
+
+
+
         <td style="text-align:center;padding:4px 6px;background:rgba(52,211,153,0.07);border-radius:4px;color:#7878a0;font-variant-numeric:tabular-nums;">+3</td>
-        
-        
-        
-        
-        
-        
+
+
+
+
+
+
         <td style="text-align:center;padding:4px 6px;background:rgba(30,30,46,0.4);border-radius:4px;color:#7878a0;font-variant-numeric:tabular-nums;">+0</td>
-        
-        
-        
-        
-        
-        
+
+
+
+
+
+
         <td style="text-align:center;padding:4px 6px;background:rgba(52,211,153,0.05);border-radius:4px;color:#7878a0;font-variant-numeric:tabular-nums;">+2</td>
-        
-        
-        
-        
-        
-        
+
+
+
+
+
+
         <td style="text-align:center;padding:4px 6px;background:rgba(52,211,153,0.18);border-radius:4px;color:#e8e8f8;font-variant-numeric:tabular-nums;">+7</td>
-        
-        
-        
-        
-        
-        
+
+
+
+
+
+
         <td style="text-align:center;padding:4px 6px;background:rgba(52,211,153,0.61);border-radius:4px;color:#e8e8f8;font-variant-numeric:tabular-nums;">+24</td>
-        
-        
-        
-        
-        
-        
+
+
+
+
+
+
         <td style="text-align:center;padding:4px 6px;background:rgba(52,211,153,0.16);border-radius:4px;color:#e8e8f8;font-variant-numeric:tabular-nums;">+6</td>
-        
-        
-        
-        
-        
-        
+
+
+
+
+
+
         <td style="text-align:center;padding:4px 6px;background:rgba(52,211,153,0.03);border-radius:4px;color:#7878a0;font-variant-numeric:tabular-nums;">+1</td>
-        
-        
+
+
       </tr>
-      
-      
-      
+
+
+
       <tr>
         <td style="padding:3px 8px;color:#9090b8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Color NR</td>
-        
-        
-        
-        
-        
+
+
+
+
+
         <td style="text-align:center;padding:4px 6px;background:rgba(52,211,153,0.61);border-radius:4px;color:#e8e8f8;font-variant-numeric:tabular-nums;">+24</td>
-        
-        
-        
-        
-        
-        
+
+
+
+
+
+
         <td style="text-align:center;padding:4px 6px;background:rgba(52,211,153,0.51);border-radius:4px;color:#e8e8f8;font-variant-numeric:tabular-nums;">+20</td>
-        
-        
-        
-        
-        
-        
+
+
+
+
+
+
         <td style="text-align:center;padding:4px 6px;background:rgba(52,211,153,0.58);border-radius:4px;color:#e8e8f8;font-variant-numeric:tabular-nums;">+23</td>
-        
-        
-        
-        
-        
-        
+
+
+
+
+
+
         <td style="text-align:center;padding:4px 6px;background:rgba(52,211,153,0.57);border-radius:4px;color:#e8e8f8;font-variant-numeric:tabular-nums;">+23</td>
-        
-        
-        
-        
-        
-        
+
+
+
+
+
+
         <td style="text-align:center;padding:4px 6px;background:rgba(52,211,153,0.55);border-radius:4px;color:#e8e8f8;font-variant-numeric:tabular-nums;">+22</td>
-        
-        
-        
-        
-        
-        
+
+
+
+
+
+
         <td style="text-align:center;padding:4px 6px;background:rgba(52,211,153,0.48);border-radius:4px;color:#e8e8f8;font-variant-numeric:tabular-nums;">+19</td>
-        
-        
-        
-        
-        
-        
+
+
+
+
+
+
         <td style="text-align:center;padding:4px 6px;background:rgba(52,211,153,0.62);border-radius:4px;color:#e8e8f8;font-variant-numeric:tabular-nums;">+25</td>
-        
-        
-        
-        
-        
-        
+
+
+
+
+
+
         <td style="text-align:center;padding:4px 6px;background:rgba(52,211,153,0.7);border-radius:4px;color:#e8e8f8;font-variant-numeric:tabular-nums;">+28</td>
-        
-        
-        
-        
-        
-        
+
+
+
+
+
+
         <td style="text-align:center;padding:4px 6px;background:rgba(52,211,153,0.57);border-radius:4px;color:#e8e8f8;font-variant-numeric:tabular-nums;">+23</td>
-        
-        
-        
-        
-        
-        
+
+
+
+
+
+
         <td style="text-align:center;padding:4px 6px;background:rgba(52,211,153,0.44);border-radius:4px;color:#e8e8f8;font-variant-numeric:tabular-nums;">+18</td>
-        
-        
+
+
       </tr>
-      
-      
+
+
       </tbody>
     </table>
     <div style="margin-top:0.5rem;font-size:0.68rem;color:#505070;">Green = pushed above default &nbsp;·&nbsp; Red = pulled below &nbsp;·&nbsp; Intensity = magnitude of avg shift</div>
   </div>
-  
+
 </div>
 
 
@@ -2043,8 +2078,8 @@ canvas { max-height: 300px; }
 <div class="card mb">
   <div class="card-title">Editing DNA <span style="color:#8080aa;font-weight:400;">HSL channel fingerprint · avg across Lightroom library</span></div>
   <div class="card-desc">How you systematically shift individual colour channels in post — your tonal and colour signature.</div>
-  
-  
+
+
   <!-- column headers -->
   <div style="display:grid;grid-template-columns:80px repeat(3,1fr);gap:3px;margin-bottom:4px;">
     <div></div>
@@ -2052,199 +2087,199 @@ canvas { max-height: 300px; }
     <div style="text-align:center;font-size:0.68rem;color:#7878a0;text-transform:uppercase;letter-spacing:0.06em;">Sat</div>
     <div style="text-align:center;font-size:0.68rem;color:#7878a0;text-transform:uppercase;letter-spacing:0.06em;">Lum</div>
   </div>
-  
-  
+
+
   <div style="display:grid;grid-template-columns:80px repeat(3,1fr);gap:3px;margin-bottom:3px;align-items:center;">
     <div style="font-size:0.72rem;color:#ef4444;font-weight:600;">Red</div>
-    
-    
-    
+
+
+
     <div style="background:rgba(239,68,68,0.01);border-radius:4px;padding:3px 5px;text-align:center;font-size:0.72rem;color:#7878a0;">
       -0.2
     </div>
-    
-    
-    
+
+
+
     <div style="background:rgba(239,68,68,0.3);border-radius:4px;padding:3px 5px;text-align:center;font-size:0.72rem;color:#e8e8f8;">
       -6.0
     </div>
-    
-    
-    
+
+
+
     <div style="background:rgba(124,106,247,0.05);border-radius:4px;padding:3px 5px;text-align:center;font-size:0.72rem;color:#7878a0;">
       +0.9
     </div>
-    
+
   </div>
-  
-  
+
+
   <div style="display:grid;grid-template-columns:80px repeat(3,1fr);gap:3px;margin-bottom:3px;align-items:center;">
     <div style="font-size:0.72rem;color:#f97316;font-weight:600;">Orange</div>
-    
-    
-    
+
+
+
     <div style="background:rgba(239,68,68,0.29);border-radius:4px;padding:3px 5px;text-align:center;font-size:0.72rem;color:#e8e8f8;">
       -5.8
     </div>
-    
-    
-    
+
+
+
     <div style="background:rgba(239,68,68,0.34);border-radius:4px;padding:3px 5px;text-align:center;font-size:0.72rem;color:#e8e8f8;">
       -6.8
     </div>
-    
-    
-    
+
+
+
     <div style="background:rgba(124,106,247,0.63);border-radius:4px;padding:3px 5px;text-align:center;font-size:0.72rem;color:#e8e8f8;">
       +11.2
     </div>
-    
+
   </div>
-  
-  
+
+
   <div style="display:grid;grid-template-columns:80px repeat(3,1fr);gap:3px;margin-bottom:3px;align-items:center;">
     <div style="font-size:0.72rem;color:#eab308;font-weight:600;">Yellow</div>
-    
-    
-    
+
+
+
     <div style="background:rgba(239,68,68,0.75);border-radius:4px;padding:3px 5px;text-align:center;font-size:0.72rem;color:#e8e8f8;">
       -27.8
     </div>
-    
-    
-    
+
+
+
     <div style="background:rgba(239,68,68,0.75);border-radius:4px;padding:3px 5px;text-align:center;font-size:0.72rem;color:#e8e8f8;">
       -21.5
     </div>
-    
-    
-    
+
+
+
     <div style="background:rgba(124,106,247,0.09);border-radius:4px;padding:3px 5px;text-align:center;font-size:0.72rem;color:#7878a0;">
       +1.6
     </div>
-    
+
   </div>
-  
-  
+
+
   <div style="display:grid;grid-template-columns:80px repeat(3,1fr);gap:3px;margin-bottom:3px;align-items:center;">
     <div style="font-size:0.72rem;color:#22c55e;font-weight:600;">Green</div>
-    
-    
-    
+
+
+
     <div style="background:rgba(239,68,68,0.75);border-radius:4px;padding:3px 5px;text-align:center;font-size:0.72rem;color:#e8e8f8;">
       -29.5
     </div>
-    
-    
-    
+
+
+
     <div style="background:rgba(239,68,68,0.75);border-radius:4px;padding:3px 5px;text-align:center;font-size:0.72rem;color:#e8e8f8;">
       -28.9
     </div>
-    
-    
-    
+
+
+
     <div style="background:rgba(124,106,247,0.1);border-radius:4px;padding:3px 5px;text-align:center;font-size:0.72rem;color:#7878a0;">
       +1.7
     </div>
-    
+
   </div>
-  
-  
+
+
   <div style="display:grid;grid-template-columns:80px repeat(3,1fr);gap:3px;margin-bottom:3px;align-items:center;">
     <div style="font-size:0.72rem;color:#06b6d4;font-weight:600;">Aqua</div>
-    
-    
-    
+
+
+
     <div style="background:rgba(239,68,68,0.32);border-radius:4px;padding:3px 5px;text-align:center;font-size:0.72rem;color:#e8e8f8;">
       -6.3
     </div>
-    
-    
-    
+
+
+
     <div style="background:rgba(239,68,68,0.75);border-radius:4px;padding:3px 5px;text-align:center;font-size:0.72rem;color:#e8e8f8;">
       -24.2
     </div>
-    
-    
-    
+
+
+
     <div style="background:rgba(124,106,247,0.03);border-radius:4px;padding:3px 5px;text-align:center;font-size:0.72rem;color:#7878a0;">
       +0.6
     </div>
-    
+
   </div>
-  
-  
+
+
   <div style="display:grid;grid-template-columns:80px repeat(3,1fr);gap:3px;margin-bottom:3px;align-items:center;">
     <div style="font-size:0.72rem;color:#3b82f6;font-weight:600;">Blue</div>
-    
-    
-    
+
+
+
     <div style="background:rgba(239,68,68,0.75);border-radius:4px;padding:3px 5px;text-align:center;font-size:0.72rem;color:#e8e8f8;">
       -16.5
     </div>
-    
-    
-    
+
+
+
     <div style="background:rgba(239,68,68,0.75);border-radius:4px;padding:3px 5px;text-align:center;font-size:0.72rem;color:#e8e8f8;">
       -28.1
     </div>
-    
-    
-    
+
+
+
     <div style="background:rgba(124,106,247,0.2);border-radius:4px;padding:3px 5px;text-align:center;font-size:0.72rem;color:#e8e8f8;">
       +3.6
     </div>
-    
+
   </div>
-  
-  
+
+
   <div style="display:grid;grid-template-columns:80px repeat(3,1fr);gap:3px;margin-bottom:3px;align-items:center;">
     <div style="font-size:0.72rem;color:#8b5cf6;font-weight:600;">Purple</div>
-    
-    
-    
+
+
+
     <div style="background:rgba(239,68,68,0.47);border-radius:4px;padding:3px 5px;text-align:center;font-size:0.72rem;color:#e8e8f8;">
       -9.5
     </div>
-    
-    
-    
+
+
+
     <div style="background:rgba(239,68,68,0.75);border-radius:4px;padding:3px 5px;text-align:center;font-size:0.72rem;color:#e8e8f8;">
       -26.7
     </div>
-    
-    
-    
+
+
+
     <div style="background:rgba(124,106,247,0.01);border-radius:4px;padding:3px 5px;text-align:center;font-size:0.72rem;color:#7878a0;">
       +0.2
     </div>
-    
+
   </div>
-  
-  
+
+
   <div style="display:grid;grid-template-columns:80px repeat(3,1fr);gap:3px;margin-bottom:3px;align-items:center;">
     <div style="font-size:0.72rem;color:#ec4899;font-weight:600;">Magenta</div>
-    
-    
-    
+
+
+
     <div style="background:rgba(239,68,68,0.06);border-radius:4px;padding:3px 5px;text-align:center;font-size:0.72rem;color:#7878a0;">
       -1.2
     </div>
-    
-    
-    
+
+
+
     <div style="background:rgba(239,68,68,0.75);border-radius:4px;padding:3px 5px;text-align:center;font-size:0.72rem;color:#e8e8f8;">
       -16.5
     </div>
-    
-    
-    
+
+
+
     <div style="background:rgba(124,106,247,0.02);border-radius:4px;padding:3px 5px;text-align:center;font-size:0.72rem;color:#7878a0;">
       +0.4
     </div>
-    
+
   </div>
-  
+
   <div style="margin-top:0.5rem;font-size:0.68rem;color:#5a5a78;">Purple = raised &nbsp;·&nbsp; Red = lowered &nbsp;·&nbsp; Dark = near-zero</div>
 </div>
 
@@ -2254,10 +2289,10 @@ canvas { max-height: 300px; }
 <div class="card mb">
   <div class="card-title">Color Profile, Aesthetic Score &amp; Editing Intensity by Scene</div>
   <div class="color-scene-grid">
-    
-    
-    
-    
+
+
+
+
     <div class="color-scene-card" style="background:#3b82f60d;border-color:#3b82f622;">
       <div class="cs-name">travel and landmarks</div>
       <div class="cs-temp" style="color:#f97316;">
@@ -2272,14 +2307,14 @@ canvas { max-height: 300px; }
         <span class="cs-pill">✏ 269</span>
         <span class="cs-pill">sat 0.21</span>
         <span class="cs-pill">bri 0.59</span>
-        
+
         <span class="cs-pill">2773 images</span>
       </div>
     </div>
-    
-    
-    
-    
+
+
+
+
     <div class="color-scene-card" style="background:#f59e0b0d;border-color:#f59e0b22;">
       <div class="cs-name">people and portraits</div>
       <div class="cs-temp" style="color:#f97316;">
@@ -2294,14 +2329,14 @@ canvas { max-height: 300px; }
         <span class="cs-pill">✏ 244</span>
         <span class="cs-pill">sat 0.24</span>
         <span class="cs-pill">bri 0.46</span>
-        
+
         <span class="cs-pill">703 images</span>
       </div>
     </div>
-    
-    
-    
-    
+
+
+
+
     <div class="color-scene-card" style="background:#f973160d;border-color:#f9731622;">
       <div class="cs-name">urban street</div>
       <div class="cs-temp" style="color:#f97316;">
@@ -2316,14 +2351,14 @@ canvas { max-height: 300px; }
         <span class="cs-pill">✏ 242</span>
         <span class="cs-pill">sat 0.19</span>
         <span class="cs-pill">bri 0.46</span>
-        
+
         <span class="cs-pill">157 images</span>
       </div>
     </div>
-    
-    
-    
-    
+
+
+
+
     <div class="color-scene-card" style="background:#10b9810d;border-color:#10b98122;">
       <div class="cs-name">nature</div>
       <div class="cs-temp" style="color:#f97316;">
@@ -2338,14 +2373,14 @@ canvas { max-height: 300px; }
         <span class="cs-pill">✏ 254</span>
         <span class="cs-pill">sat 0.23</span>
         <span class="cs-pill">bri 0.46</span>
-        
+
         <span class="cs-pill">626 images</span>
       </div>
     </div>
-    
-    
-    
-    
+
+
+
+
     <div class="color-scene-card" style="background:#14b8a60d;border-color:#14b8a622;">
       <div class="cs-name">interior</div>
       <div class="cs-temp" style="color:#f97316;">
@@ -2360,14 +2395,14 @@ canvas { max-height: 300px; }
         <span class="cs-pill">✏ 181</span>
         <span class="cs-pill">sat 0.27</span>
         <span class="cs-pill">bri 0.33</span>
-        
+
         <span class="cs-pill">21 images</span>
       </div>
     </div>
-    
-    
-    
-    
+
+
+
+
     <div class="color-scene-card" style="background:#7c6af70d;border-color:#7c6af722;">
       <div class="cs-name">architecture</div>
       <div class="cs-temp" style="color:#f97316;">
@@ -2382,14 +2417,14 @@ canvas { max-height: 300px; }
         <span class="cs-pill">✏ 106</span>
         <span class="cs-pill">sat 0.19</span>
         <span class="cs-pill">bri 0.52</span>
-        
+
         <span class="cs-pill">80 images</span>
       </div>
     </div>
-    
-    
-    
-    
+
+
+
+
     <div class="color-scene-card" style="background:#6366f10d;border-color:#6366f122;">
       <div class="cs-name">night scene</div>
       <div class="cs-temp" style="color:#38bdf8;">
@@ -2404,14 +2439,14 @@ canvas { max-height: 300px; }
         <span class="cs-pill">✏ 181</span>
         <span class="cs-pill">sat 0.36</span>
         <span class="cs-pill">bri 0.25</span>
-        
+
         <span class="cs-pill">227 images</span>
       </div>
     </div>
-    
-    
-    
-    
+
+
+
+
     <div class="color-scene-card" style="background:#a855f70d;border-color:#a855f722;">
       <div class="cs-name">animals</div>
       <div class="cs-temp" style="color:#f97316;">
@@ -2426,14 +2461,14 @@ canvas { max-height: 300px; }
         <span class="cs-pill">✏ 253</span>
         <span class="cs-pill">sat 0.24</span>
         <span class="cs-pill">bri 0.44</span>
-        
+
         <span class="cs-pill">174 images</span>
       </div>
     </div>
-    
-    
-    
-    
+
+
+
+
     <div class="color-scene-card" style="background:#ef44440d;border-color:#ef444422;">
       <div class="cs-name">food</div>
       <div class="cs-temp" style="color:#f97316;">
@@ -2448,14 +2483,14 @@ canvas { max-height: 300px; }
         <span class="cs-pill">✏ 209</span>
         <span class="cs-pill">sat 0.23</span>
         <span class="cs-pill">bri 0.56</span>
-        
+
         <span class="cs-pill">29 images</span>
       </div>
     </div>
-    
-    
-    
-    
+
+
+
+
     <div class="color-scene-card" style="background:#ec48990d;border-color:#ec489922;">
       <div class="cs-name">abstract</div>
       <div class="cs-temp" style="color:#f97316;">
@@ -2470,12 +2505,12 @@ canvas { max-height: 300px; }
         <span class="cs-pill">✏ 200</span>
         <span class="cs-pill">sat 0.23</span>
         <span class="cs-pill">bri 0.34</span>
-        
+
         <span class="cs-pill">317 images</span>
       </div>
     </div>
-    
-    
+
+
   </div>
   <div style="margin-top:0.75rem;font-size:0.68rem;color:#5a5a78;">⬡ = avg aesthetic score · σ = consistency (lower = more uniform) · ✏ = editing intensity (sum of Lr slider deviations)</div>
 </div>
@@ -2507,7 +2542,7 @@ canvas { max-height: 300px; }
     </div>
   </div>
 
-  
+
   <div style="margin-bottom:1rem;padding:0.75rem 1rem;background:#16161f;border-radius:8px;">
     <div style="font-size:0.68rem;color:#7878a0;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:0.6rem;">AI Aesthetic Agreement</div>
     <div style="display:flex;gap:2rem;align-items:center;flex-wrap:wrap;">
@@ -2520,7 +2555,7 @@ canvas { max-height: 300px; }
         <div style="font-size:1.2rem;font-weight:700;color:#9090b8;">52.8</div>
         <div style="font-size:0.68rem;color:#7878a0;">avg score · not in albums</div>
       </div>
-      
+
       <div style="margin-left:auto;">
         <div style="font-size:1rem;font-weight:700;color:#f59e0b;">+0.1</div>
         <div style="font-size:0.68rem;color:#7878a0;">model bias</div>
@@ -2528,12 +2563,12 @@ canvas { max-height: 300px; }
     </div>
     <div style="margin-top:0.6rem;font-size:0.7rem;color:#6060808;">
       The model is essentially neutral — it doesn't distinguish your curated images from the rest.
-      
+
     </div>
   </div>
-  
 
-  
+
+
   <table style="width:100%;border-collapse:collapse;">
     <thead><tr>
       <th style="text-align:left;padding:4px 8px;font-size:0.68rem;color:#7878a0;border-bottom:1px solid #1a1a28;">Album</th>
@@ -2547,9 +2582,9 @@ canvas { max-height: 300px; }
       <th style="text-align:left;padding:4px 8px;font-size:0.68rem;color:#7878a0;border-bottom:1px solid #1a1a28;">Palette</th>
     </tr></thead>
     <tbody>
-    
-    
-    
+
+
+
     <tr>
       <td style="padding:5px 8px;font-size:0.78rem;color:#c0c0d8;">Nyc</td>
       <td style="padding:5px 8px;font-size:0.78rem;color:#9090b8;text-align:right;">88</td>
@@ -2580,9 +2615,9 @@ canvas { max-height: 300px; }
       </td>
       <td style="padding:5px 8px;"><span style="display:inline-block;width:13px;height:13px;background:#202729;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#202729"></span><span style="display:inline-block;width:13px;height:13px;background:#e3dcf2;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#e3dcf2"></span><span style="display:inline-block;width:13px;height:13px;background:#bbb8b6;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#bbb8b6"></span><span style="display:inline-block;width:13px;height:13px;background:#d1d3cc;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#d1d3cc"></span><span style="display:inline-block;width:13px;height:13px;background:#897c7b;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#897c7b"></span><span style="display:inline-block;width:13px;height:13px;background:#5e4249;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#5e4249"></span></td>
     </tr>
-    
-    
-    
+
+
+
     <tr>
       <td style="padding:5px 8px;font-size:0.78rem;color:#c0c0d8;">Yellowstone</td>
       <td style="padding:5px 8px;font-size:0.78rem;color:#9090b8;text-align:right;">83</td>
@@ -2613,9 +2648,9 @@ canvas { max-height: 300px; }
       </td>
       <td style="padding:5px 8px;"><span style="display:inline-block;width:13px;height:13px;background:#d4dfdc;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#d4dfdc"></span><span style="display:inline-block;width:13px;height:13px;background:#332d1c;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#332d1c"></span><span style="display:inline-block;width:13px;height:13px;background:#b5c3c5;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#b5c3c5"></span><span style="display:inline-block;width:13px;height:13px;background:#f2f6f5;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#f2f6f5"></span><span style="display:inline-block;width:13px;height:13px;background:#524f41;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#524f41"></span><span style="display:inline-block;width:13px;height:13px;background:#c5bd9d;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#c5bd9d"></span></td>
     </tr>
-    
-    
-    
+
+
+
     <tr>
       <td style="padding:5px 8px;font-size:0.78rem;color:#c0c0d8;">Bayarea</td>
       <td style="padding:5px 8px;font-size:0.78rem;color:#9090b8;text-align:right;">75</td>
@@ -2646,9 +2681,9 @@ canvas { max-height: 300px; }
       </td>
       <td style="padding:5px 8px;"><span style="display:inline-block;width:13px;height:13px;background:#1e191a;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#1e191a"></span><span style="display:inline-block;width:13px;height:13px;background:#4f4d46;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#4f4d46"></span><span style="display:inline-block;width:13px;height:13px;background:#1c2f2f;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#1c2f2f"></span><span style="display:inline-block;width:13px;height:13px;background:#75766d;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#75766d"></span><span style="display:inline-block;width:13px;height:13px;background:#2f403f;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#2f403f"></span><span style="display:inline-block;width:13px;height:13px;background:#afc6dc;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#afc6dc"></span></td>
     </tr>
-    
-    
-    
+
+
+
     <tr>
       <td style="padding:5px 8px;font-size:0.78rem;color:#c0c0d8;">Flora &amp; Fauna</td>
       <td style="padding:5px 8px;font-size:0.78rem;color:#9090b8;text-align:right;">74</td>
@@ -2679,9 +2714,9 @@ canvas { max-height: 300px; }
       </td>
       <td style="padding:5px 8px;"><span style="display:inline-block;width:13px;height:13px;background:#2a2e25;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#2a2e25"></span><span style="display:inline-block;width:13px;height:13px;background:#4c5039;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#4c5039"></span><span style="display:inline-block;width:13px;height:13px;background:#7d7964;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#7d7964"></span><span style="display:inline-block;width:13px;height:13px;background:#0e191d;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#0e191d"></span><span style="display:inline-block;width:13px;height:13px;background:#5f5d54;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#5f5d54"></span><span style="display:inline-block;width:13px;height:13px;background:#abaaa1;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#abaaa1"></span></td>
     </tr>
-    
-    
-    
+
+
+
     <tr>
       <td style="padding:5px 8px;font-size:0.78rem;color:#c0c0d8;">Misc</td>
       <td style="padding:5px 8px;font-size:0.78rem;color:#9090b8;text-align:right;">71</td>
@@ -2712,9 +2747,9 @@ canvas { max-height: 300px; }
       </td>
       <td style="padding:5px 8px;"><span style="display:inline-block;width:13px;height:13px;background:#22190b;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#22190b"></span><span style="display:inline-block;width:13px;height:13px;background:#e5ebf0;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#e5ebf0"></span><span style="display:inline-block;width:13px;height:13px;background:#01101d;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#01101d"></span><span style="display:inline-block;width:13px;height:13px;background:#351b24;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#351b24"></span><span style="display:inline-block;width:13px;height:13px;background:#4a392e;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#4a392e"></span><span style="display:inline-block;width:13px;height:13px;background:#a5a2ab;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#a5a2ab"></span></td>
     </tr>
-    
-    
-    
+
+
+
     <tr>
       <td style="padding:5px 8px;font-size:0.78rem;color:#c0c0d8;">Dubai</td>
       <td style="padding:5px 8px;font-size:0.78rem;color:#9090b8;text-align:right;">57</td>
@@ -2745,9 +2780,9 @@ canvas { max-height: 300px; }
       </td>
       <td style="padding:5px 8px;"><span style="display:inline-block;width:13px;height:13px;background:#21383a;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#21383a"></span><span style="display:inline-block;width:13px;height:13px;background:#3f4242;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#3f4242"></span><span style="display:inline-block;width:13px;height:13px;background:#ecebf2;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#ecebf2"></span><span style="display:inline-block;width:13px;height:13px;background:#c3c5d5;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#c3c5d5"></span><span style="display:inline-block;width:13px;height:13px;background:#787d7e;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#787d7e"></span><span style="display:inline-block;width:13px;height:13px;background:#48565d;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#48565d"></span></td>
     </tr>
-    
-    
-    
+
+
+
     <tr>
       <td style="padding:5px 8px;font-size:0.78rem;color:#c0c0d8;">Varanasi</td>
       <td style="padding:5px 8px;font-size:0.78rem;color:#9090b8;text-align:right;">55</td>
@@ -2778,9 +2813,9 @@ canvas { max-height: 300px; }
       </td>
       <td style="padding:5px 8px;"><span style="display:inline-block;width:13px;height:13px;background:#111315;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#111315"></span><span style="display:inline-block;width:13px;height:13px;background:#dbe6ec;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#dbe6ec"></span><span style="display:inline-block;width:13px;height:13px;background:#272226;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#272226"></span><span style="display:inline-block;width:13px;height:13px;background:#8b898a;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#8b898a"></span><span style="display:inline-block;width:13px;height:13px;background:#c6cdd6;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#c6cdd6"></span><span style="display:inline-block;width:13px;height:13px;background:#adc7b9;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#adc7b9"></span></td>
     </tr>
-    
-    
-    
+
+
+
     <tr>
       <td style="padding:5px 8px;font-size:0.78rem;color:#c0c0d8;">Art</td>
       <td style="padding:5px 8px;font-size:0.78rem;color:#9090b8;text-align:right;">50</td>
@@ -2811,9 +2846,9 @@ canvas { max-height: 300px; }
       </td>
       <td style="padding:5px 8px;"><span style="display:inline-block;width:13px;height:13px;background:#292320;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#292320"></span><span style="display:inline-block;width:13px;height:13px;background:#544137;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#544137"></span><span style="display:inline-block;width:13px;height:13px;background:#0a0a0a;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#0a0a0a"></span><span style="display:inline-block;width:13px;height:13px;background:#5c5c5c;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#5c5c5c"></span><span style="display:inline-block;width:13px;height:13px;background:#b19385;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#b19385"></span><span style="display:inline-block;width:13px;height:13px;background:#93786b;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#93786b"></span></td>
     </tr>
-    
-    
-    
+
+
+
     <tr>
       <td style="padding:5px 8px;font-size:0.78rem;color:#c0c0d8;">Iphone</td>
       <td style="padding:5px 8px;font-size:0.78rem;color:#9090b8;text-align:right;">48</td>
@@ -2844,9 +2879,9 @@ canvas { max-height: 300px; }
       </td>
       <td style="padding:5px 8px;"><span style="display:inline-block;width:13px;height:13px;background:#d6e1e7;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#d6e1e7"></span><span style="display:inline-block;width:13px;height:13px;background:#161616;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#161616"></span><span style="display:inline-block;width:13px;height:13px;background:#24313a;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#24313a"></span><span style="display:inline-block;width:13px;height:13px;background:#717a77;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#717a77"></span><span style="display:inline-block;width:13px;height:13px;background:#929e9a;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#929e9a"></span><span style="display:inline-block;width:13px;height:13px;background:#3f525d;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#3f525d"></span></td>
     </tr>
-    
-    
-    
+
+
+
     <tr>
       <td style="padding:5px 8px;font-size:0.78rem;color:#c0c0d8;">New England</td>
       <td style="padding:5px 8px;font-size:0.78rem;color:#9090b8;text-align:right;">39</td>
@@ -2877,9 +2912,9 @@ canvas { max-height: 300px; }
       </td>
       <td style="padding:5px 8px;"><span style="display:inline-block;width:13px;height:13px;background:#2e2920;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#2e2920"></span><span style="display:inline-block;width:13px;height:13px;background:#47392f;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#47392f"></span><span style="display:inline-block;width:13px;height:13px;background:#151514;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#151514"></span><span style="display:inline-block;width:13px;height:13px;background:#674e38;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#674e38"></span><span style="display:inline-block;width:13px;height:13px;background:#ede7e8;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#ede7e8"></span><span style="display:inline-block;width:13px;height:13px;background:#6f5d51;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#6f5d51"></span></td>
     </tr>
-    
-    
-    
+
+
+
     <tr>
       <td style="padding:5px 8px;font-size:0.78rem;color:#c0c0d8;">Utah &amp; Vegas</td>
       <td style="padding:5px 8px;font-size:0.78rem;color:#9090b8;text-align:right;">36</td>
@@ -2910,9 +2945,9 @@ canvas { max-height: 300px; }
       </td>
       <td style="padding:5px 8px;"><span style="display:inline-block;width:13px;height:13px;background:#ced9ea;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#ced9ea"></span><span style="display:inline-block;width:13px;height:13px;background:#31322e;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#31322e"></span><span style="display:inline-block;width:13px;height:13px;background:#877560;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#877560"></span><span style="display:inline-block;width:13px;height:13px;background:#605950;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#605950"></span><span style="display:inline-block;width:13px;height:13px;background:#bca5a2;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#bca5a2"></span><span style="display:inline-block;width:13px;height:13px;background:#4e3a34;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#4e3a34"></span></td>
     </tr>
-    
-    
-    
+
+
+
     <tr>
       <td style="padding:5px 8px;font-size:0.78rem;color:#c0c0d8;">Mexico</td>
       <td style="padding:5px 8px;font-size:0.78rem;color:#9090b8;text-align:right;">27</td>
@@ -2943,9 +2978,9 @@ canvas { max-height: 300px; }
       </td>
       <td style="padding:5px 8px;"><span style="display:inline-block;width:13px;height:13px;background:#eef1f5;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#eef1f5"></span><span style="display:inline-block;width:13px;height:13px;background:#dbe0e1;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#dbe0e1"></span><span style="display:inline-block;width:13px;height:13px;background:#3f3d38;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#3f3d38"></span><span style="display:inline-block;width:13px;height:13px;background:#22211e;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#22211e"></span><span style="display:inline-block;width:13px;height:13px;background:#736e68;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#736e68"></span><span style="display:inline-block;width:13px;height:13px;background:#bbc5cc;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#bbc5cc"></span></td>
     </tr>
-    
-    
-    
+
+
+
     <tr>
       <td style="padding:5px 8px;font-size:0.78rem;color:#c0c0d8;">Texas</td>
       <td style="padding:5px 8px;font-size:0.78rem;color:#9090b8;text-align:right;">18</td>
@@ -2976,9 +3011,9 @@ canvas { max-height: 300px; }
       </td>
       <td style="padding:5px 8px;"><span style="display:inline-block;width:13px;height:13px;background:#2e2b2c;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#2e2b2c"></span><span style="display:inline-block;width:13px;height:13px;background:#47443d;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#47443d"></span><span style="display:inline-block;width:13px;height:13px;background:#888d98;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#888d98"></span><span style="display:inline-block;width:13px;height:13px;background:#c6d8e6;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#c6d8e6"></span><span style="display:inline-block;width:13px;height:13px;background:#71b4b3;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#71b4b3"></span><span style="display:inline-block;width:13px;height:13px;background:#817a6d;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#817a6d"></span></td>
     </tr>
-    
-    
-    
+
+
+
     <tr>
       <td style="padding:5px 8px;font-size:0.78rem;color:#c0c0d8;">Mom</td>
       <td style="padding:5px 8px;font-size:0.78rem;color:#9090b8;text-align:right;">12</td>
@@ -3009,9 +3044,9 @@ canvas { max-height: 300px; }
       </td>
       <td style="padding:5px 8px;"><span style="display:inline-block;width:13px;height:13px;background:#9f8473;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#9f8473"></span><span style="display:inline-block;width:13px;height:13px;background:#c7b9a1;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#c7b9a1"></span><span style="display:inline-block;width:13px;height:13px;background:#ecebe2;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#ecebe2"></span><span style="display:inline-block;width:13px;height:13px;background:#655d41;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#655d41"></span><span style="display:inline-block;width:13px;height:13px;background:#3e3c2a;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#3e3c2a"></span><span style="display:inline-block;width:13px;height:13px;background:#827450;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#827450"></span></td>
     </tr>
-    
-    
-    
+
+
+
     <tr>
       <td style="padding:5px 8px;font-size:0.78rem;color:#c0c0d8;">Arizona</td>
       <td style="padding:5px 8px;font-size:0.78rem;color:#9090b8;text-align:right;">12</td>
@@ -3042,9 +3077,9 @@ canvas { max-height: 300px; }
       </td>
       <td style="padding:5px 8px;"><span style="display:inline-block;width:13px;height:13px;background:#191413;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#191413"></span><span style="display:inline-block;width:13px;height:13px;background:#2e383b;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#2e383b"></span><span style="display:inline-block;width:13px;height:13px;background:#c59d92;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#c59d92"></span><span style="display:inline-block;width:13px;height:13px;background:#aadbdf;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#aadbdf"></span><span style="display:inline-block;width:13px;height:13px;background:#966556;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#966556"></span><span style="display:inline-block;width:13px;height:13px;background:#5a3830;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#5a3830"></span></td>
     </tr>
-    
-    
-    
+
+
+
     <tr>
       <td style="padding:5px 8px;font-size:0.78rem;color:#c0c0d8;">Oregon</td>
       <td style="padding:5px 8px;font-size:0.78rem;color:#9090b8;text-align:right;">9</td>
@@ -3075,10 +3110,10 @@ canvas { max-height: 300px; }
       </td>
       <td style="padding:5px 8px;"><span style="display:inline-block;width:13px;height:13px;background:#3c3e31;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#3c3e31"></span><span style="display:inline-block;width:13px;height:13px;background:#dbe5e8;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#dbe5e8"></span><span style="display:inline-block;width:13px;height:13px;background:#636a52;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#636a52"></span><span style="display:inline-block;width:13px;height:13px;background:#5f8587;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#5f8587"></span><span style="display:inline-block;width:13px;height:13px;background:#aeb8b4;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#aeb8b4"></span><span style="display:inline-block;width:13px;height:13px;background:#0a1527;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#0a1527"></span></td>
     </tr>
-    
+
     </tbody>
   </table>
-  
+
 </div>
 
 
@@ -3121,7 +3156,7 @@ canvas { max-height: 300px; }
       <div class="strip-s">images in biggest session</div>
     </div>
   </div>
-  
+
   <table>
     <thead>
       <tr>
@@ -3133,7 +3168,7 @@ canvas { max-height: 300px; }
       </tr>
     </thead>
     <tbody>
-    
+
     <tr>
       <td style="white-space:nowrap;font-weight:600;color:#c0c0d8;">2025-03-02</td>
       <td><span style="font-size:0.68rem;background:rgba(124,106,247,0.15);color:#a090e0;border-radius:4px;padding:2px 7px;">travel and landmarks</span></td>
@@ -3141,7 +3176,7 @@ canvas { max-height: 300px; }
       <td style="text-align:right;color:#9090b8;white-space:nowrap;">4.9h</td>
       <td style="color:#7878a0;font-style:italic;line-height:1.5;">A indoors shoot. during daytime. in sunny conditions.</td>
     </tr>
-    
+
     <tr>
       <td style="white-space:nowrap;font-weight:600;color:#c0c0d8;">2025-01-27</td>
       <td><span style="font-size:0.68rem;background:rgba(124,106,247,0.15);color:#a090e0;border-radius:4px;padding:2px 7px;">travel and landmarks</span></td>
@@ -3149,7 +3184,7 @@ canvas { max-height: 300px; }
       <td style="text-align:right;color:#9090b8;white-space:nowrap;">3.6h</td>
       <td style="color:#7878a0;font-style:italic;line-height:1.5;">A outdoors shoot. during afternoon. in sunny conditions.</td>
     </tr>
-    
+
     <tr>
       <td style="white-space:nowrap;font-weight:600;color:#c0c0d8;">2025-01-26</td>
       <td><span style="font-size:0.68rem;background:rgba(124,106,247,0.15);color:#a090e0;border-radius:4px;padding:2px 7px;">night scene</span></td>
@@ -3157,7 +3192,7 @@ canvas { max-height: 300px; }
       <td style="text-align:right;color:#9090b8;white-space:nowrap;">1.6h</td>
       <td style="color:#7878a0;font-style:italic;line-height:1.5;">A outdoors shoot. during daytime. in sunny conditions.</td>
     </tr>
-    
+
     <tr>
       <td style="white-space:nowrap;font-weight:600;color:#c0c0d8;">2024-09-01</td>
       <td><span style="font-size:0.68rem;background:rgba(124,106,247,0.15);color:#a090e0;border-radius:4px;padding:2px 7px;">travel and landmarks</span></td>
@@ -3165,7 +3200,7 @@ canvas { max-height: 300px; }
       <td style="text-align:right;color:#9090b8;white-space:nowrap;">4.3h</td>
       <td style="color:#7878a0;font-style:italic;line-height:1.5;">A outdoors shoot. during daytime. in sunny conditions.</td>
     </tr>
-    
+
     <tr>
       <td style="white-space:nowrap;font-weight:600;color:#c0c0d8;">2024-08-31</td>
       <td><span style="font-size:0.68rem;background:rgba(124,106,247,0.15);color:#a090e0;border-radius:4px;padding:2px 7px;">travel and landmarks</span></td>
@@ -3173,7 +3208,7 @@ canvas { max-height: 300px; }
       <td style="text-align:right;color:#9090b8;white-space:nowrap;">9.8h</td>
       <td style="color:#7878a0;font-style:italic;line-height:1.5;">A outdoors shoot. during afternoon. in cloudy conditions.</td>
     </tr>
-    
+
     <tr>
       <td style="white-space:nowrap;font-weight:600;color:#c0c0d8;">2024-07-28</td>
       <td><span style="font-size:0.68rem;background:rgba(124,106,247,0.15);color:#a090e0;border-radius:4px;padding:2px 7px;">abstract</span></td>
@@ -3181,7 +3216,7 @@ canvas { max-height: 300px; }
       <td style="text-align:right;color:#9090b8;white-space:nowrap;">4.8h</td>
       <td style="color:#7878a0;font-style:italic;line-height:1.5;">A indoors shoot. during daytime. in sunny conditions.</td>
     </tr>
-    
+
     <tr>
       <td style="white-space:nowrap;font-weight:600;color:#c0c0d8;">2024-07-05</td>
       <td><span style="font-size:0.68rem;background:rgba(124,106,247,0.15);color:#a090e0;border-radius:4px;padding:2px 7px;">travel and landmarks</span></td>
@@ -3189,7 +3224,7 @@ canvas { max-height: 300px; }
       <td style="text-align:right;color:#9090b8;white-space:nowrap;">9.3h</td>
       <td style="color:#7878a0;font-style:italic;line-height:1.5;">A outdoors shoot. during daytime. in sunny conditions.</td>
     </tr>
-    
+
     <tr>
       <td style="white-space:nowrap;font-weight:600;color:#c0c0d8;">2024-07-04</td>
       <td><span style="font-size:0.68rem;background:rgba(124,106,247,0.15);color:#a090e0;border-radius:4px;padding:2px 7px;">travel and landmarks</span></td>
@@ -3197,7 +3232,7 @@ canvas { max-height: 300px; }
       <td style="text-align:right;color:#9090b8;white-space:nowrap;">12.1h</td>
       <td style="color:#7878a0;font-style:italic;line-height:1.5;">A outdoors shoot. during afternoon. in sunny conditions.</td>
     </tr>
-    
+
     <tr>
       <td style="white-space:nowrap;font-weight:600;color:#c0c0d8;">2024-07-03</td>
       <td><span style="font-size:0.68rem;background:rgba(124,106,247,0.15);color:#a090e0;border-radius:4px;padding:2px 7px;">travel and landmarks</span></td>
@@ -3205,7 +3240,7 @@ canvas { max-height: 300px; }
       <td style="text-align:right;color:#9090b8;white-space:nowrap;">1.1h</td>
       <td style="color:#7878a0;font-style:italic;line-height:1.5;">A outdoors shoot. during morning. in sunny conditions.</td>
     </tr>
-    
+
     <tr>
       <td style="white-space:nowrap;font-weight:600;color:#c0c0d8;">2024-05-26</td>
       <td><span style="font-size:0.68rem;background:rgba(124,106,247,0.15);color:#a090e0;border-radius:4px;padding:2px 7px;">travel and landmarks</span></td>
@@ -3213,7 +3248,7 @@ canvas { max-height: 300px; }
       <td style="text-align:right;color:#9090b8;white-space:nowrap;">7.2h</td>
       <td style="color:#7878a0;font-style:italic;line-height:1.5;">A outdoors shoot. during daytime. in sunny conditions.</td>
     </tr>
-    
+
     <tr>
       <td style="white-space:nowrap;font-weight:600;color:#c0c0d8;">2024-05-25</td>
       <td><span style="font-size:0.68rem;background:rgba(124,106,247,0.15);color:#a090e0;border-radius:4px;padding:2px 7px;">travel and landmarks</span></td>
@@ -3221,10 +3256,10 @@ canvas { max-height: 300px; }
       <td style="text-align:right;color:#9090b8;white-space:nowrap;">4.5h</td>
       <td style="color:#7878a0;font-style:italic;line-height:1.5;">A outdoors shoot. during noon. in sunny conditions.</td>
     </tr>
-    
+
     </tbody>
   </table>
-  
+
 </div>
 
 
@@ -3264,77 +3299,77 @@ canvas { max-height: 300px; }
       <th style="text-align:right;padding:4px 8px;font-size:0.68rem;color:#7878a0;border-bottom:1px solid #1a1a28;">To Cull</th>
     </tr></thead>
     <tbody>
-    
+
     <tr>
       <td style="padding:4px 8px;font-size:0.78rem;color:#9090b8;">travel and landmarks</td>
       <td style="padding:4px 8px;font-size:0.78rem;color:#c0c0d8;text-align:right;">47</td>
       <td style="padding:4px 8px;font-size:0.78rem;color:#7c6af7;text-align:right;">53.56</td>
       <td style="padding:4px 8px;font-size:0.78rem;color:#f87171;text-align:right;">46</td>
     </tr>
-    
+
     <tr>
       <td style="padding:4px 8px;font-size:0.78rem;color:#9090b8;">travel and landmarks</td>
       <td style="padding:4px 8px;font-size:0.78rem;color:#c0c0d8;text-align:right;">12</td>
       <td style="padding:4px 8px;font-size:0.78rem;color:#7c6af7;text-align:right;">53.74</td>
       <td style="padding:4px 8px;font-size:0.78rem;color:#f87171;text-align:right;">11</td>
     </tr>
-    
+
     <tr>
       <td style="padding:4px 8px;font-size:0.78rem;color:#9090b8;">travel and landmarks</td>
       <td style="padding:4px 8px;font-size:0.78rem;color:#c0c0d8;text-align:right;">10</td>
       <td style="padding:4px 8px;font-size:0.78rem;color:#7c6af7;text-align:right;">52.92</td>
       <td style="padding:4px 8px;font-size:0.78rem;color:#f87171;text-align:right;">9</td>
     </tr>
-    
+
     <tr>
       <td style="padding:4px 8px;font-size:0.78rem;color:#9090b8;">travel and landmarks</td>
       <td style="padding:4px 8px;font-size:0.78rem;color:#c0c0d8;text-align:right;">6</td>
       <td style="padding:4px 8px;font-size:0.78rem;color:#7c6af7;text-align:right;">52.34</td>
       <td style="padding:4px 8px;font-size:0.78rem;color:#f87171;text-align:right;">5</td>
     </tr>
-    
+
     <tr>
       <td style="padding:4px 8px;font-size:0.78rem;color:#9090b8;">travel and landmarks</td>
       <td style="padding:4px 8px;font-size:0.78rem;color:#c0c0d8;text-align:right;">6</td>
       <td style="padding:4px 8px;font-size:0.78rem;color:#7c6af7;text-align:right;">52.56</td>
       <td style="padding:4px 8px;font-size:0.78rem;color:#f87171;text-align:right;">5</td>
     </tr>
-    
+
     <tr>
       <td style="padding:4px 8px;font-size:0.78rem;color:#9090b8;">travel and landmarks</td>
       <td style="padding:4px 8px;font-size:0.78rem;color:#c0c0d8;text-align:right;">6</td>
       <td style="padding:4px 8px;font-size:0.78rem;color:#7c6af7;text-align:right;">53.33</td>
       <td style="padding:4px 8px;font-size:0.78rem;color:#f87171;text-align:right;">5</td>
     </tr>
-    
+
     <tr>
       <td style="padding:4px 8px;font-size:0.78rem;color:#9090b8;">travel and landmarks</td>
       <td style="padding:4px 8px;font-size:0.78rem;color:#c0c0d8;text-align:right;">5</td>
       <td style="padding:4px 8px;font-size:0.78rem;color:#7c6af7;text-align:right;">53.38</td>
       <td style="padding:4px 8px;font-size:0.78rem;color:#f87171;text-align:right;">4</td>
     </tr>
-    
+
     <tr>
       <td style="padding:4px 8px;font-size:0.78rem;color:#9090b8;">travel and landmarks</td>
       <td style="padding:4px 8px;font-size:0.78rem;color:#c0c0d8;text-align:right;">5</td>
       <td style="padding:4px 8px;font-size:0.78rem;color:#7c6af7;text-align:right;">53.47</td>
       <td style="padding:4px 8px;font-size:0.78rem;color:#f87171;text-align:right;">4</td>
     </tr>
-    
+
     <tr>
       <td style="padding:4px 8px;font-size:0.78rem;color:#9090b8;">travel and landmarks</td>
       <td style="padding:4px 8px;font-size:0.78rem;color:#c0c0d8;text-align:right;">5</td>
       <td style="padding:4px 8px;font-size:0.78rem;color:#7c6af7;text-align:right;">52.58</td>
       <td style="padding:4px 8px;font-size:0.78rem;color:#f87171;text-align:right;">4</td>
     </tr>
-    
+
     <tr>
       <td style="padding:4px 8px;font-size:0.78rem;color:#9090b8;">travel and landmarks</td>
       <td style="padding:4px 8px;font-size:0.78rem;color:#c0c0d8;text-align:right;">4</td>
       <td style="padding:4px 8px;font-size:0.78rem;color:#7c6af7;text-align:right;">52.81</td>
       <td style="padding:4px 8px;font-size:0.78rem;color:#f87171;text-align:right;">3</td>
     </tr>
-    
+
     </tbody>
   </table>
 </div>
@@ -3375,8 +3410,8 @@ canvas { max-height: 300px; }
 
 <div class="card mb">
   <div class="card-title">Quality Issues <span style="color:#8080aa;font-weight:400;">5107 images · local rule engine</span></div>
-  
-  
+
+
   <div style="margin-bottom:1rem;">
     <div style="display:flex;align-items:center;gap:0.6rem;margin-bottom:0.25rem;">
       <span style="font-size:0.85rem;font-weight:700;color:#f87171;min-width:38px;flex-shrink:0;">30.4%</span>
@@ -3386,8 +3421,8 @@ canvas { max-height: 300px; }
     <div style="font-size:0.72rem;color:#7878a0;margin-bottom:0.35rem;line-height:1.5;padding-left:0;">Edge density in the bottom quarter of the frame is high, suggesting a cluttered or distracting foreground. Move closer, change angle, or use a wider aperture to blur foreground elements.</div>
     <div class="dbar-bg"><div class="dbar-fill" style="width:30%;background:#f87171;"></div></div>
   </div>
-  
-  
+
+
   <div style="margin-bottom:1rem;">
     <div style="display:flex;align-items:center;gap:0.6rem;margin-bottom:0.25rem;">
       <span style="font-size:0.85rem;font-weight:700;color:#f59e0b;min-width:38px;flex-shrink:0;">18.2%</span>
@@ -3397,8 +3432,8 @@ canvas { max-height: 300px; }
     <div style="font-size:0.72rem;color:#7878a0;margin-bottom:0.35rem;line-height:1.5;padding-left:0;">A detected horizontal line (horizon, roofline, waterline) is tilted more than 1.5°. Even small tilts read as unsteady. Use your camera&#39;s electronic level, or straighten in post.</div>
     <div class="dbar-bg"><div class="dbar-fill" style="width:18%;background:#f59e0b;"></div></div>
   </div>
-  
-  
+
+
   <div style="margin-bottom:1rem;">
     <div style="display:flex;align-items:center;gap:0.6rem;margin-bottom:0.25rem;">
       <span style="font-size:0.85rem;font-weight:700;color:#f59e0b;min-width:38px;flex-shrink:0;">13.1%</span>
@@ -3408,8 +3443,8 @@ canvas { max-height: 300px; }
     <div style="font-size:0.72rem;color:#7878a0;margin-bottom:0.35rem;line-height:1.5;padding-left:0;">The center of the frame is no sharper than the surroundings — the subject blends into the background. Try a wider aperture (lower f-number) for shallower depth of field, or reframe to create tonal contrast between subject and background.</div>
     <div class="dbar-bg"><div class="dbar-fill" style="width:13%;background:#f59e0b;"></div></div>
   </div>
-  
-  
+
+
   <div style="margin-bottom:1rem;">
     <div style="display:flex;align-items:center;gap:0.6rem;margin-bottom:0.25rem;">
       <span style="font-size:0.85rem;font-weight:700;color:#34d399;min-width:38px;flex-shrink:0;">9.6%</span>
@@ -3419,8 +3454,8 @@ canvas { max-height: 300px; }
     <div style="font-size:0.72rem;color:#7878a0;margin-bottom:0.35rem;line-height:1.5;padding-left:0;">The main subject falls near the center of the frame rather than on a rule-of-thirds intersection. Try placing your subject at one of the four power points (roughly 1/3 from any edge) to add visual tension and lead the eye.</div>
     <div class="dbar-bg"><div class="dbar-fill" style="width:9%;background:#34d399;"></div></div>
   </div>
-  
-  
+
+
   <div style="margin-bottom:1rem;">
     <div style="display:flex;align-items:center;gap:0.6rem;margin-bottom:0.25rem;">
       <span style="font-size:0.85rem;font-weight:700;color:#34d399;min-width:38px;flex-shrink:0;">6.3%</span>
@@ -3430,8 +3465,8 @@ canvas { max-height: 300px; }
     <div style="font-size:0.72rem;color:#7878a0;margin-bottom:0.35rem;line-height:1.5;padding-left:0;">More than 3% of pixels are blown to pure white (brightness &gt; 250). Highlight clipping is irreversible — detail in those areas is lost. Dial in −1 to −2 stops of exposure compensation in bright scenes, or use spot metering on the highlights.</div>
     <div class="dbar-bg"><div class="dbar-fill" style="width:6%;background:#34d399;"></div></div>
   </div>
-  
-  
+
+
   <div style="margin-bottom:1rem;">
     <div style="display:flex;align-items:center;gap:0.6rem;margin-bottom:0.25rem;">
       <span style="font-size:0.85rem;font-weight:700;color:#34d399;min-width:38px;flex-shrink:0;">2.3%</span>
@@ -3441,7 +3476,7 @@ canvas { max-height: 300px; }
     <div style="font-size:0.72rem;color:#7878a0;margin-bottom:0.35rem;line-height:1.5;padding-left:0;">More than 5% of pixels are at pure black (brightness &lt; 5), losing shadow detail. This can be intentional for high-contrast moody shots, but if unintended, lift the shadows or use fill flash. Shooting RAW retains more recoverable shadow data.</div>
     <div class="dbar-bg"><div class="dbar-fill" style="width:2%;background:#34d399;"></div></div>
   </div>
-  
+
 </div>
 
 

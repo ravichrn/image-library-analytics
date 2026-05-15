@@ -37,8 +37,8 @@ from extractors import (
     unload_model,
     unload_pose_model,
 )
-from sources import load_sources
 from report import generate_html, generate_json
+from sources import load_sources
 
 console = Console()
 
@@ -49,8 +49,10 @@ BATCH_SIZE = 16
 def _download_renditions() -> bool:
     return os.environ.get("LIGHTROOM_DOWNLOAD_RENDITIONS", "false").lower() == "true"
 
+
 def _skip_musiq() -> bool:
     return os.environ.get("SKIP_MUSIQ", "false").lower() == "true"
+
 
 _lr_token: str = ""
 _lr_catalog_id: str = ""
@@ -80,22 +82,21 @@ def _prefetch_renditions(records: list[dict], max_workers: int = 16) -> None:
     """Download all missing renditions in parallel before ML passes begin."""
     if not _download_renditions():
         return
-    todo = [r for r in records
-            if not r.get("path") and r.get("source") in ("lightroom", "both")]
+    todo = [r for r in records if not r.get("path") and r.get("source") in ("lightroom", "both")]
     if not todo:
         return
 
     global _lr_token, _lr_catalog_id
     if not _lr_token:
         from sources.lightroom import get_token_and_catalog
+
         _lr_token, _lr_catalog_id = get_token_and_catalog()
 
     from sources.lightroom import download_rendition
-    console.print(f"[bold]Pre-fetching:[/bold] {len(todo)} renditions "
-                  f"([cyan]{max_workers}[/cyan] parallel workers)")
 
-    with _progress(SpinnerColumn(), BarColumn(), TextColumn("{task.description}"),
-                   MofNCompleteColumn(), TaskProgressColumn()) as p:
+    console.print(f"[bold]Pre-fetching:[/bold] {len(todo)} renditions ([cyan]{max_workers}[/cyan] parallel workers)")
+
+    with _progress(SpinnerColumn(), BarColumn(), TextColumn("{task.description}"), MofNCompleteColumn(), TaskProgressColumn()) as p:
         task = p.add_task("Downloading renditions...", total=len(todo))
 
         def _fetch(r: dict) -> None:
@@ -125,9 +126,11 @@ def _ensure_path(r: dict) -> Path | None:
     global _lr_token, _lr_catalog_id
     if not _lr_token:
         from sources.lightroom import get_token_and_catalog
+
         _lr_token, _lr_catalog_id = get_token_and_catalog()
 
     from sources.lightroom import download_rendition
+
     path = download_rendition(r["lightroom_id"], _lr_catalog_id, _lr_token, r["hash"])
     if path:
         r["path"] = str(path)
@@ -141,6 +144,7 @@ def _save_batch(batch: list[dict]) -> None:
 
 def _prune_stale(sources_str: str, raw: list[dict]) -> None:
     from cache import prune_cache
+
     source_names = [s.strip().lower() for s in sources_str.split(",")]
     keep: set[str] = set()
 
@@ -154,8 +158,10 @@ def _prune_stale(sources_str: str, raw: list[dict]) -> None:
         global _lr_token, _lr_catalog_id
         if not _lr_token:
             from sources.lightroom import get_token_and_catalog
+
             _lr_token, _lr_catalog_id = get_token_and_catalog()
         from sources.lightroom import fetch_current_hashes
+
         keep |= fetch_current_hashes(_lr_token, _lr_catalog_id)
 
     removed = prune_cache(keep)
@@ -223,18 +229,16 @@ def main() -> None:
         for r in records.values():
             if key in r:
                 continue
-            if r.get("path") or (
-                r.get("source") in ("lightroom", "both")
-                and _download_renditions()
-            ):
+            if r.get("path") or (r.get("source") in ("lightroom", "both") and _download_renditions()):
                 todo.append(r)
         return todo
 
     # ── 2. Pass 1 — cheap extractors (parallel, single image open per photo) ─
-    todo = [r for r in records.values()
-            if not CHEAP_KEYS.issubset(r.keys())
-            and (r.get("path") or (r.get("source") in ("lightroom", "both")
-                 and _download_renditions()))]
+    todo = [
+        r
+        for r in records.values()
+        if not CHEAP_KEYS.issubset(r.keys()) and (r.get("path") or (r.get("source") in ("lightroom", "both") and _download_renditions()))
+    ]
     if todo:
         console.print(f"[bold]Pass 1/8:[/bold] EXIF · Color · Composition ({len(todo)} photos)")
 
@@ -244,6 +248,7 @@ def main() -> None:
                 return
             try:
                 from PIL import Image
+
                 with Image.open(img_path) as img:
                     img.load()
                     r["exif"] = extract_exif(img)
@@ -253,12 +258,11 @@ def main() -> None:
             except Exception:
                 pass
 
-        with _progress(SpinnerColumn(), BarColumn(), TextColumn("{task.description}"),
-                       MofNCompleteColumn(), TaskProgressColumn()) as p:
+        with _progress(SpinnerColumn(), BarColumn(), TextColumn("{task.description}"), MofNCompleteColumn(), TaskProgressColumn()) as p:
             task = p.add_task("Extracting metadata...", total=len(todo))
             with ThreadPoolExecutor(max_workers=os.cpu_count() or 4) as pool:
                 futs = {pool.submit(_process_cheap, r): r for r in todo}
-                for fut in as_completed(futs):
+                for _fut in as_completed(futs):
                     p.advance(task)
 
         _save_batch(todo)
@@ -275,16 +279,13 @@ def main() -> None:
             scene_feats = encode_scene_labels(clip_model, clip_tokenizer, device)
             aesthetic_mlp = load_aesthetic_predictor(device)
 
-        with _progress(SpinnerColumn(), BarColumn(), TextColumn("{task.description}"),
-                       MofNCompleteColumn(), TaskProgressColumn()) as p:
+        with _progress(SpinnerColumn(), BarColumn(), TextColumn("{task.description}"), MofNCompleteColumn(), TaskProgressColumn()) as p:
             task = p.add_task("Classifying scenes...", total=len(todo))
             for start in range(0, len(todo), batch_size):
-                batch = todo[start:start + batch_size]
+                batch = todo[start : start + batch_size]
                 paths = [_ensure_path(r) for r in batch]
-                results = classify_scene_and_aesthetic_batch(
-                    paths, clip_model, clip_preprocess, device, scene_feats, aesthetic_mlp
-                )
-                for r, res in zip(batch, results):
+                results = classify_scene_and_aesthetic_batch(paths, clip_model, clip_preprocess, device, scene_feats, aesthetic_mlp)
+                for r, res in zip(batch, results, strict=False):
                     r["scene"] = res["scene"]
                     r["aesthetic_score"] = res["aesthetic_score"]
                 p.advance(task, len(batch))
@@ -299,9 +300,7 @@ def main() -> None:
     todo = needs_path("iq_score")
     # Also retry records where iq_score was cached as null (prior failed run)
     # Use r.get("path") check only — avoid calling _ensure_path() here as it has download side effects
-    null_iq = [r for r in records.values()
-               if "iq_score" in r and r["iq_score"] is None
-               and (r.get("path") or r.get("source") in ("lightroom", "both"))]
+    null_iq = [r for r in records.values() if "iq_score" in r and r["iq_score"] is None and (r.get("path") or r.get("source") in ("lightroom", "both"))]
     if _skip_musiq():
         console.print("[bold]Pass 3/8:[/bold] MUSIQ IQ score [dim]skipped (SKIP_MUSIQ=true)[/dim]\n")
         for r in todo:
@@ -318,14 +317,19 @@ def main() -> None:
             for r in todo:
                 r["iq_score"] = None
         else:
-            with _progress(SpinnerColumn(), BarColumn(), TextColumn("{task.description}"),
-                           MofNCompleteColumn(), TaskProgressColumn()) as p:
+            with _progress(
+                SpinnerColumn(),
+                BarColumn(),
+                TextColumn("{task.description}"),
+                MofNCompleteColumn(),
+                TaskProgressColumn(),
+            ) as p:
                 task = p.add_task("Scoring technical quality...", total=len(iq_todo))
                 for start in range(0, len(iq_todo), batch_size):
-                    batch = iq_todo[start:start + batch_size]
+                    batch = iq_todo[start : start + batch_size]
                     paths = [_ensure_path(r) for r in batch]
                     iq_scores = extract_iq_batch(paths, iq_metric)
-                    for r, iq in zip(batch, iq_scores):
+                    for r, iq in zip(batch, iq_scores, strict=False):
                         r["iq_score"] = iq
                     p.advance(task, len(batch))
             del iq_metric
@@ -341,14 +345,13 @@ def main() -> None:
         with console.status("Loading DINOv2 (base)..."):
             dino_model, dino_processor, device = load_dino_model()
 
-        with _progress(SpinnerColumn(), BarColumn(), TextColumn("{task.description}"),
-                       MofNCompleteColumn(), TaskProgressColumn()) as p:
+        with _progress(SpinnerColumn(), BarColumn(), TextColumn("{task.description}"), MofNCompleteColumn(), TaskProgressColumn()) as p:
             task = p.add_task("Extracting embeddings...", total=len(todo))
             for start in range(0, len(todo), batch_size):
-                batch = todo[start:start + batch_size]
+                batch = todo[start : start + batch_size]
                 paths = [_ensure_path(r) for r in batch]
                 embeddings = extract_embedding_batch(paths, dino_model, dino_processor, device)
-                for r, emb in zip(batch, embeddings):
+                for r, emb in zip(batch, embeddings, strict=False):
                     r["dinov2"] = emb
                 p.advance(task, len(batch))
 
@@ -364,14 +367,13 @@ def main() -> None:
         with console.status("Loading Depth Anything v2 (Small)..."):
             depth_pipe = load_depth_model(_device())
 
-        with _progress(SpinnerColumn(), BarColumn(), TextColumn("{task.description}"),
-                       MofNCompleteColumn(), TaskProgressColumn()) as p:
+        with _progress(SpinnerColumn(), BarColumn(), TextColumn("{task.description}"), MofNCompleteColumn(), TaskProgressColumn()) as p:
             task = p.add_task("Estimating depth...", total=len(todo))
             for start in range(0, len(todo), batch_size):
-                batch = todo[start:start + batch_size]
+                batch = todo[start : start + batch_size]
                 paths = [_ensure_path(r) for r in batch]
                 depth_results = extract_depth_batch(paths, depth_pipe, batch_size=batch_size)
-                for r, depth in zip(batch, depth_results):
+                for r, depth in zip(batch, depth_results, strict=False):
                     r["depth"] = depth
                     if not keep_renditions and r.get("source") in ("lightroom", "both"):
                         try:
@@ -397,14 +399,13 @@ def main() -> None:
 
         paths = [_ensure_path(r) for r in todo]
 
-        with _progress(SpinnerColumn(), BarColumn(), TextColumn("{task.description}"),
-                       MofNCompleteColumn(), TaskProgressColumn()) as p:
+        with _progress(SpinnerColumn(), BarColumn(), TextColumn("{task.description}"), MofNCompleteColumn(), TaskProgressColumn()) as p:
             task = p.add_task("Captioning photos...", total=len(todo))
             for start in range(0, len(todo), batch_size):
-                batch = todo[start:start + batch_size]
-                batch_paths = paths[start:start + batch_size]
+                batch = todo[start : start + batch_size]
+                batch_paths = paths[start : start + batch_size]
                 caption_results = extract_caption_batch(batch_paths, caption_model, caption_tokenizer, batch_size)
-                for r, cap in zip(batch, caption_results):
+                for r, cap in zip(batch, caption_results, strict=False):
                     r["caption"] = cap
                     if not keep_renditions and r.get("source") in ("lightroom", "both"):
                         try:
@@ -428,14 +429,13 @@ def main() -> None:
         with console.status("Loading RMBG-1.4 saliency (briaai/RMBG-1.4)..."):
             saliency_pipe = load_saliency_model(_device())
 
-        with _progress(SpinnerColumn(), BarColumn(), TextColumn("{task.description}"),
-                       MofNCompleteColumn(), TaskProgressColumn()) as p:
+        with _progress(SpinnerColumn(), BarColumn(), TextColumn("{task.description}"), MofNCompleteColumn(), TaskProgressColumn()) as p:
             task = p.add_task("Detecting subjects...", total=len(todo))
             for start in range(0, len(todo), batch_size):
-                batch = todo[start:start + batch_size]
+                batch = todo[start : start + batch_size]
                 paths = [_ensure_path(r) for r in batch]
                 sal_results = extract_saliency_batch(paths, saliency_pipe, batch_size)
-                for r, sal in zip(batch, sal_results):
+                for r, sal in zip(batch, sal_results, strict=False):
                     r["saliency"] = sal
                 p.advance(task, len(batch))
 
@@ -446,7 +446,8 @@ def main() -> None:
 
     # ── 9. Pass 8 — YOLOv8-Pose: object detection + pose (portrait photos) ───
     todo = [
-        r for r in records.values()
+        r
+        for r in records.values()
         if "pose_data" not in r
         and r.get("caption", {}).get("has_person", "").startswith("yes")
         and (r.get("path") or (r.get("source") in ("lightroom", "both") and _download_renditions()))
@@ -457,14 +458,13 @@ def main() -> None:
         with console.status("Loading YOLOv8n-pose..."):
             pose_model = load_pose_model(device)
 
-        with _progress(SpinnerColumn(), BarColumn(), TextColumn("{task.description}"),
-                       MofNCompleteColumn(), TaskProgressColumn()) as p:
+        with _progress(SpinnerColumn(), BarColumn(), TextColumn("{task.description}"), MofNCompleteColumn(), TaskProgressColumn()) as p:
             task = p.add_task("Detecting objects + pose...", total=len(todo))
             for start in range(0, len(todo), batch_size):
-                batch = todo[start:start + batch_size]
+                batch = todo[start : start + batch_size]
                 paths = [_ensure_path(r) for r in batch]
                 pose_results = extract_pose_batch(paths, pose_model, device)
-                for r, pr in zip(batch, pose_results):
+                for r, pr in zip(batch, pose_results, strict=False):
                     r["pose_data"] = pr
                 p.advance(task, len(batch))
 

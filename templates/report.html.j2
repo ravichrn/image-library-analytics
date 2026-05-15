@@ -276,6 +276,41 @@ canvas { max-height: 300px; }
 .ptn-pct { font-size: var(--fs-sub); color: #7878a0; min-width: 38px; text-align: right; }
 .ptn-desc { font-size: var(--fs-body); color: #8080aa; line-height: 1.55; margin-top: 0.3rem; }
 
+/* ── Mobile overrides (≤ 600px) ─────────────────────────────────── */
+@media (max-width: 600px) {
+  body { font-size: 14px; }
+  .page { padding: 0 0.85rem 4rem; }
+  .card { padding: 1rem 1rem; }
+  .hero { padding: 1.8rem 0 1.4rem; margin-bottom: 1.8rem; }
+  .hero-digest { grid-template-columns: 1fr 1fr; }
+  .hero-digest-item { border-right: none; border-bottom: 1px solid #17172a; }
+  .hero-digest-item:nth-child(odd) { border-right: 1px solid #17172a; }
+  .hero-digest-item:last-child, .hero-digest-item:nth-last-child(-n+2):nth-child(odd):last-child { border-bottom: none; }
+
+  /* Strip: wrap so each item gets full width on very narrow screens */
+  .strip { flex-wrap: wrap; border-radius: 8px; }
+  .strip-item { flex: 1 1 45%; border-right: none; border-bottom: 1px solid #1c1c2e; }
+  .strip-item:last-child { border-bottom: none; }
+
+  /* Aesthetic score by scene — label was 140px, shrink it */
+  .aes-scene-name { min-width: 80px; font-size: 0.72rem; }
+  .aes-scene-count { min-width: 40px; }
+
+  /* Flag rows — remove deep left indent on description */
+  .flag-desc { padding-left: 0; }
+
+  /* Tables — make them scrollable rather than overflowing */
+  table { display: block; overflow-x: auto; -webkit-overflow-scrolling: touch; width: max-content; max-width: 100%; }
+  th, td { padding: 0.3rem 0.55rem; white-space: nowrap; }
+
+  /* Scene tiles and color cards — allow smaller min-width */
+  .scene-tiles { grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); }
+  .color-scene-grid { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); }
+
+  /* Pattern grid already stacks via the .row media query, but ensure it here */
+  .pattern-grid { grid-template-columns: 1fr; }
+}
+
 /* ── Back to top ────────────────────────────────────────────────── */
 #back-to-top {
   position: fixed;

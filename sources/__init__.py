@@ -23,9 +23,11 @@ def load_sources(sample: int | None = None) -> list[dict]:
     for name in source_names:
         if name == "local":
             from sources.local import load_local
+
             records = load_local(sample=sample)
         elif name == "lightroom":
             from sources.lightroom import load_lightroom
+
             records = load_lightroom(sample=sample)
         else:
             raise ValueError(f"Unknown source: {name!r}. Valid values: local, lightroom")
@@ -75,9 +77,7 @@ def load_sources(sample: int | None = None) -> list[dict]:
 def _find_by_stem(by_hash: dict, stem: str, incoming_source: str | None) -> str | None:
     """Return the hash of an existing record whose filename stem matches."""
     for h, rec in by_hash.items():
-        existing_stem = (
-            Path(rec.get("path", "")).stem if rec.get("path") else None
-        ) or rec.get("lightroom_filename_stem", "")
+        existing_stem = (Path(rec.get("path", "")).stem if rec.get("path") else None) or rec.get("lightroom_filename_stem", "")
         if existing_stem and existing_stem == stem:
             return h
     return None
