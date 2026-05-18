@@ -1,6 +1,6 @@
 # Image Library Analytics
 
-Generates an interactive HTML dashboard with deep metrics across composition, color, aesthetics, editing style, and shooting patterns. All ML inference runs on-device. Supports local folders and [Adobe Lightroom](https://lightroom.adobe.com) cloud.
+Turns your photo library into a searchable analytics report with deep metrics across composition, color, aesthetics, editing style, and shooting patterns. All ML inference runs on-device. Supports local folders and [Adobe Lightroom](https://lightroom.adobe.com) cloud.
 
 **[Live report →](https://ravichrn.github.io/image-library-analytics/report.html)**
 
@@ -129,7 +129,7 @@ SKIP_IQ=true
 
 The local rule engine (`coach_client.py`) flags compositional and technical issues without any API calls. Rules fire on cached metrics only.
 
-**Configurable thresholds** — copy `coach_rules.yaml` into the project root and edit:
+**Configurable thresholds** — edit `coach_rules.yaml` in the project root:
 
 ```yaml
 # coach_rules.yaml
@@ -170,12 +170,7 @@ Changes take effect on the next run — no code edits needed.
 | `cache/renditions/` | Lightroom renditions (2048px) |
 | `cache/.sync_state.json` | Last Lightroom sync timestamp — auto-managed |
 
-**Adobe Lightroom renditions** — controlled via `.env`:
-
-```ini
-LIGHTROOM_DOWNLOAD_RENDITIONS=false  # download 2048px renditions for ML
-LIGHTROOM_KEEP_RENDITIONS=true       # keep on disk for faster re-runs
-```
+**Adobe Lightroom renditions** — set `LIGHTROOM_DOWNLOAD_RENDITIONS=true` in `.env` to download 2048px JPEG renditions for ML passes. Defaults to `false` (use local copies only).
 
 ---
 

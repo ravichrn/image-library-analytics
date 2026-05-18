@@ -2,7 +2,19 @@ import os
 from pathlib import Path
 
 # ML result keys that are worth carrying over from a local record into a Lightroom record
-_ML_KEYS = {"exif", "color", "composition", "scene", "aesthetic_score", "dinov2", "caption"}
+_ML_KEYS = {
+    "exif",
+    "color",
+    "composition",
+    "scene",
+    "aesthetic_score",
+    "dinov2",
+    "caption",
+    "iq_score",
+    "saliency",
+    "ela",
+    "pose_data",
+}
 
 
 def load_sources(
@@ -21,6 +33,7 @@ def load_sources(
     """
     raw_sources = os.environ.get("SOURCES", "local")
     source_names = [s.strip().lower() for s in raw_sources.split(",") if s.strip()]
+    _strict_dedup = os.environ.get("STRICT_DEDUP", "false").lower() == "true"
 
     by_hash: dict[str, dict] = {}
 
@@ -52,7 +65,7 @@ def load_sources(
             lr_stem = r.get("lightroom_filename_stem", "")
             match_stem = stem or lr_stem
 
-            if match_stem:
+            if match_stem and not _strict_dedup:
                 matched_hash = _find_by_stem(by_hash, match_stem, r.get("source"))
                 if matched_hash:
                     existing = by_hash[matched_hash]

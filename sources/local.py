@@ -3,7 +3,7 @@ import os
 import random
 from pathlib import Path
 
-SUPPORTED_EXTS = {".jpg", ".jpeg", ".png", ".tiff", ".tif", ".heic", ".webp"}
+SUPPORTED_EXTS = {".jpg", ".jpeg", ".png", ".tiff", ".tif", ".webp"}  # .heic requires pillow-heif
 
 
 def _file_hash(path: Path) -> str:

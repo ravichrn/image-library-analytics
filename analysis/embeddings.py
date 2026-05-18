@@ -14,7 +14,7 @@ def analyze(records: list[dict]) -> dict:
     # ── UMAP + KMeans ────────────────────────────────────────────────────────
     UMAP_MAX_POINTS = 800
     valid = [(i, r) for i, r in enumerate(records) if r.get("dinov2") is not None]
-    clusters_out = {"n_clusters": 0, "labels": [], "centers": []}
+    clusters_out = {"n_clusters": 0, "labels": []}
     umap_out = {"points": [], "total": len(valid), "sampled": len(valid)}
 
     if len(valid) >= 2:
@@ -51,6 +51,7 @@ def analyze(records: list[dict]) -> dict:
                     "x": round(float(x), 4),
                     "y": round(float(y), 4),
                     "cluster": lbl,
+                    "hash": rec.get("hash", ""),
                     "path": Path(rec.get("path", "") or "").name,
                     "scene_type": rec.get("scene", {}).get("scene_type", "unknown"),
                     "aesthetic_score": rec.get("aesthetic_score"),
@@ -61,7 +62,6 @@ def analyze(records: list[dict]) -> dict:
         clusters_out = {
             "n_clusters": n_clusters,
             "labels": labels,
-            "centers": [[round(float(v), 4) for v in c] for c in coords[[{lbl: j for j, lbl in enumerate(labels)}[i] for i in range(n_clusters)]]],
         }
         umap_out = {"points": points, "total": len(valid), "sampled": len(umap_valid)}
 
@@ -101,7 +101,7 @@ def analyze(records: list[dict]) -> dict:
             "total_bursts": len(groups_d),
             "photos_in_bursts": sum(g["size"] for g in groups_d),
             "largest_burst": groups_d[0]["size"] if groups_d else 0,
-            "groups": [{k: v for k, v in g.items() if k != "redundant_paths"} for g in groups_d[:10]],
+            "groups": [{k: v for k, v in g.items() if k not in ("redundant_paths", "best_path")} for g in groups_d[:10]],
         }
 
         total_w_emb = len(dino_records)

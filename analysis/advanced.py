@@ -69,12 +69,12 @@ def analyze(records: list[dict]) -> dict:
         "total_analyzed": sum(1 for v in sal_areas if v is not None),
     }
 
-    # ── MUSIQ IQ score stats ─────────────────────────────────────────────────
+    # ── CLIP-IQA+ IQ score stats ─────────────────────────────────────────────
     iq_scores = [r.get("iq_score") for r in records if r.get("iq_score") is not None]
     if iq_scores:
         buckets_iq = [0] * 10
         for s in iq_scores:
-            buckets_iq[min(int(s * 10), 9)] += 1
+            buckets_iq[min(9, int(s / 10))] += 1
         iq_stats = {
             "avg": _mean(iq_scores),
             "std": float(np.std(iq_scores)),
@@ -88,7 +88,7 @@ def analyze(records: list[dict]) -> dict:
     else:
         iq_stats = {"avg": None, "std": None, "distribution": [], "high_aesthetic_low_iq_count": 0, "unavailable": True}
 
-    # ── Object frequency (from YOLOv8-Pose) ─────────────────────────────────
+    # ── Object frequency (from YOLO11n-pose) ─────────────────────────────────
     obj_counter: Counter = Counter()
     for r in records:
         for obj in (r.get("pose_data") or {}).get("detected_objects", []):

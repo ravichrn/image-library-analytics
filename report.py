@@ -8,11 +8,6 @@ from markupsafe import Markup
 OUTPUT_DIR = Path("docs")
 
 
-def _mean(vals):
-    vals = [v for v in vals if v is not None]
-    return sum(vals) / len(vals) if vals else None
-
-
 def _best_conditions(photos: list) -> list[dict]:
     """Rank shooting conditions by avg aesthetic score (min 10 samples each)."""
     buckets: dict[str, list] = {}
@@ -196,7 +191,7 @@ def _compute_key_insights(agg: dict, photos: list, prime_pct: int | None) -> lis
 
     # Small subjects on average
     saliency_stats = agg.get("saliency_stats", {})
-    avg_subject_area = saliency_stats.get("avg_subject_area_pct")
+    avg_subject_area = saliency_stats.get("avg_subject_area")
     if avg_subject_area is not None and avg_subject_area < 0.06:
         insights.append(
             {
@@ -254,7 +249,7 @@ def generate_html(data: dict, path: Path = OUTPUT_DIR / "report.html") -> None:
             }
     umap_points = []
     for pt in agg.get("umap", {}).get("points", []):
-        h = pt.get("path", "").removesuffix(".jpg")
+        h = pt.get("hash", "")
         umap_points.append({**pt, "exif": _hash_exif.get(h, {})})
 
     # ── Derived stats for hero tiles ──────────────────────────────────────

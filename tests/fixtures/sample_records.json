@@ -7,9 +7,9 @@
     "iq_score": 60.0,
     "scene": {"scene_type": "people and portraits"},
     "exif": {
-      "focal_length": 85, "focal_category": "telephoto",
-      "aperture": 1.8, "dof_category": "shallow",
-      "iso": 400, "light_category": "normal_light",
+      "focal_length_mm": 85, "focal_category": "telephoto",
+      "aperture_f": 1.8, "dof_category": "shallow",
+      "iso": 400, "light_category": "bright",
       "hour": 14, "year_month": "2024-03",
       "camera_make": "Sony", "camera_model": "A7IV",
       "lens_model": "85mm"
@@ -35,9 +35,9 @@
     "iq_score": 72.0,
     "scene": {"scene_type": "nature"},
     "exif": {
-      "focal_length": 24, "focal_category": "wide",
-      "aperture": 8.0, "dof_category": "deep",
-      "iso": 100, "light_category": "normal_light",
+      "focal_length_mm": 24, "focal_category": "wide",
+      "aperture_f": 8.0, "dof_category": "deep",
+      "iso": 100, "light_category": "bright",
       "hour": 7, "year_month": "2024-06",
       "camera_make": "Sony", "camera_model": "A7IV",
       "lens_model": "24-70mm"
@@ -61,8 +61,8 @@
     "iq_score": 35.0,
     "scene": {"scene_type": "night scene"},
     "exif": {
-      "focal_length": 35, "focal_category": "normal",
-      "aperture": 1.4, "dof_category": "shallow",
+      "focal_length_mm": 35, "focal_category": "normal",
+      "aperture_f": 1.4, "dof_category": "shallow",
       "iso": 3200, "light_category": "low_light",
       "hour": 22, "year_month": "2024-08",
       "camera_make": "Sony", "camera_model": "A7IV",
@@ -87,9 +87,9 @@
     "iq_score": 30.0,
     "scene": {"scene_type": "urban street"},
     "exif": {
-      "focal_length": 50, "focal_category": "normal",
-      "aperture": 4.0, "dof_category": "mid",
-      "iso": 1600, "light_category": "normal_light",
+      "focal_length_mm": 50, "focal_category": "normal",
+      "aperture_f": 4.0, "dof_category": "mid",
+      "iso": 1600, "light_category": "indoor",
       "hour": 12, "year_month": "2024-09",
       "camera_make": "Sony", "camera_model": "A7IV",
       "lens_model": "50mm"
@@ -113,9 +113,9 @@
     "iq_score": 30.0,
     "scene": {"scene_type": "people and portraits"},
     "exif": {
-      "focal_length": 85, "focal_category": "telephoto",
-      "aperture": 1.4, "dof_category": "shallow",
-      "iso": 800, "light_category": "normal_light",
+      "focal_length_mm": 85, "focal_category": "telephoto",
+      "aperture_f": 1.4, "dof_category": "shallow",
+      "iso": 800, "light_category": "indoor",
       "hour": 17, "year_month": "2024-10",
       "camera_make": "Sony", "camera_model": "A7IV",
       "lens_model": "85mm"

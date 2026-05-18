@@ -899,18 +899,14 @@ source = { virtual = "." }
 dependencies = [
     { name = "aesthetic-predictor-v2-5" },
     { name = "cryptography" },
-    { name = "einops" },
     { name = "jinja2" },
-    { name = "kornia" },
     { name = "opencv-python" },
-    { name = "pandas" },
     { name = "piexif" },
     { name = "pillow" },
     { name = "psutil" },
     { name = "pyiqa" },
     { name = "python-dotenv" },
     { name = "pyyaml" },
-    { name = "requests" },
     { name = "rich" },
     { name = "scikit-learn" },
     { name = "timm" },
@@ -931,18 +927,14 @@ dev = [
 requires-dist = [
     { name = "aesthetic-predictor-v2-5", specifier = ">=0.1.0" },
     { name = "cryptography", specifier = ">=48.0.0" },
-    { name = "einops", specifier = ">=0.8.2" },
     { name = "jinja2", specifier = ">=3.1.6" },
-    { name = "kornia", specifier = ">=0.8.2" },
     { name = "opencv-python", specifier = ">=4.13.0.92" },
-    { name = "pandas", specifier = ">=3.0.2" },
     { name = "piexif", specifier = ">=1.1.3" },
     { name = "pillow", specifier = ">=12.2.0" },
     { name = "psutil", specifier = ">=6.0.0" },
     { name = "pyiqa", specifier = ">=0.1.9" },
     { name = "python-dotenv", specifier = ">=1.2.2" },
     { name = "pyyaml", specifier = ">=6.0.2" },
-    { name = "requests", specifier = ">=2.33.1" },
     { name = "rich", specifier = ">=15.0.0" },
     { name = "scikit-learn", specifier = ">=1.8.0" },
     { name = "timm", specifier = ">=1.0.27" },
@@ -1067,48 +1059,6 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/07/18/43a5f24608d8c313dd189cf838c8e68d75b115567c6279de7796197cfb6a/kiwisolver-1.5.0-cp314-cp314t-musllinux_1_2_x86_64.whl", hash = "sha256:e7a116ae737f0000343218c4edf5bd45893bfeaff0993c0b215d7124c9f77646", size = 2394403, upload-time = "2026-03-09T13:15:31.517Z" },
     { url = "https://files.pythonhosted.org/packages/3b/b5/98222136d839b8afabcaa943b09bd05888c2d36355b7e448550211d1fca4/kiwisolver-1.5.0-cp314-cp314t-win_amd64.whl", hash = "sha256:1dd9b0b119a350976a6d781e7278ec7aca0b201e1a9e2d23d9804afecb6ca681", size = 79687, upload-time = "2026-03-09T13:15:33.204Z" },
     { url = "https://files.pythonhosted.org/packages/99/a2/ca7dc962848040befed12732dff6acae7fb3c4f6fc4272b3f6c9a30b8713/kiwisolver-1.5.0-cp314-cp314t-win_arm64.whl", hash = "sha256:58f812017cd2985c21fbffb4864d59174d4903dd66fa23815e74bbc7a0e2dd57", size = 70032, upload-time = "2026-03-09T13:15:34.411Z" },
-]
-
-[[package]]
-name = "kornia"
-version = "0.8.2"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "kornia-rs" },
-    { name = "packaging" },
-    { name = "torch" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/c6/e6/45e757d4924176e4d4e111e10effaab7db382313243e0188a06805010073/kornia-0.8.2.tar.gz", hash = "sha256:5411b2ce0dd909d1608016308cd68faeef90f88c47f47e8ecd40553fd4d8b937", size = 667151, upload-time = "2025-11-08T12:10:03.042Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/79/d4/e9bd12b7b4cbd23b4dfb47e744ee1fa54d6d9c3c9bc406ec86c1be8c8307/kornia-0.8.2-py2.py3-none-any.whl", hash = "sha256:32dfe77c9c74a87a2de49395aa3c2c376a1b63c27611a298b394d02d13905819", size = 1095012, upload-time = "2025-11-08T12:10:01.226Z" },
-]
-
-[[package]]
-name = "kornia-rs"
-version = "0.1.11"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/9e/69/3ccd0b6f5309ee114875d9e6c056b06a2770dec8b16cb21baa7e02aded68/kornia_rs-0.1.11.tar.gz", hash = "sha256:2304c3afdcaff572a4cdf67153ccb34da4fda8a19233335398b5840405cc5587", size = 2023528, upload-time = "2026-05-04T05:19:05.698Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/49/eb/8851bdeb6fe2da8daa8151d447daabcb1146c77fda3f4fdc5357150a43a6/kornia_rs-0.1.11-cp313-cp313-macosx_10_12_x86_64.whl", hash = "sha256:78f744d431f45cfcd19931e0125299898326ddfd8708db9391714696f334bc31", size = 3316553, upload-time = "2026-05-04T05:20:05.922Z" },
-    { url = "https://files.pythonhosted.org/packages/6f/8c/d4a08f4f03b399f6ffd0aefd88e6bfa3242866e26149adbb94b06f0fbd98/kornia_rs-0.1.11-cp313-cp313-macosx_11_0_arm64.whl", hash = "sha256:45ed344d58307ddf6649b046b13ce54d263e65264979750cfb5c82aeb1f3409f", size = 3136091, upload-time = "2026-05-04T05:19:50.762Z" },
-    { url = "https://files.pythonhosted.org/packages/70/ec/099c0c52fdaa84c89aa69a4d1442a782ed9bdde2b55b6e638cca1134db17/kornia_rs-0.1.11-cp313-cp313-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:ada019a9a95eee20b7b654f16d4179190aa885da4c7b154ffc8f7f9b98281285", size = 3172301, upload-time = "2026-05-04T05:19:11.341Z" },
-    { url = "https://files.pythonhosted.org/packages/fe/af/a64fc12deca5a9884ef030cb93404467927963fdc571be63c6737faa9b98/kornia_rs-0.1.11-cp313-cp313-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:b3f11516950118da68a63f1acc3f67cd83a1ed112238ec53e845684732196035", size = 3454350, upload-time = "2026-05-04T05:19:31.857Z" },
-    { url = "https://files.pythonhosted.org/packages/a7/a0/cdd0d5ee7d767888a6b4426d8ad93567e36946900d722d5a3796c1ef9aea/kornia_rs-0.1.11-cp313-cp313-win_amd64.whl", hash = "sha256:6778663e53e15b371e56bd4078f139ca878a6f8b588ccfe26b02374454fcae64", size = 3160940, upload-time = "2026-05-04T05:20:21.947Z" },
-    { url = "https://files.pythonhosted.org/packages/4c/d4/be04809bb95afb820e9c87397f8254c13443f42a4776a2d73c4ec75c138e/kornia_rs-0.1.11-cp313-cp313t-macosx_10_12_x86_64.whl", hash = "sha256:c2ff2a82c45027b3b8d414b04854064ac062a102718a0acd4e6bc99779289099", size = 3307983, upload-time = "2026-05-04T05:20:07.811Z" },
-    { url = "https://files.pythonhosted.org/packages/0e/03/3314be9e9dc0d34d0b47e8ed937aaf4faac83ec1e98fad0b3130a5652220/kornia_rs-0.1.11-cp313-cp313t-macosx_11_0_arm64.whl", hash = "sha256:8a06308a2f572cba99c79056b18ed254827c217668bb881a62c0fdc5127acb0a", size = 3128407, upload-time = "2026-05-04T05:19:52.335Z" },
-    { url = "https://files.pythonhosted.org/packages/e8/02/3f31ce81680ed0ff1412a16556e8becc9aed1ef6356958b4654d0eb4e128/kornia_rs-0.1.11-cp313-cp313t-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:d1e7f8bbcb71ad30ce2f110b804ecab37b89b4195474e760dc77dce19488cd2a", size = 3168240, upload-time = "2026-05-04T05:19:14.141Z" },
-    { url = "https://files.pythonhosted.org/packages/54/ba/3d20b20d4a1030de4b7d11093952251ae603d042beb3d915fd057bbc1ef0/kornia_rs-0.1.11-cp313-cp313t-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:975105b961b957b738526bc3a0ad8260013eebb5eb6f9e94428fa6eade6ea98e", size = 3446777, upload-time = "2026-05-04T05:19:34.325Z" },
-    { url = "https://files.pythonhosted.org/packages/47/c3/80ee194c46041949763f8fec67eaa98c1532a0afae57174ddd30162a735a/kornia_rs-0.1.11-cp313-cp313t-win_amd64.whl", hash = "sha256:6f416b0cea9bc6f39b8faaa257c96ea8daa77afe5c0c83a89afc6ad69788ad12", size = 3155776, upload-time = "2026-05-04T05:20:23.72Z" },
-    { url = "https://files.pythonhosted.org/packages/fd/45/983423dfcdb2671dcb848d7fae664d1fb3512b442e8cf431348f84c74255/kornia_rs-0.1.11-cp314-cp314-macosx_10_12_x86_64.whl", hash = "sha256:b499983c0c6461cc7c4b6c4314028fd30bbce4fcf9c386787637912b936761e1", size = 3317001, upload-time = "2026-05-04T05:20:09.86Z" },
-    { url = "https://files.pythonhosted.org/packages/1f/5e/6eb0ba484edac0ddab5b67ad9c8175f44c38aaefe835e33109e489585724/kornia_rs-0.1.11-cp314-cp314-macosx_11_0_arm64.whl", hash = "sha256:f7313d1218b8d767a093096a21264e61e5321b59627afbace4e5082fb7862acb", size = 3136265, upload-time = "2026-05-04T05:19:53.955Z" },
-    { url = "https://files.pythonhosted.org/packages/db/bc/b95d9fbfa11724480400eeab6215c0c84468ee39aaa72972521e5759046c/kornia_rs-0.1.11-cp314-cp314-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:9837927766aff4a65e9fdb1e24cf7b01557610cbc8b0e8256aef6cc34c8ab20e", size = 3172518, upload-time = "2026-05-04T05:19:16.169Z" },
-    { url = "https://files.pythonhosted.org/packages/36/4c/fd4d29ea38392dbb415bc314080e2facdd0879bde9a30cd9773ad48d386e/kornia_rs-0.1.11-cp314-cp314-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:897b5e3d4ae9014ff7b56dd002db537ce695110063a02c2f1d983165a7d40fd0", size = 3454264, upload-time = "2026-05-04T05:19:37.014Z" },
-    { url = "https://files.pythonhosted.org/packages/0a/69/2fb7d5c2b7ddcdcdc3dd21df831977b8c18779854d1b1719a1c7325c6dca/kornia_rs-0.1.11-cp314-cp314-win_amd64.whl", hash = "sha256:ce1eea46afa863ac8d145e8bb5f82bb08daee4f3028864fcb5f410adcc14a835", size = 3161240, upload-time = "2026-05-04T05:20:25.24Z" },
-    { url = "https://files.pythonhosted.org/packages/f3/49/26c9265970cd17e771e526943afc7eebb1f845c662e06b184968cc73c5da/kornia_rs-0.1.11-cp314-cp314t-macosx_10_12_x86_64.whl", hash = "sha256:38921473f4b7c2ea2f63767a414186bd83599d9cdf337e75c3a7170849d34095", size = 3308592, upload-time = "2026-05-04T05:20:11.671Z" },
-    { url = "https://files.pythonhosted.org/packages/bd/06/9df7cb06c1ee261e2446d8532b852715994c790d1d04068df980bde2d83a/kornia_rs-0.1.11-cp314-cp314t-macosx_11_0_arm64.whl", hash = "sha256:9b4970ec1bb456e7220cee319e3d2e4b3f007fa8bdfae4c6e1345d09f7918d66", size = 3129188, upload-time = "2026-05-04T05:19:55.663Z" },
-    { url = "https://files.pythonhosted.org/packages/b0/9a/a44c9b6cdbe4f3b97c17f90e0908570b0d2ab99be1bfc19a40846a8b1b2d/kornia_rs-0.1.11-cp314-cp314t-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:eef325b695ee192aae831520a8d81894e671f90bceb7e7950bce1c22863a877a", size = 3169452, upload-time = "2026-05-04T05:19:18.067Z" },
-    { url = "https://files.pythonhosted.org/packages/95/be/7dbe98a13084ff9f17dc531a774761dc393cc85bc1434a24cad379180e27/kornia_rs-0.1.11-cp314-cp314t-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:93b29e904046372b67af88c784628ec7ac94e9907788a99244c7656f75a1faf3", size = 3447334, upload-time = "2026-05-04T05:19:39.202Z" },
-    { url = "https://files.pythonhosted.org/packages/9d/4f/d36699535969e08705dea4e52ab594f5c2da134136992d22edb0baa6d027/kornia_rs-0.1.11-cp314-cp314t-win_amd64.whl", hash = "sha256:710095ee2b3bb29dd2831bf9bdf52e7b876f549a56729533d042862763bae59b", size = 3155589, upload-time = "2026-05-04T05:20:26.962Z" },
 ]
 
 [[package]]

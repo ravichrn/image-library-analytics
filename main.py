@@ -276,6 +276,14 @@ def main() -> None:
         sys.exit(1)
     console.print(f"Found [green]{len(raw)}[/green] photo(s).\n")
 
+    if "lightroom" in sources and not _download_renditions():
+        _no_path_count = sum(1 for r in raw if not r.get("path"))
+        if _no_path_count > len(raw) // 2:
+            console.print(
+                f"  [bold yellow]⚠ {_no_path_count}/{len(raw)} Lightroom photos have no local file.[/bold yellow]\n"
+                "  [dim]Set LIGHTROOM_DOWNLOAD_RENDITIONS=true in .env to download renditions for ML passes.[/dim]\n"
+            )
+
     if args.prune:
         _prune_stale(sources, raw, dry_run=args.dry_run)
 
@@ -300,12 +308,14 @@ def main() -> None:
 
     # ── --clear-key: wipe one cache key from all records, then exit ───────────
     if args.clear_key:
+        from cache import load_all_cached
+
         key = args.clear_key
         cleared = 0
-        for h, r in records.items():
+        for r in load_all_cached():
             if key in r:
                 del r[key]
-                save_cache(h, r)
+                save_cache(r["hash"], r)
                 cleared += 1
         console.print(f"Cleared [yellow]{key}[/yellow] from [green]{cleared}[/green] cache entr{'y' if cleared == 1 else 'ies'}.\n")
         return
@@ -346,7 +356,7 @@ def main() -> None:
                 todo.append(r)
         return todo
 
-    # ── 2. Pass 1 — cheap extractors (parallel, single image open per photo) ─
+    # ── Pass 1 — cheap extractors (parallel, single image open per photo) ─────
     todo = [
         r
         for r in records.values()
@@ -357,9 +367,14 @@ def main() -> None:
     elif todo:
         console.print(f"[bold]Pass 1/6:[/bold] EXIF · Color · Composition ({len(todo)} photos)")
 
+        _failures: list[int] = []  # thread-safe via GIL; append is atomic
+        _no_path: list[int] = []
+        _succeeded: set[str] = set()  # hashes that completed extraction this run
+
         def _process_cheap(r: dict) -> None:
             img_path = _ensure_path(r)
             if not img_path:
+                _no_path.append(1)
                 return
             try:
                 from PIL import Image
@@ -375,8 +390,9 @@ def main() -> None:
                     for field, val in r["lightroom_exif"].items():
                         if val is not None:
                             r["exif"][field] = val
+                _succeeded.add(r["hash"])
             except Exception:
-                pass
+                _failures.append(1)
 
         with _progress(SpinnerColumn(), BarColumn(), TextColumn("{task.description}"), MofNCompleteColumn(), TaskProgressColumn()) as p:
             task = p.add_task("Extracting metadata...", total=len(todo))
@@ -384,12 +400,16 @@ def main() -> None:
                 futs = {pool.submit(_process_cheap, r): r for r in todo}
                 for fut in as_completed(futs):
                     r = futs[fut]
-                    if CHEAP_KEYS.issubset(r.keys()):
+                    if r["hash"] in _succeeded:
                         save_cache(r["hash"], r)
                     p.advance(task)
+        if _no_path:
+            console.print(f"  [dim]{len(_no_path)} photo(s) skipped — no local file (set LIGHTROOM_DOWNLOAD_RENDITIONS=true to enable)[/dim]")
+        if _failures:
+            console.print(f"  [yellow]⚠ {len(_failures)} image(s) failed extraction in Pass 1[/yellow]")
         console.print()
 
-    # ── 3. Pass 2 — SigLIP 2: scene classification + zero-shot VQA ─────────────
+    # ── Pass 2 — SigLIP 2: scene classification + zero-shot VQA ─────────────────
     # Image features computed once per batch, reused for both scene and VQA.
     # SO400M is large — cap batch at 4 to avoid MPS memory pressure.
     siglip_batch = _auto_batch(4)
@@ -405,6 +425,7 @@ def main() -> None:
             scene_feats = encode_scene_labels_siglip(siglip_model, siglip_processor, device)
             vqa_feats = encode_vqa_labels_siglip(siglip_model, siglip_processor, device)
 
+        _siglip_failed = 0
         with _progress(SpinnerColumn(), BarColumn(), TextColumn("{task.description}"), MofNCompleteColumn(), TaskProgressColumn()) as p:
             task = p.add_task("Classifying scenes + VQA...", total=len(todo))
             for start in range(0, len(todo), siglip_batch):
@@ -413,19 +434,24 @@ def main() -> None:
                 scene_results, img_feats = classify_scene_batch(paths, siglip_model, siglip_processor, device, scene_feats)
                 vqa_results = extract_vqa_batch(img_feats, vqa_feats) if img_feats is not None else [{} for _ in batch]
                 for r, scene_res, vqa_res in zip(batch, scene_results, vqa_results, strict=False):
-                    if "scene" not in r:
-                        r["scene"] = scene_res["scene"]
-                    if "caption" not in r:
-                        r["caption"] = vqa_res
+                    if scene_res["scene"].get("scene_scores"):
+                        if "scene" not in r:
+                            r["scene"] = scene_res["scene"]
+                        if "caption" not in r and vqa_res:
+                            r["caption"] = vqa_res
+                    else:
+                        _siglip_failed += 1
                 p.advance(task, len(batch))
 
+        if _siglip_failed:
+            console.print(f"  [yellow]⚠ {_siglip_failed} image(s) failed SigLIP (no file or load error)[/yellow]")
         _save_batch(todo)
         unload_model(siglip_model)
         del scene_feats, vqa_feats
         gc.collect()
         console.print()
 
-    # ── 4. Pass 3a — aesthetic-predictor-v2-5: aesthetic score ───────────────
+    # ── Pass 3a — aesthetic-predictor-v2-5: aesthetic score ──────────────────
     # SigLIP-based MLP — run after SigLIP is unloaded to avoid holding two encoders at once
     aes_batch = _auto_batch(4)
     aes_todo = needs_path("aesthetic_score")
@@ -436,6 +462,7 @@ def main() -> None:
         with console.status("Loading aesthetic-predictor-v2-5..."):
             aesthetic = load_aesthetic_model(_device())
 
+        _aes_failed = 0
         with _progress(SpinnerColumn(), BarColumn(), TextColumn("{task.description}"), MofNCompleteColumn(), TaskProgressColumn()) as p:
             task = p.add_task("Scoring aesthetics...", total=len(aes_todo))
             for start in range(0, len(aes_todo), aes_batch):
@@ -444,8 +471,11 @@ def main() -> None:
                 scores = extract_aesthetic_batch(paths, aesthetic, aes_batch)
                 for r, score in zip(batch, scores, strict=False):
                     r["aesthetic_score"] = score
+                _aes_failed += scores.count(None)
                 p.advance(task, len(batch))
 
+        if _aes_failed:
+            console.print(f"  [yellow]⚠ {_aes_failed} image(s) failed aesthetic scoring[/yellow]")
         _save_batch(aes_todo)
         del aesthetic
         gc.collect()
@@ -453,7 +483,7 @@ def main() -> None:
             torch.mps.empty_cache()
         console.print()
 
-    # ── 5. Pass 3b — CLIP-IQA+: technical IQ score (MPS/CUDA/CPU) ────────────
+    # ── Pass 3b — CLIP-IQA+: technical IQ score (MPS/CUDA/CPU) ──────────────
     iq_batch = _auto_batch(8)
     iq_todo = needs_path("iq_score")
     if "iq" in _skip_passes or os.environ.get("SKIP_IQ", "false").lower() == "true":
@@ -464,10 +494,12 @@ def main() -> None:
         with console.status("Loading CLIP-IQA+ (pyiqa)..."):
             iq_metric = load_clipiqa_metric(device)
 
-        if iq_metric is None:
-            console.print("  [yellow]CLIP-IQA+ unavailable (pyiqa not installed). Skipping.[/yellow]\n")
-        else:
+        if isinstance(iq_metric, Exception):
+            console.print(f"  [yellow]CLIP-IQA+ failed to load: {iq_metric}. Skipping.[/yellow]\n")
+            iq_metric = None
+        if iq_metric is not None:
             save_every = 200
+            _iq_failed = 0
             with _progress(SpinnerColumn(), BarColumn(), TextColumn("{task.description}"), MofNCompleteColumn(), TaskProgressColumn()) as p:
                 task = p.add_task("Scoring technical quality...", total=len(iq_todo))
                 for start in range(0, len(iq_todo), iq_batch):
@@ -476,9 +508,12 @@ def main() -> None:
                     iq_scores = extract_iq_batch(paths, iq_metric, batch_size=iq_batch)
                     for r, iq in zip(batch, iq_scores, strict=False):
                         r["iq_score"] = iq
+                    _iq_failed += iq_scores.count(None)
                     p.advance(task, len(batch))
                     if (start + iq_batch) % save_every == 0:
                         _save_batch(iq_todo[max(0, start + iq_batch - save_every) : start + iq_batch])
+            if _iq_failed:
+                console.print(f"  [yellow]⚠ {_iq_failed} image(s) failed IQ scoring[/yellow]")
             _save_batch(iq_todo)
             del iq_metric
             gc.collect()
@@ -486,7 +521,7 @@ def main() -> None:
                 torch.mps.empty_cache()
         console.print()
 
-    # ── 5. Pass 4 — DINOv2 embeddings (batched) ──────────────────────────────
+    # ── Pass 4 — DINOv2 embeddings (batched) ─────────────────────────────────
     dino_batch = _auto_batch(8)
     todo = needs_path("dinov2")
     if "dino" in _skip_passes:
@@ -496,6 +531,7 @@ def main() -> None:
         with console.status("Loading DINOv2 (base)..."):
             dino_model, dino_processor, device = load_dino_model()
 
+        _dino_failed = 0
         with _progress(SpinnerColumn(), BarColumn(), TextColumn("{task.description}"), MofNCompleteColumn(), TaskProgressColumn()) as p:
             task = p.add_task("Extracting embeddings...", total=len(todo))
             for start in range(0, len(todo), dino_batch):
@@ -503,9 +539,13 @@ def main() -> None:
                 paths = [_ensure_path(r) for r in batch]
                 embeddings = extract_embedding_batch(paths, dino_model, dino_processor, device)
                 for r, emb in zip(batch, embeddings, strict=False):
-                    r["dinov2"] = emb
+                    if emb is not None:
+                        r["dinov2"] = emb
+                _dino_failed += embeddings.count(None)
                 p.advance(task, len(batch))
 
+        if _dino_failed:
+            console.print(f"  [yellow]⚠ {_dino_failed} image(s) failed DINOv2 embedding[/yellow]")
         _save_batch(todo)
         unload_model(dino_model)
         gc.collect()
@@ -521,6 +561,7 @@ def main() -> None:
         with console.status("Loading RMBG-2.0 (briaai/RMBG-2.0)..."):
             saliency_pipe = load_saliency_model(_device())
 
+        _sal_failed = 0
         with _progress(SpinnerColumn(), BarColumn(), TextColumn("{task.description}"), MofNCompleteColumn(), TaskProgressColumn()) as p:
             task = p.add_task("Detecting subjects...", total=len(todo))
             for start in range(0, len(todo), sal_batch):
@@ -528,9 +569,14 @@ def main() -> None:
                 paths = [_ensure_path(r) for r in batch]
                 sal_results = extract_saliency_batch(paths, saliency_pipe, sal_batch)
                 for r, sal in zip(batch, sal_results, strict=False):
-                    r["saliency"] = sal
+                    if sal.get("subject_area_pct") is not None:
+                        r["saliency"] = sal
+                    else:
+                        _sal_failed += 1
                 p.advance(task, len(batch))
 
+        if _sal_failed:
+            console.print(f"  [yellow]⚠ {_sal_failed} image(s) failed saliency extraction[/yellow]")
         _save_batch(todo)
         del saliency_pipe
         gc.collect()
@@ -554,6 +600,7 @@ def main() -> None:
         with console.status("Loading YOLO11n-pose..."):
             pose_model = load_pose_model(device)
 
+        _pose_failed = 0
         with _progress(SpinnerColumn(), BarColumn(), TextColumn("{task.description}"), MofNCompleteColumn(), TaskProgressColumn()) as p:
             task = p.add_task("Detecting objects + pose...", total=len(todo))
             for start in range(0, len(todo), batch_size):
@@ -561,16 +608,26 @@ def main() -> None:
                 paths = [_ensure_path(r) for r in batch]
                 pose_results = extract_pose_batch(paths, pose_model, device)
                 for r, pr in zip(batch, pose_results, strict=False):
-                    r["pose_data"] = pr
+                    if pr:
+                        r["pose_data"] = pr
+                    else:
+                        _pose_failed += 1
                 p.advance(task, len(batch))
 
+        if _pose_failed:
+            console.print(f"  [yellow]⚠ {_pose_failed} image(s) failed pose extraction[/yellow]")
         _save_batch(todo)
         unload_pose_model(pose_model)
         gc.collect()
         console.print()
 
     all_records = list(records.values())
-    console.print(f"[green]All {len(all_records)} photo(s) processed.[/green]\n")
+    _ml_complete = sum(1 for r in all_records if r.get("scene") is not None)
+    _no_file = sum(1 for r in all_records if not r.get("path"))
+    _summary = f"[green]{len(all_records)} photo(s)[/green] · ML complete: [green]{_ml_complete}[/green]"
+    if _no_file:
+        _summary += f" · No local file/rendition: [yellow]{_no_file}[/yellow]"
+    console.print(_summary + "\n")
 
     console.print("[bold]Computing aggregated statistics...[/bold]")
     aggregated = aggregate(all_records)

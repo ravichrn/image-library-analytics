@@ -56,9 +56,9 @@ body {
 
 /* ── Hero ──────────────────────────────────────────────────────── */
 .hero {
-  padding: 3.5rem 0 2.5rem;
+  padding: 2rem 0 1.5rem;
   border-bottom: 1px solid #17172a;
-  margin-bottom: 3rem;
+  margin-bottom: 1.5rem;
 }
 .hero-label {
   font-size: 0.65rem; color: #7878a0; text-transform: uppercase;
@@ -297,7 +297,7 @@ canvas { max-height: 300px; }
   body { font-size: 14px; }
   .page { padding: 0 0.85rem 4rem; }
   .card { padding: 1rem 1rem; }
-  .hero { padding: 1.8rem 0 1.4rem; margin-bottom: 1.8rem; }
+  .hero { padding: 1.2rem 0 1rem; margin-bottom: 1rem; }
   .hero-digest { grid-template-columns: 1fr 1fr; }
   .hero-digest-item { border-right: none; border-bottom: 1px solid #17172a; }
   .hero-digest-item:nth-child(odd) { border-right: 1px solid #17172a; }
@@ -380,7 +380,7 @@ canvas { max-height: 300px; }
 <div class="hero" id="s-overview">
   <h1 class="hero-title" style="font-size:1.9rem;letter-spacing:0.04em;font-weight:800;text-transform:uppercase;color:#c8c8de;">Image Library Analytics</h1>
   <p class="hero-sub">{{ photo_count }} images · analyzed entirely on-device · SigLIP 2 · aesthetic-predictor-v2-5 · CLIP-IQA+ · DINOv2 · RMBG-2.0</p>
-  <p style="font-size:0.82rem;color:#8080aa;line-height:1.7;margin-bottom:2rem;">This report analyzes your photo library using on-device AI models — covering shooting habits, composition patterns, editing style, color grading, and technical quality.</p>
+  <p style="font-size:0.82rem;color:#8080aa;line-height:1.7;margin-bottom:1rem;">This report analyzes your photo library using on-device AI models — covering shooting habits, composition patterns, editing style, color grading, and technical quality.</p>
   <div style="font-size:0.68rem;font-weight:700;color:#7878a0;text-transform:uppercase;letter-spacing:0.12em;margin-bottom:0.6rem;">Highlights</div>
   <div class="stat-grid">
     <div class="stat" style="cursor:pointer;" onclick="document.getElementById('s-semantic').scrollIntoView({behavior:'smooth'})">
@@ -721,7 +721,7 @@ canvas { max-height: 300px; }
 {% set pcd = pose_stats.person_count_dist %}
 <div class="row two mb">
   <div class="card">
-    <div class="card-title">Portrait Insights <span style="color:#8080aa;font-weight:400;">{{ pose_stats.portrait_count }} images · YOLOv8-Pose</span></div>
+    <div class="card-title">Portrait Insights <span style="color:#8080aa;font-weight:400;">{{ pose_stats.portrait_count }} images · YOLO11n-pose</span></div>
     <div class="stat-grid" style="margin-bottom:0;gap:0.3rem;">
       {% if sg %}
       <div class="stat" style="padding:0.5rem 0.6rem;"><div class="stat-l">Solo</div><div class="stat-v">{{ sg.solo }}</div><div class="stat-s">1 person</div></div>
@@ -863,7 +863,7 @@ canvas { max-height: 300px; }
   </div>
   {% endif %}
   <div class="card">
-    <div class="card-title">Aesthetic Quality <span style="font-weight:400;color:#7878a0;">LAION predictor</span></div>
+    <div class="card-title">Aesthetic Quality <span style="font-weight:400;color:#7878a0;">aesthetic-predictor-v2-5</span></div>
     <div class="stat-grid" style="margin-bottom:1rem;">
       <div class="stat"><div class="stat-l">Average</div><div class="stat-v">{{ "%.1f"|format(aesthetic_stats.avg_score or 0) }}</div><div class="stat-s">{{ "%.0f"|format(aesthetic_stats.min_score or 0) }}–{{ "%.0f"|format(aesthetic_stats.max_score or 0) }} range · out of 100</div></div>
       <div class="stat"><div class="stat-l">Median</div><div class="stat-v">{{ "%.1f"|format(aesthetic_stats.median_score or 0) }}</div></div>
@@ -1236,7 +1236,7 @@ canvas { max-height: 300px; }
       {% if delta > 2 %}The model strongly agrees with your curation — it scores your chosen images noticeably higher.
       {% elif delta > 0.5 %}The model leans toward agreeing with your selections — a modest positive bias.
       {% elif delta > -0.5 %}The model is essentially neutral — it doesn't distinguish your curated images from the rest.
-      {% else %}The model disagrees with your curation — it scores your non-album images higher. Your taste differs from the LAION training aesthetic.{% endif %}
+      {% else %}The model disagrees with your curation — it scores your non-album images higher. Your taste differs from the aesthetic-predictor-v2-5 training aesthetic.{% endif %}
     </div>
   </div>
   {% endif %}
@@ -1295,9 +1295,6 @@ canvas { max-height: 300px; }
   <div class="chart-h" style="height:220px;"><canvas id="adoptionChart" style="max-height:220px;"></canvas></div>
 </div>
 {% endif %}
-
-<div class="row three mb">
-</div>
 
 {% if edit_recency and edit_recency.values() | sum > 0 %}
 {% set er_total = edit_recency.values() | sum %}
@@ -1765,16 +1762,33 @@ const GD = { responsive: true, plugins: { legend: { display: false } }, scales: 
           if (!ctx.tooltip.dataPoints || !ctx.tooltip.dataPoints.length) { tip.style.display = "none"; return; }
           const d = ctx.tooltip.dataPoints[0].raw;
           const ex = d.exif || {};
-          let html = "";
-          if (d.thumb) html += `<img src="data:image/jpeg;base64,${d.thumb}" style="width:72px;height:72px;object-fit:cover;border-radius:5px;display:block;margin:0 auto 5px;">`;
-          html += `<div style="font-size:10px;color:#9090b8;text-transform:capitalize;margin-bottom:3px;">${d.scene_type || ""}</div>`;
-          if (d.score != null) html += `<div style="font-size:11px;color:#a78bfa;font-weight:600;margin-bottom:3px;">Aesthetic ${d.score.toFixed(1)}</div>`;
+          while (tip.firstChild) tip.removeChild(tip.firstChild);
+          if (d.thumb) {
+            const img = document.createElement("img");
+            img.src = "data:image/jpeg;base64," + d.thumb;
+            img.style.cssText = "width:72px;height:72px;object-fit:cover;border-radius:5px;display:block;margin:0 auto 5px;";
+            tip.appendChild(img);
+          }
+          const scene = document.createElement("div");
+          scene.textContent = d.scene_type || "";
+          scene.style.cssText = "font-size:10px;color:#9090b8;text-transform:capitalize;margin-bottom:3px;";
+          tip.appendChild(scene);
+          if (d.score != null) {
+            const sc = document.createElement("div");
+            sc.textContent = "Aesthetic " + d.score.toFixed(1);
+            sc.style.cssText = "font-size:11px;color:#a78bfa;font-weight:600;margin-bottom:3px;";
+            tip.appendChild(sc);
+          }
           const exifParts = [];
           if (ex.focal_length_mm) exifParts.push(ex.focal_length_mm + "mm");
           if (ex.aperture_f) exifParts.push("f/" + ex.aperture_f);
           if (ex.iso) exifParts.push("ISO " + ex.iso);
-          if (exifParts.length) html += `<div style="font-size:10px;color:#7878a0;">${exifParts.join(" · ")}</div>`;
-          tip.innerHTML = html;
+          if (exifParts.length) {
+            const exd = document.createElement("div");
+            exd.textContent = exifParts.join(" · ");
+            exd.style.cssText = "font-size:10px;color:#7878a0;";
+            tip.appendChild(exd);
+          }
           tip.style.display = "block";
           const tipW = 110, tipH = d.thumb ? 150 : 80;
           let left = ctx.tooltip.caretX + 10, top = ctx.tooltip.caretY - tipH / 2;

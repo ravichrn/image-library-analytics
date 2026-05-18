@@ -15,6 +15,7 @@ import http.server
 import json
 import os
 import secrets
+import shutil
 import ssl
 import subprocess
 import tempfile
@@ -170,6 +171,7 @@ def login(client_id: str, client_secret: str, redirect_uri: str) -> str:
         def log_message(self, *_):
             pass
 
+    cert_path = key_path = tmp_dir = None
     try:
         ssl_ctx, cert_path, key_path, tmp_dir = _make_ssl_context()
         httpd = http.server.HTTPServer(("localhost", port), Handler)
@@ -188,7 +190,6 @@ def login(client_id: str, client_secret: str, redirect_uri: str) -> str:
         server_ready.wait()
     except Exception as e:
         server_error.append(str(e))
-        cert_path = key_path = tmp_dir = None
 
     print("\nOpening Adobe login in your browser...")
     try:
@@ -235,10 +236,7 @@ def login(client_id: str, client_secret: str, redirect_uri: str) -> str:
             except Exception:
                 pass
     if tmp_dir:
-        try:
-            os.rmdir(tmp_dir)
-        except Exception:
-            pass
+        shutil.rmtree(tmp_dir, ignore_errors=True)
 
     result = server_result or clipboard_result
     if "error" in result:

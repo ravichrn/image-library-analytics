@@ -103,7 +103,7 @@ RULES = [
         lambda r: (THRESHOLDS["aesthetic_floor"] - r["aesthetic_score"]) / THRESHOLDS["aesthetic_floor"]
         if r.get("aesthetic_score") is not None and r["aesthetic_score"] < THRESHOLDS["aesthetic_floor"]
         else None,
-        "The aesthetic-predictor-v2-5 (trained on human aesthetic ratings) scored this photo below 35/100. "
+        f"The aesthetic-predictor-v2-5 (trained on human aesthetic ratings) scored this photo below {THRESHOLDS['aesthetic_floor']}/100. "
         "Common causes: flat or cluttered composition, poor exposure, heavy noise, or an uninteresting subject. "
         "Typical edited photos score 40–60; professional work 60+.",
     ),

@@ -15,7 +15,6 @@ wheels/
 
 # App outputs
 docs/results.json
-docs/manifest.json
 cache/
 *.db
 

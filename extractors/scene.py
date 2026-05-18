@@ -193,8 +193,8 @@ def load_clipiqa_metric(device: str):
         import pyiqa
 
         return pyiqa.create_metric("clipiqa+", device=device)
-    except Exception:
-        return None
+    except Exception as e:
+        return e  # caller logs the real error
 
 
 def extract_iq_batch(paths: list, iq_metric, batch_size: int = 16) -> list[float | None]:
