@@ -2,10 +2,14 @@ import os
 from pathlib import Path
 
 # ML result keys that are worth carrying over from a local record into a Lightroom record
-_ML_KEYS = {"exif", "color", "composition", "scene", "aesthetic_score", "dinov2", "depth", "caption"}
+_ML_KEYS = {"exif", "color", "composition", "scene", "aesthetic_score", "dinov2", "caption"}
 
 
-def load_sources(sample: int | None = None) -> list[dict]:
+def load_sources(
+    sample: int | None = None,
+    lightroom_album: str | None = None,
+    lightroom_since: str | None = None,
+) -> list[dict]:
     """
     Load photo records from all configured sources (SOURCES env var).
 
@@ -28,7 +32,7 @@ def load_sources(sample: int | None = None) -> list[dict]:
         elif name == "lightroom":
             from sources.lightroom import load_lightroom
 
-            records = load_lightroom(sample=sample)
+            records = load_lightroom(sample=sample, album_name=lightroom_album, since_override=lightroom_since)
         else:
             raise ValueError(f"Unknown source: {name!r}. Valid values: local, lightroom")
 

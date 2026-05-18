@@ -42,7 +42,9 @@ def extract_embedding_batch(paths: list, dino_model, dino_processor, device: str
     if not imgs:
         return results
 
+    dtype = next(dino_model.parameters()).dtype
     inputs = dino_processor(images=imgs, return_tensors="pt").to(device)
+    inputs = {k: v.to(dtype) if v.is_floating_point() else v for k, v in inputs.items()}
     with torch.no_grad():
         outputs = dino_model(**inputs)
     cls_tokens = outputs.last_hidden_state[:, 0, :].cpu().float().tolist()

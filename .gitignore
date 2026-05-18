@@ -1,4 +1,4 @@
-# Python-generated files
+# Python
 __pycache__/
 *.py[oc]
 build/
@@ -9,12 +9,19 @@ wheels/
 # Virtual environments
 .venv
 
+# Test / tooling cache
+.pytest_cache/
+.ruff_cache/
+
 # App outputs
 docs/results.json
+docs/manifest.json
 cache/
+*.db
 
 # Environment
 .env
 
 # macOS
 .DS_Store
+Thumbs.db

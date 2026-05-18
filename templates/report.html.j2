@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Image Library Analytics</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <style>
 :root {
   --fs-card-title: 0.76rem;
@@ -40,7 +42,17 @@ body {
 #sidebar a.sb-active { color: #c8c8de; border-left-color: #7c6af7; }
 #main-content { flex: 1; min-width: 0; }
 .page { max-width: 1160px; margin: 0 auto; padding: 0 1.5rem 6rem; }
-@media (max-width: 900px) { #sidebar { display: none; } body { display: block; } }
+@media (max-width: 900px) {
+  body { display: block; }
+  #sidebar { display: none; }
+  #sidebar.open { display: block; position: fixed; top: 0; left: 0; width: 220px; height: 100vh; z-index: 200; box-shadow: 4px 0 20px rgba(0,0,0,0.6); }
+  #hamburger { display: flex; align-items: center; justify-content: center; position: fixed; top: 0.75rem; left: 0.75rem; z-index: 201; background: #0c0c14; border: 1px solid #2a2a3f; border-radius: 6px; width: 2.2rem; height: 2.2rem; cursor: pointer; font-size: 1rem; color: #7c6af7; }
+  .row.three { grid-template-columns: 1fr !important; }
+  .row.two { grid-template-columns: 1fr !important; }
+  #sidebar-overlay { display: none; position: fixed; inset: 0; z-index: 199; background: rgba(0,0,0,0.5); }
+  #sidebar-overlay.open { display: block; }
+}
+@media (min-width: 901px) { #hamburger { display: none; } #sidebar-overlay { display: none !important; } }
 
 /* ── Hero ──────────────────────────────────────────────────────── */
 .hero {
@@ -58,7 +70,7 @@ body {
 }
 .hero-sub {
   font-size: 0.82rem; color: #8080aa;
-  margin-bottom: 2.5rem;
+  margin-bottom: 0.6rem;
 }
 .hero-digest {
   display: grid;
@@ -125,6 +137,7 @@ body {
 .stat-l { font-size: var(--fs-sub); color: #8080aa; text-transform: uppercase; letter-spacing: 0.06em; }
 .stat-v { font-size: var(--fs-stat-v); font-weight: 700; color: #ddd8f0; margin-top: 0.15rem; }
 .stat-s { font-size: var(--fs-sub); color: #7878a0; margin-top: 0.1rem; }
+.stat-u { font-size: 0.6em; color: #8080aa; font-weight: 400; margin-left: 1px; }
 
 /* Inline strip */
 .strip { display: flex; border: 1px solid #1c1c2e; border-radius: 10px; overflow: hidden; }
@@ -158,6 +171,10 @@ td { padding: 0.5rem 0.8rem; border-bottom: 1px solid #141420; color: #9090b8; }
 tr:last-child td { border-bottom: none; }
 .badge { display: inline-block; background: #1c1c2e; border-radius: 4px; padding: 3px 8px; font-size: var(--fs-label); margin: 2px; color: #6a6a90; }
 
+/* ── Collapsible section arrow ─────────────────────────────────── */
+.section-summary::after { content: "▾"; margin-left: auto; font-size: 0.75rem; transition: transform 0.2s; }
+details:not([open]) .section-summary::after { transform: rotate(-90deg); }
+
 /* ── Chart wraps ───────────────────────────────────────────────── */
 .chart-h { position: relative; }
 canvas { max-height: 300px; }
@@ -169,8 +186,7 @@ canvas { max-height: 300px; }
 /* ── Composition patterns ──────────────────────────────────────── */
 .cp-list { display: flex; flex-direction: column; gap: 0.45rem; }
 .cp-row { display: flex; align-items: flex-start; gap: 0.6rem; }
-.cp-pct { font-size: 0.73rem; font-weight: 700; min-width: 35px; text-align: right; color: #7070901; flex-shrink: 0; padding-top: 1px; color: #6060881; }
-.cp-body {}
+.cp-pct { font-size: 0.73rem; font-weight: 700; min-width: 35px; text-align: right; color: #606088; flex-shrink: 0; padding-top: 1px; }
 .cp-name { font-size: var(--fs-body); color: #c0c0d8; font-weight: 600; }
 .cp-desc { font-size: var(--fs-sub); color: #7878a8; line-height: 1.45; margin-top: 2px; }
 .cp-bar { height: 3px; background: #1a1a28; border-radius: 2px; margin-top: 4px; }
@@ -337,6 +353,8 @@ canvas { max-height: 300px; }
 </style>
 </head>
 <body>
+<button id="hamburger" onclick="document.getElementById('sidebar').classList.toggle('open');document.getElementById('sidebar-overlay').classList.toggle('open');" aria-label="Open navigation">☰</button>
+<div id="sidebar-overlay" onclick="document.getElementById('sidebar').classList.remove('open');document.getElementById('sidebar-overlay').classList.remove('open');"></div>
 
 <nav id="sidebar">
   <div class="sb-logo">Analytics</div>
@@ -345,8 +363,12 @@ canvas { max-height: 300px; }
   <div class="sb-label">Explore</div>
   <a href="#s-semantic">What You Shoot</a>
   <a href="#s-technical">How You Shoot</a>
+  <a href="#s-gear">Gear &amp; Devices</a>
   <a href="#s-aesthetics">Editing &amp; Aesthetics</a>
+  {% if _sources.has_lightroom %}<a href="#s-editing-journey">Editing Journey</a>{% endif %}
   <a href="#s-when">When You Shoot</a>
+  {% if technical_settings_analysis and technical_settings_analysis.gps and technical_settings_analysis.gps.count > 0 %}<a href="#s-where">Where You Shoot</a>{% endif %}
+  <a href="#s-context">Shooting Profile</a>
   <div class="sb-label">Signals</div>
   <a href="#s-forensics">Forensics</a>
 </nav>
@@ -357,80 +379,156 @@ canvas { max-height: 300px; }
 <!-- ══════════════════════════════════════ HERO ══════════════════ -->
 <div class="hero" id="s-overview">
   <h1 class="hero-title" style="font-size:1.9rem;letter-spacing:0.04em;font-weight:800;text-transform:uppercase;color:#c8c8de;">Image Library Analytics</h1>
-  <p class="hero-sub">{{ photo_count }} images · analyzed entirely on-device · CLIP ViT-L/14 · LAION Aesthetic MLP · DINOv2 · Depth Anything v2 · Florence-2 · RMBG-1.4</p>
+  <p class="hero-sub">{{ photo_count }} images · analyzed entirely on-device · SigLIP 2 · aesthetic-predictor-v2-5 · CLIP-IQA+ · DINOv2 · RMBG-2.0</p>
+  <p style="font-size:0.82rem;color:#8080aa;line-height:1.7;margin-bottom:2rem;">This report analyzes your photo library using on-device AI models — covering shooting habits, composition patterns, editing style, color grading, and technical quality.</p>
+  <div style="font-size:0.68rem;font-weight:700;color:#7878a0;text-transform:uppercase;letter-spacing:0.12em;margin-bottom:0.6rem;">Highlights</div>
   <div class="stat-grid">
-    <div class="stat">
+    <div class="stat" style="cursor:pointer;" onclick="document.getElementById('s-semantic').scrollIntoView({behavior:'smooth'})">
       <div class="stat-l">Dominant Scene</div>
       {% set dom_pct = (scene_dist.get(agg.scene_stats.dominant_scene, 0) / (scene_dist.values()|sum) * 100)|round|int if scene_dist.values()|sum > 0 else 0 %}
       <div class="stat-v" style="font-size:1.1rem;text-transform:capitalize;">{{ agg.scene_stats.dominant_scene or "—" }}</div>
       <div class="stat-s">{{ dom_pct }}% of library</div>
     </div>
-    <div class="stat">
+    <div class="stat" style="cursor:pointer;" onclick="document.getElementById('s-aesthetics').scrollIntoView({behavior:'smooth'})">
       <div class="stat-l">Avg Aesthetic Score</div>
       <div class="stat-v">{{ "%.1f"|format(aesthetic_stats.avg_score or 0) }}<span style="font-size:0.78rem;font-weight:400;color:#7878a0;"> / 100</span></div>
       <div class="stat-s">range {{ "%.0f"|format(aesthetic_stats.min_score or 0) }}–{{ "%.0f"|format(aesthetic_stats.max_score or 0) }}</div>
     </div>
-    <div class="stat">
+    <div class="stat" style="cursor:pointer;" onclick="document.getElementById('s-semantic').scrollIntoView({behavior:'smooth'})">
       <div class="stat-l">Visual Clusters</div>
       <div class="stat-v">{{ clusters.n_clusters or "—" }}</div>
       <div class="stat-s">DINOv2 + KMeans</div>
     </div>
-    <div class="stat">
+    <div class="stat" style="cursor:pointer;" onclick="document.getElementById('s-technical').scrollIntoView({behavior:'smooth'})">
       <div class="stat-l">Avg Resolution</div>
       <div class="stat-v">{{ "%.1f"|format(megapixel_stats.avg or 0) }}<span style="font-size:0.78rem;font-weight:400;color:#7878a0;">MP</span></div>
       <div class="stat-s">{{ megapixel_stats.min }}–{{ megapixel_stats.max }}MP range</div>
     </div>
-    <div class="stat">
+    <div class="stat" style="cursor:pointer;" onclick="document.getElementById('s-technical').scrollIntoView({behavior:'smooth'})">
       <div class="stat-l">Exposure Bias</div>
       <div class="stat-v">{{ "%+.2f"|format(exposure_stats.avg_bias or 0) }}</div>
       <div class="stat-s">0 = neutral</div>
     </div>
-    <div class="stat">
+    <div class="stat" style="cursor:pointer;" onclick="document.getElementById('s-aesthetics').scrollIntoView({behavior:'smooth'})">
       <div class="stat-l">Editing Style</div>
       <div class="stat-v" style="font-size:1.0rem;">{% if editing_style_patterns %}{{ editing_style_patterns[0].name }}{% else %}—{% endif %}</div>
       <div class="stat-s">{% if editing_style_patterns %}{{ "%.0f"|format(editing_style_patterns[0].confidence * 100) }}% confidence{% endif %}</div>
     </div>
     {% if storage_tiers and storage_tiers.redundant_count %}
-    <div class="stat">
+    <div class="stat" style="cursor:pointer;" onclick="document.getElementById('s-semantic').scrollIntoView({behavior:'smooth'})">
       <div class="stat-l">Redundant Images</div>
       <div class="stat-v">{{ storage_tiers.redundant_count }}</div>
       <div class="stat-s">similar image duplicates</div>
     </div>
     {% endif %}
     {% if ela_stats and ela_stats.extreme_outlier_count is defined and ela_stats.extreme_outlier_count > 0 %}
-    <div class="stat">
+    <div class="stat" style="cursor:pointer;" onclick="document.getElementById('s-forensics').scrollIntoView({behavior:'smooth'})">
       <div class="stat-l">ELA Outliers</div>
       <div class="stat-v">{{ ela_stats.extreme_outlier_count }}</div>
       <div class="stat-s">unusual compression artifacts</div>
     </div>
     {% endif %}
+    {% if iso_median is not none %}
+    <div class="stat" style="cursor:pointer;" onclick="document.getElementById('s-gear').scrollIntoView({behavior:'smooth'})">
+      <div class="stat-l">ISO Preference</div>
+      <div class="stat-v">{{ iso_median }}</div>
+      <div class="stat-s">{{ iso_label }}</div>
+    </div>
+    {% endif %}
+    {% if prime_pct is not none %}
+    <div class="stat" style="cursor:pointer;" onclick="document.getElementById('s-gear').scrollIntoView({behavior:'smooth'})">
+      <div class="stat-l">Prime vs Zoom</div>
+      <div class="stat-v">{{ prime_pct }}%<span style="font-size:0.78rem;font-weight:400;color:#7878a0;"> prime</span></div>
+      <div class="stat-s">{{ 100 - prime_pct }}% zoom lenses</div>
+    </div>
+    {% endif %}
+    {% if dominant_shutter %}
+    <div class="stat" style="cursor:pointer;" onclick="document.getElementById('s-gear').scrollIntoView({behavior:'smooth'})">
+      <div class="stat-l">Capture Style</div>
+      <div class="stat-v" style="font-size:1rem;">{{ dominant_shutter }}</div>
+      <div class="stat-s">{% if dominant_shutter_pct %}{{ dominant_shutter_pct }}% of shots{% endif %}</div>
+    </div>
+    {% endif %}
+    {% if iq_stats and not iq_stats.unavailable and iq_stats.avg is not none %}
+    <div class="stat" style="cursor:pointer;" onclick="document.getElementById('s-technical').scrollIntoView({behavior:'smooth'})">
+      <div class="stat-l">Avg IQ Score</div>
+      <div class="stat-v">{{ "%.0f"|format(iq_stats.avg) }}<span class="stat-u">/100</span></div>
+      <div class="stat-s">sharpness · exposure · noise</div>
+    </div>
+    {% endif %}
+    {% if high_aes_low_iq %}
+    <div class="stat" style="cursor:pointer;" onclick="document.getElementById('s-aesthetics').scrollIntoView({behavior:'smooth'})">
+      <div class="stat-l">High Feel, Low IQ</div>
+      <div class="stat-v" style="color:#f87171;">{{ high_aes_low_iq }} photos</div>
+      <div class="stat-s">aesthetic &gt;65 · technical IQ &lt;40</div>
+    </div>
+    {% endif %}
   </div>
 </div>
 
-<!-- ══════════════════════════════════════ WHAT YOU SHOOT ══════════════════ -->
-<div id="s-semantic"></div>
+<!-- ══════════════════════════════════════ QUALITY ISSUES ════════════════ -->
+{% if coach and coach.flags %}
+{% set _top_flags = coach.flags.items() | sort(attribute='1.pct', reverse=true) | selectattr('1.pct', 'ge', 5) | list %}
+{% if _top_flags %}
+<div class="card mb" style="border-left:3px solid #f87171;">
+  <div class="card-title" style="margin-bottom:0.6rem;">Issues Summary</div>
+  {% for key, info in _top_flags[:4] %}
+  <div style="display:flex;gap:0.6rem;align-items:flex-start;padding:0.45rem 0;border-bottom:1px solid #14141f;">
+    <span style="flex-shrink:0;margin-top:5px;display:inline-block;width:5px;height:5px;border-radius:50%;background:#f87171;"></span>
+    <div style="font-size:0.78rem;color:#9090b8;line-height:1.6;">{{ info.description }}</div>
+  </div>
+  {% endfor %}
+  {% if high_aes_low_iq %}
+  <div style="display:flex;gap:0.6rem;align-items:flex-start;padding:0.45rem 0;">
+    <span style="flex-shrink:0;margin-top:5px;display:inline-block;width:5px;height:5px;border-radius:50%;background:#f87171;"></span>
+    <div style="font-size:0.78rem;color:#9090b8;line-height:1.6;">{{ high_aes_low_iq }} photos score high aesthetically (&gt;65) but low on technical quality (&lt;40) — likely due to motion blur, noise, or soft focus. These are candidates for a reshoot or a sharper edit pass.</div>
+  </div>
+  {% endif %}
+</div>
+{% endif %}
+{% endif %}
 
-<!-- Scene Preferences (pie) + Visual Attributes -->
+<!-- ══════════════════════════════════════ WHAT YOU SHOOT ══════════════════ -->
+<details open id="s-semantic" style="margin-bottom:0;">
+<summary style="cursor:pointer;list-style:none;display:flex;align-items:center;gap:0.5rem;padding:0.6rem 0 0.5rem;font-size:0.68rem;font-weight:700;color:#7878a0;text-transform:uppercase;letter-spacing:0.12em;border-bottom:1px solid #1a1a2e;margin-bottom:1rem;" class="section-summary">What You Shoot</summary>
+
+<!-- Scene Preferences (doughnut + sorted bar) + Visual Attributes -->
 <div class="row c4-8 mb">
   <div class="card">
     <div class="card-title">Scene Preferences</div>
-    <div class="chart-h"><canvas id="sceneChart"></canvas></div>
+    {% set sd_sorted = scene_dist.items() | sort(attribute='1', reverse=True) | list %}
+    {% set sd_total = scene_dist.values() | sum or 1 %}
+    {% set sc_colors = ["#f87171","#fb923c","#fbbf24","#a3e635","#4ade80","#34d399","#22d3ee","#60a5fa","#818cf8","#e879f9"] %}
+    <div style="height:240px;margin-bottom:0.75rem;"><canvas id="sceneChart" style="max-height:240px;"></canvas></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:3px 0.75rem;">
+      {% for scene, cnt in sd_sorted %}
+      {% set pct = (cnt / sd_total * 100)|round|int %}{% if pct > 0 %}
+      <div style="display:flex;align-items:center;gap:0.4rem;">
+        <div style="width:8px;height:8px;border-radius:2px;flex-shrink:0;background:{{ sc_colors[loop.index0 % sc_colors|length] }};"></div>
+        <span style="font-size:0.72rem;color:#8080aa;flex:1;text-transform:capitalize;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ scene }}</span>
+        <span style="font-size:0.72rem;color:#c0c0d8;font-weight:600;min-width:28px;text-align:right;">{{ pct }}%</span>
+      </div>
+      {% endif %}{% endfor %}
+    </div>
   </div>
   {% set va = visual_attributes %}
   {% if va and va.total_analyzed %}
   <div class="card">
-    <div class="card-title">Visual Attributes <span style="color:#8080aa;font-size:0.6rem;font-weight:400;">Florence-2 VQA · {{ va.total_analyzed }} images</span></div>
+    <div class="card-title">Visual Attributes &amp; Aesthetic <span style="color:#8080aa;font-size:0.6rem;font-weight:400;">Florence-2 VQA · % share · avg aesthetic score</span></div>
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1rem;">
       {% set attr_meta = [("season","Season","#ec4899"),("has_person","People Present","#7c6af7"),("setting","Setting","#10b981"),("time_of_day","Time of Day","#f59e0b"),("weather","Weather","#3b82f6")] %}
       {% for key, label, color in attr_meta %}
-      {% set items = va.get(key, []) %}{% if items %}
+      {% set items = va.get(key, []) %}
+      {% set aes_map = aesthetic_by_vqa.get(key, {}) %}
+      {% if items %}
       <div>
         <div style="font-size:0.68rem;color:#7878a0;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:0.5rem;">{{ label }}</div>
         {% for item in items %}
-        <div style="margin-bottom:4px;">
+        {% set aes_score = aes_map.get(item.label) %}
+        <div style="margin-bottom:6px;">
           <div style="display:flex;justify-content:space-between;margin-bottom:2px;">
-            <span style="font-size:0.78rem;color:#7878a0;text-transform:capitalize;">{{ item.label }}</span>
-            <span style="font-size:0.78rem;color:#7878a0;">{{ item.pct }}%</span>
+            <span style="font-size:0.78rem;color:#c0c0d8;text-transform:capitalize;">{{ item.label }}</span>
+            <span style="font-size:0.72rem;color:#7878a0;">{{ item.pct }}%{% if aes_score is not none %} · <span style="color:{{ color }};">{{ aes_score }}</span>{% endif %}</span>
           </div>
           <div style="background:#16161f;border-radius:3px;height:5px;">
             <div style="width:{{ item.pct }}%;background:{{ color }};border-radius:3px;height:5px;opacity:0.75;"></div>
@@ -440,21 +538,22 @@ canvas { max-height: 300px; }
       </div>
       {% endif %}{% endfor %}
     </div>
-
-
   </div>
   {% endif %}
 </div>
 
 <!-- UMAP — compact -->
 <div class="card mb" style="padding: 1.2rem 1.6rem;">
-  <div class="card-title">Visual Similarity Map <span style="color:#8080aa;font-weight:400;font-size:0.6rem;">{{ umap_points|length }} of {{ umap_total }} images · colored by scene · hover for details</span></div>
-  <div class="card-desc" style="margin-bottom:0.8rem;">Each dot is an image, positioned by visual similarity using <strong style="color:#9090b8;">UMAP</strong> on 768-dimensional DINOv2 embeddings. Proximity = visual similarity — dots close together look alike, dots far apart look different. An image isolated at the edge has a visual character unlike most others in your library. Clusters that overlap scene colours reflect consistent visual style across different subject categories.</div>
+  <div class="card-title" style="margin-bottom:0.4rem;">Visual Similarity Map <span style="color:#8080aa;font-weight:400;font-size:0.6rem;">{{ umap_points|length }} of {{ umap_total }} images · hover for details</span></div>
+  <div class="card-desc" style="margin-bottom:0.8rem;">Each dot is one photo. Nearby dots look visually similar. <strong style="color:#9090b8;">Clusters</strong> reveal shooting tendencies — tight groups mean a consistent style, isolated dots are unique shots. Colored by scene type; hover for details.</div>
   <div class="chart-h" style="height:280px;"><canvas id="umapChart" style="max-height:280px;"></canvas></div>
 </div>
 
+</details>
+
 <!-- ══════════════════════════════════════ HOW YOU SHOOT ══════════════════ -->
-<div id="s-technical"></div>
+<details open id="s-technical" style="margin-bottom:0;">
+<summary style="cursor:pointer;list-style:none;display:flex;align-items:center;gap:0.5rem;padding:0.6rem 0 0.5rem;font-size:0.68rem;font-weight:700;color:#7878a0;text-transform:uppercase;letter-spacing:0.12em;border-bottom:1px solid #1a1a2e;margin-bottom:1rem;" class="section-summary">How You Shoot</summary>
 
 <!-- Focal / Aperture / ISO -->
 {% if focal_length_histogram or aperture_histogram or iso_histogram %}
@@ -462,19 +561,19 @@ canvas { max-height: 300px; }
   {% if focal_length_histogram %}
   <div class="card">
     <div class="card-title">Focal Length</div>
-    <div class="chart-h"><canvas id="focalChart"></canvas></div>
+    <div class="chart-h" style="height:240px;"><canvas id="focalChart" style="max-height:240px;"></canvas></div>
   </div>
   {% endif %}
   {% if aperture_histogram %}
   <div class="card">
     <div class="card-title">Aperture</div>
-    <div class="chart-h"><canvas id="apertureChart"></canvas></div>
+    <div class="chart-h" style="height:240px;"><canvas id="apertureChart" style="max-height:240px;"></canvas></div>
   </div>
   {% endif %}
   {% if iso_histogram %}
   <div class="card">
     <div class="card-title">ISO Sensitivity</div>
-    <div class="chart-h"><canvas id="isoChart"></canvas></div>
+    <div class="chart-h" style="height:240px;"><canvas id="isoChart" style="max-height:240px;"></canvas></div>
   </div>
   {% endif %}
 </div>
@@ -494,12 +593,20 @@ canvas { max-height: 300px; }
       "Negative Space": "Unusually large empty areas surround the subject, giving it room to breathe and drawing the viewer's attention through contrast with the void.",
       "Foreground Interest": "Complex edge density in the bottom zone indicates foreground elements that add depth, texture, or layering to the scene.",
     } %}
-    <div class="cp-list" style="margin-bottom:1.25rem;">
+    {% set cp_metrics = {
+      "Rule of Thirds": "Score: " ~ "%.2f"|format(composition_stats.avg_thirds_score or 0) ~ " — 0=centred, 1=off-centre",
+      "Strong Symmetry": "Score: " ~ "%.2f"|format(composition_stats.avg_symmetry_score or 0) ~ " — left/right mirror ratio",
+      "Negative Space": "Score: " ~ "%.2f"|format(composition_stats.avg_negative_space or 0) ~ " — empty-frame fraction",
+      "Subject Isolation": "Score: " ~ "%.2f"|format(composition_stats.avg_subject_isolation or 0) ~ " — ratio vs surroundings",
+      "Foreground Interest": "Score: " ~ "%.2f"|format(composition_stats.avg_foreground_clutter or 0) ~ " — lower = cleaner frame",
+    } %}
+    <div class="cp-list">
       {% for p in composition_patterns %}
       <div class="cp-row">
         <div class="cp-pct">{{ p.pct }}%</div>
         <div class="cp-body" style="flex:1;">
           <div class="cp-name">{{ p.name }}</div>
+          {% if cp_metrics.get(p.name) %}<div style="font-size:0.78rem;color:#9090b8;margin-top:3px;margin-bottom:2px;">{{ cp_metrics[p.name] }}</div>{% endif %}
           <div class="cp-desc">{{ cp_descs.get(p.name, p.description) }}</div>
           <div class="cp-bar"><div class="cp-bar-fill" style="width:{{ [p.pct,100]|min }}%;"></div></div>
         </div>
@@ -507,21 +614,6 @@ canvas { max-height: 300px; }
       {% endfor %}
     </div>
     {% endif %}
-    <div class="strip">
-      {% for lbl, val, sub in [
-        ("Thirds Score", composition_stats.avg_thirds_score, "0 = centred · 1 = off-centre"),
-        ("Symmetry", composition_stats.avg_symmetry_score, "left/right mirror ratio"),
-        ("Negative Space", composition_stats.avg_negative_space, "empty-frame fraction"),
-        ("Subject Isolation", composition_stats.avg_subject_isolation, "centre sharpness ratio"),
-        ("Foreground Clutter", composition_stats.avg_foreground_clutter, "lower = cleaner frame"),
-      ] %}
-      <div class="strip-item">
-        <div class="strip-l" style="margin-bottom:0.25rem;">{{ lbl }}</div>
-        <div class="strip-v" style="font-size:1rem;">{{ "%.2f"|format(val or 0) }}</div>
-        <div class="strip-s">{{ sub }}</div>
-      </div>
-      {% endfor %}
-    </div>
   </div>
 
   <!-- RIGHT: Composition Grid -->
@@ -537,7 +629,7 @@ canvas { max-height: 300px; }
     <!-- Edge activity + Subject placement: equal 1fr 1fr columns so grids are same size -->
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.25rem;margin-bottom:1.25rem;align-items:start;">
       <div>
-        <div style="font-size:0.68rem;color:#7878a0;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:0.5rem;">Edge Activity</div>
+        <div style="font-size:0.68rem;color:#7878a0;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:0.5rem;">Detail Density by Zone</div>
         <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:3px;">
           {% for row in grid_heatmap %}{% for v in row %}
           <div style="aspect-ratio:1;background:rgba(124,106,247,{{ (v/(mxv+0.001))|round(2) }});border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:0.65rem;color:#e0d8ff;font-weight:500;">{{ "%.2f"|format(v) }}</div>
@@ -567,7 +659,7 @@ canvas { max-height: 300px; }
     {% set ht = (hd.high or 0) + (hd.mid or 0) + (hd.low or 0) + (hd.none or 0) %}
     {% if ht > 0 %}
     <div style="margin-bottom:1.1rem;">
-      <div style="font-size:0.68rem;color:#7878a0;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:0.5rem;">Horizon Position</div>
+      <div style="font-size:0.68rem;color:#7878a0;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:0.5rem;">Horizon Position <span title="Estimated position of the primary horizontal line (horizon, skyline, or table edge) in the frame. Top = sky-dominant; Bottom = ground-dominant; None = no strong horizontal detected." style="cursor:help;color:#4a4a6a;font-size:0.6rem;border-bottom:1px dashed #4a4a6a;">?</span></div>
       {% for pos, lbl in [("high","Top"),("mid","Mid"),("low","Bottom"),("none","None")] %}
       {% set pct = ((hd[pos] or 0) / ht * 100)|round|int %}
       <div class="dbar">
@@ -596,42 +688,8 @@ canvas { max-height: 300px; }
 
 </div>
 
-<!-- Depth strip + Sharpness -->
-<div class="row two mb">
-  {% if depth_stats and depth_stats.avg_range is not none %}
-  <div class="card">
-    <div class="card-title">Depth & Spatial Composition <span style="color:#8080aa;font-weight:400;">Depth Anything v2</span></div>
-    <div class="strip mb">
-      <div class="strip-item">
-        <div class="strip-v">{{ "%.3f"|format(depth_stats.avg_range) }}</div>
-        <div class="strip-l">Depth Range</div>
-        <div class="strip-s">0 flat · 1 full sep.</div>
-      </div>
-      <div class="strip-item">
-        <div class="strip-v">{{ "%.3f"|format(depth_stats.avg_complexity) }}</div>
-        <div class="strip-l">Complexity</div>
-        <div class="strip-s">std dev of map</div>
-      </div>
-      <div class="strip-item">
-        <div class="strip-v">{{ "%.3f"|format(depth_stats.avg_subject_depth_score) }}</div>
-        <div class="strip-l">Subject Score</div>
-        <div class="strip-s">center vs edge</div>
-      </div>
-    </div>
-    {% if depth_stats.by_scene %}
-    {% set max_dr = depth_stats.by_scene.values() | list | max %}
-    <div class="bar-list">
-      {% for scene, val in depth_stats.by_scene.items() | sort(attribute='1', reverse=True) %}
-      <div class="bar-row">
-        <div class="bar-lbl" style="min-width:110px;font-size:0.78rem;text-transform:capitalize;">{{ scene }}</div>
-        <div class="bar-track"><div class="bar-fill" style="width:{{ (val/(max_dr+0.001)*100)|int }}%;background:#7c6af7;opacity:0.65;"></div></div>
-        <div class="bar-val">{{ "%.3f"|format(val) }}</div>
-      </div>
-      {% endfor %}
-    </div>
-    {% endif %}
-  </div>
-  {% endif %}
+<!-- Sharpness & Exposure -->
+<div class="row mb">
   <div class="card">
     <div class="card-title">Sharpness & Exposure</div>
     <div class="strip mb">
@@ -652,18 +710,6 @@ canvas { max-height: 300px; }
         <div class="strip-s">images with blown highlights</div>
       </div>
     </div>
-    {% if sharpness_stats.by_scene %}
-    {% set max_sharp = sharpness_stats.by_scene.values() | list | max %}
-    <div class="bar-list">
-      {% for scene, val in sharpness_stats.by_scene.items() | sort(attribute='1', reverse=True) %}
-      <div class="bar-row">
-        <div class="bar-lbl" style="min-width:110px;font-size:0.78rem;text-transform:capitalize;">{{ scene }}</div>
-        <div class="bar-track"><div class="bar-fill" style="width:{{ (val/(max_sharp+0.001)*100)|int }}%;background:#10b981;opacity:0.65;"></div></div>
-        <div class="bar-val">{{ "%.0f"|format(val) }}</div>
-      </div>
-      {% endfor %}
-    </div>
-    {% endif %}
   </div>
 </div>
 
@@ -673,94 +719,147 @@ canvas { max-height: 300px; }
 {% set fa = pose_stats.framing_aesthetic %}
 {% set sg = pose_stats.solo_vs_group %}
 {% set pcd = pose_stats.person_count_dist %}
-<div class="card mb">
-  <div class="card-title">Portrait Insights <span style="color:#8080aa;font-weight:400;">{{ pose_stats.portrait_count }} images · YOLOv8-Pose</span></div>
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;align-items:start;">
-    <!-- Left: stat tiles -->
-    <div>
-      <div class="stat-grid" style="margin-bottom:0;">
-        {% if sg %}
-        <div class="stat"><div class="stat-l">Solo</div><div class="stat-v">{{ sg.solo }}</div></div>
-        <div class="stat"><div class="stat-l">Group</div><div class="stat-v">{{ sg.group }}</div></div>
-        {% endif %}
-        {% if pcd %}
-        <div class="stat"><div class="stat-l">2-Person</div><div class="stat-v">{{ pcd.get("2", 0) }}</div></div>
-        <div class="stat"><div class="stat-l">3-Person</div><div class="stat-v">{{ pcd.get("3", 0) }}</div></div>
-        <div class="stat"><div class="stat-l">Group 4+</div><div class="stat-v">{{ pcd.get("4+", 0) }}</div></div>
-        {% endif %}
-        {% if pose_stats.avg_body_coverage %}
-        <div class="stat"><div class="stat-l">Avg Coverage</div><div class="stat-v">{{ (pose_stats.avg_body_coverage * 100) | round(1) }}%</div></div>
-        {% endif %}
-      </div>
-    </div>
-    <!-- Right: framing chart -->
-    <div>
-      {% if ft %}
-      <div style="font-size:0.62rem;color:#7878a0;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:0.4rem;">Framing Style <span style="font-weight:400;text-transform:none;color:#5a5a78;">hover for avg aesthetic</span></div>
-      <div class="chart-h" style="height:130px;"><canvas id="framingChart"></canvas></div>
+<div class="row two mb">
+  <div class="card">
+    <div class="card-title">Portrait Insights <span style="color:#8080aa;font-weight:400;">{{ pose_stats.portrait_count }} images · YOLOv8-Pose</span></div>
+    <div class="stat-grid" style="margin-bottom:0;gap:0.3rem;">
+      {% if sg %}
+      <div class="stat" style="padding:0.5rem 0.6rem;"><div class="stat-l">Solo</div><div class="stat-v">{{ sg.solo }}</div><div class="stat-s">1 person</div></div>
+      {% endif %}
+      {% if pcd %}
+      <div class="stat" style="padding:0.5rem 0.6rem;"><div class="stat-l">Pair</div><div class="stat-v">{{ pcd.get("2", 0) }}</div><div class="stat-s">2 people</div></div>
+      <div class="stat" style="padding:0.5rem 0.6rem;"><div class="stat-l">Group 3+</div><div class="stat-v">{{ (pcd.get("3", 0) or 0) + (pcd.get("4+", 0) or 0) }}</div><div class="stat-s">3 or more</div></div>
       {% endif %}
     </div>
   </div>
-</div>
-<script>
-(() => {
   {% if ft %}
-  const elF = document.getElementById("framingChart");
-  if (elF) {
-    const tiers = {{ ft | tojson }};
-    const aesthetic = {{ fa | tojson }};
-    new Chart(elF, { type: "bar",
-      data: { labels: Object.keys(tiers).map(k => k.charAt(0).toUpperCase()+k.slice(1)), datasets: [{ data: Object.values(tiers), backgroundColor: ["#818cf8bb","#34d399bb","#60a5fabb"], borderRadius: 4 }] },
-      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false },
-        tooltip: { callbacks: { afterLabel: ctx => { const k = Object.keys(tiers)[ctx.dataIndex]; return aesthetic[k] != null ? "Avg aesthetic: "+aesthetic[k] : ""; }}}},
-        scales: { x: { grid: { color: "#14142a" }, ticks: { color: "#7878a0" }}, y: { grid: { color: "#14142a" }, ticks: { color: "#7878a0" }}}}
-    });
-  }
+  {% set ft_total = ft.values() | sum or 1 %}
+  {% set ft_sorted = [("tight", ft.get("tight",0)), ("medium", ft.get("medium",0)), ("wide", ft.get("wide",0))] | sort(attribute='1', reverse=True) %}
+  {% set ft_colors = ["#7c6af7","#10b981","#3b82f6"] %}
+  <div class="card">
+    <div class="card-title">Framing Style</div>
+    <div style="display:flex;gap:0.5rem;">
+      {% for ft_name, ft_cnt in ft_sorted %}
+      {% set ft_pct = (ft_cnt / ft_total * 100)|round|int %}
+      {% set ft_col = ft_colors[loop.index0] %}
+      <div style="flex:1;background:{{ ft_col }};opacity:{{ 1.0 - loop.index0 * 0.25 }};border-radius:8px;padding:0.7rem 0.4rem;text-align:center;">
+        <div style="font-size:1.1rem;font-weight:700;color:#fff;opacity:1;">{{ ft_pct }}%</div>
+        <div style="font-size:0.68rem;color:#ffffffcc;text-transform:capitalize;margin-top:2px;">{{ ft_name }}</div>
+        {% if fa and fa.get(ft_name) %}<div style="font-size:0.6rem;color:#ffffff99;margin-top:1px;">{{ fa[ft_name]|round(1) }} aesthetic</div>{% endif %}
+      </div>
+      {% endfor %}
+    </div>
+  </div>
   {% endif %}
-})();
-</script>
+</div>
 {% endif %}
 
+</details>
+
+<!-- ═══════════════════════════════════════ GEAR & DEVICES ════════════════ -->
+<details open id="s-gear" style="margin-bottom:0;">
+<summary style="cursor:pointer;list-style:none;display:flex;align-items:center;gap:0.5rem;padding:0.6rem 0 0.5rem;font-size:0.68rem;font-weight:700;color:#7878a0;text-transform:uppercase;letter-spacing:0.12em;border-bottom:1px solid #1a1a2e;margin-bottom:1rem;" class="section-summary">Gear &amp; Devices</summary>
+
+{% set tsa = technical_settings_analysis %}
+{% if tsa %}
+<div class="card mb">
+  <div class="card-title">Camera Bodies &amp; Lenses</div>
+  {% if tsa.device_breakdown %}
+  <div class="card-desc" style="margin-bottom:0.6rem;">Camera body types across the library.</div>
+  <div class="strip mb" style="margin-bottom:1rem;">
+    {% set dev_total = tsa.device_breakdown.values() | sum(attribute='count') or 1 %}
+    {% for cat, d in tsa.device_breakdown.items() | sort(attribute='1.count', reverse=true) %}
+    <div class="strip-item" style="flex:{{ d.count / dev_total }};min-width:80px;">
+      <div class="strip-v">{{ d.count }}</div>
+      <div class="strip-s">{{ cat }}</div>
+      {% if d.avg_aesthetic is not none %}<div class="strip-s" style="color:#7c6af7;">{{ "%.1f"|format(d.avg_aesthetic) }} aes</div>{% endif %}
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+  <div class="row two" style="margin-top:1rem;gap:1rem;align-items:flex-start;">
+    {% if tsa.top_lenses %}
+    <div>
+      <div style="margin-bottom:0.5rem;font-size:0.75rem;color:#9090b8;text-transform:uppercase;letter-spacing:0.05em;">Top Lenses</div>
+      {% set lens_max = tsa.top_lenses.values() | max %}
+      {% for lens, cnt in (tsa.top_lenses.items() | list | sort(attribute=1, reverse=true))[:6] %}
+      <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.25rem;">
+        <div style="font-size:0.75rem;min-width:130px;color:#c8c8e8;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="{{ lens }}">{{ lens }}</div>
+        <div style="flex:1;background:#1c1c2e;border-radius:3px;height:6px;"><div style="width:{{ (cnt/lens_max*100)|round(1) }}%;background:#7c6af7;height:100%;border-radius:3px;"></div></div>
+        <div style="font-size:0.72rem;color:#9090b8;min-width:30px;text-align:right;">{{ cnt }}</div>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+    {% if tsa.shutter_category_distribution %}
+    {% set shutter_labels = {"freeze": "Fast Shutter (≤1/500s)", "hand": "Handheld (1/500–1/60s)", "slow": "Slow (1/60–1/15s)", "bulb": "Bulb (>1/15s)"} %}
+    <div>
+      <div style="font-size:0.72rem;color:#9090b8;margin-bottom:0.5rem;text-transform:uppercase;letter-spacing:0.05em;">Motion Style</div>
+      {% set sh_total = tsa.shutter_category_distribution.values() | sum or 1 %}
+      {% for cat, cnt in tsa.shutter_category_distribution.items() | sort(attribute='1', reverse=true) %}
+      {% set sh_pct = (cnt/sh_total*100)|round(1) %}
+      <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:5px;">
+        <div style="font-size:0.75rem;color:#c0c0d8;min-width:160px;">{{ shutter_labels.get(cat, cat) }}</div>
+        <div style="flex:1;background:#16161f;border-radius:3px;height:6px;"><div style="width:{{ sh_pct|round|int }}%;background:#60a5fa;height:100%;border-radius:3px;"></div></div>
+        <div style="font-size:0.72rem;color:#9090b8;min-width:36px;text-align:right;">{{ sh_pct }}%</div>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+  </div>
+  {% if tsa.gps and tsa.gps.count > 0 %}
+  <div style="margin-top:1rem;padding:0.6rem 0.8rem;background:#13131f;border-radius:6px;">
+    <div style="font-size:0.72rem;color:#9090b8;text-transform:uppercase;letter-spacing:0.05em;">GPS Coverage</div>
+    <div style="font-size:1.2rem;font-weight:700;color:#7c6af7;">{{ tsa.gps.pct }}%</div>
+    <div style="font-size:0.72rem;color:#9090b8;">{{ tsa.gps.count }} images with location data · bounds {{ "%.2f"|format(tsa.gps.bounds.lat_min) }}–{{ "%.2f"|format(tsa.gps.bounds.lat_max) }}°N, {{ "%.2f"|format(tsa.gps.bounds.lon_min) }}–{{ "%.2f"|format(tsa.gps.bounds.lon_max) }}°E</div>
+  </div>
+  {% endif %}
+</div>
+{% endif %}
+
+
+</details>
+
 <!-- ══════════════════════════════════════ EDITING STYLE ══════════════════ -->
-<div id="s-aesthetics"></div>
+<details open id="s-aesthetics" style="margin-bottom:0;">
+<summary style="cursor:pointer;list-style:none;display:flex;align-items:center;gap:0.5rem;padding:0.6rem 0 0.5rem;font-size:0.68rem;font-weight:700;color:#7878a0;text-transform:uppercase;letter-spacing:0.12em;border-bottom:1px solid #1a1a2e;margin-bottom:1rem;" class="section-summary">Editing &amp; Aesthetics</summary>
+
+{% macro render_style_patterns(patterns, label) %}
+{% if patterns %}
+<div>
+  {% if label %}<div style="font-size:0.62rem;color:#7878a0;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:0.6rem;border-bottom:1px solid #1a1a28;padding-bottom:0.4rem;">{{ label }}</div>{% endif %}
+  {% if patterns | length == 1 %}
+  {% set p = patterns[0] %}
+  <div style="font-size:1.6rem;font-weight:700;color:#7c6af7;line-height:1.2;margin-bottom:0.3rem;">{{ p.name }}</div>
+  <div style="font-size:0.75rem;color:#8080aa;margin-bottom:0.6rem;">{{ "%.0f"|format(p.confidence * 100) }}% confidence</div>
+  {% if p.description %}<div style="font-size:0.8rem;color:#9090b8;line-height:1.55;max-width:72ch;">{{ p.description }}</div>{% endif %}
+  {% else %}
+  {% for p in patterns %}
+  {% set tier = "dom" if p.confidence >= 0.65 else "mod" if p.confidence >= 0.35 else "" %}
+  <div class="pattern-card {{ tier }}" style="margin-bottom:0.4rem;">
+    <div class="ptn-name">{{ p.name }}</div>
+    <div class="ptn-conf-row">
+      <div class="ptn-conf-bar"><div class="ptn-conf-fill" style="width:{{ (p.confidence*100)|int }}%;background:{% if p.confidence>=0.65 %}#7c6af7{% elif p.confidence>=0.35 %}#f97316{% else %}#4b5563{% endif %};"></div></div>
+      <div class="ptn-pct">{{ "%.0f"|format(p.confidence*100) }}%</div>
+    </div>
+  </div>
+  {% endfor %}
+  {% endif %}
+</div>
+{% else %}
+<div>
+  {% if label %}<div style="font-size:0.62rem;color:#7878a0;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:0.6rem;border-bottom:1px solid #1a1a28;padding-bottom:0.4rem;">{{ label }}</div>{% endif %}
+  <div style="font-size:0.78rem;color:#505068;">No data</div>
+</div>
+{% endif %}
+{% endmacro %}
 
 <!-- Editing Style Analysis + Aesthetic Quality — side by side -->
 <div class="row two mb">
   {% if editing_style_patterns %}
   <div class="card">
     <div class="card-title">Editing Style Analysis</div>
-    {% if editing_style_patterns | length == 1 %}
-    {% set p = editing_style_patterns[0] %}
-    <div class="style-editorial" style="padding:0.75rem 0;">
-      <div class="style-name">{{ p.name }}</div>
-      <div class="style-conf">{{ "%.0f"|format(p.confidence * 100) }}% confidence · saturation, contrast &amp; brightness variation</div>
-      <div class="style-meaning">
-        {% if p.key == "varied" or "varied" in p.name.lower() or "eclectic" in p.name.lower() %}
-        Your images don't follow a single visual recipe — saturation, contrast, and brightness vary widely.
-        This usually means different shoots, different subjects, and multiple creative moods rather than one applied preset.
-        It's a sign of range, not inconsistency.
-        {% else %}
-        {{ p.description }}
-        {% endif %}
-      </div>
-    </div>
-    {% else %}
-    <div class="pattern-grid">
-      {% for p in editing_style_patterns %}
-      {% set tier = "dom" if p.confidence >= 0.65 else "mod" if p.confidence >= 0.35 else "" %}
-      <div class="pattern-card {{ tier }}">
-        <div class="ptn-name">{{ p.name }}</div>
-        <div class="ptn-conf-row">
-          <div class="ptn-conf-bar">
-            <div class="ptn-conf-fill" style="width:{{ (p.confidence*100)|int }}%;background:{% if p.confidence>=0.65 %}#7c6af7{% elif p.confidence>=0.35 %}#f97316{% else %}#4b5563{% endif %};"></div>
-          </div>
-          <div class="ptn-pct">{{ "%.0f"|format(p.confidence*100) }}%</div>
-        </div>
-        <div class="ptn-desc">{{ p.description }}</div>
-      </div>
-      {% endfor %}
-    </div>
-    {% endif %}
+    {{ render_style_patterns(editing_style_patterns, "") }}
   </div>
   {% endif %}
   <div class="card">
@@ -780,78 +879,6 @@ canvas { max-height: 300px; }
   </div>
 </div>
 
-{% if false %}<!-- Aesthetic Score by Scene removed — data merged into Color Profile by Scene tiles -->
-{% if aesthetic_by_scene %}
-{% set aes_sorted = aesthetic_by_scene.items() | sort(attribute='1.avg_score', reverse=True) | list %}
-{% set all_scores = aes_sorted | map(attribute='1') | map(attribute='avg_score') | list %}
-{% set s_min = all_scores | min %}
-{% set s_max = all_scores | max %}
-{% set s_range = s_max - s_min %}
-{% set s_pad = s_range * 0.3 %}
-{% set axis_min = s_min - s_pad %}
-{% set axis_max = s_max + s_pad %}
-{% set axis_range = axis_max - axis_min %}
-{% set max_count = aes_sorted | map(attribute='1') | map(attribute='count') | max %}
-{% set sc_colors = ["#7c6af7","#10b981","#f59e0b","#ec4899","#3b82f6","#f97316","#14b8a6","#a855f7","#06b6d4","#ef4444"] %}
-<div class="card mb">
-  <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:0.5rem;">
-    <div>
-      <div class="card-title" style="margin-bottom:0.25rem;">Aesthetic Score by Scene</div>
-      <div style="font-size:0.75rem;color:#8080aa;line-height:1.5;">
-        Dot position = avg score on a zoomed axis · dot size = image count · shaded band = ±1σ consistency
-      </div>
-    </div>
-    <div style="flex-shrink:0;font-size:0.72rem;color:#7878a0;">{{ "%.1f"|format(s_min) }}–{{ "%.1f"|format(s_max) }} range</div>
-  </div>
-
-  <!-- axis tick line -->
-  <div style="display:flex;margin-left:168px;margin-right:110px;margin-bottom:2px;">
-    <div style="flex:1;display:flex;justify-content:space-between;">
-      <span style="font-size:0.6rem;color:#505070;">{{ "%.2f"|format(axis_min) }}</span>
-      <span style="font-size:0.6rem;color:#505070;">{{ "%.2f"|format((axis_min + axis_range*0.5)|round(2)) }}</span>
-      <span style="font-size:0.6rem;color:#505070;">{{ "%.2f"|format(axis_max) }}</span>
-    </div>
-  </div>
-
-  <div style="display:flex;flex-direction:column;gap:0.7rem;">
-    {% for scene, v in aes_sorted %}{% if v.count > 0 %}
-    {% set col = sc_colors[loop.index0 % sc_colors|length] %}
-    {% set center_pct = ((v.avg_score - axis_min) / axis_range * 100)|round(2) %}
-    {% set band_hw = (v['std'] / axis_range * 100)|round(2) %}
-    {% set band_left = (center_pct - band_hw)|round(2) %}
-    {% set dot_px = (v.count / max_count * 14 + 7)|round|int %}
-    <div style="display:flex;align-items:center;gap:0.6rem;">
-      <!-- scene label + count stacked -->
-      <div style="min-width:165px;text-align:right;flex-shrink:0;">
-        <div style="font-size:0.78rem;color:#c0c0d8;text-transform:capitalize;line-height:1.2;">{{ scene }}</div>
-        <div style="font-size:0.62rem;color:#7878a0;">{{ "{:,}".format(v.count) }} images</div>
-      </div>
-      <!-- dot-plot track -->
-      <div style="flex:1;position:relative;height:22px;background:#141420;border-radius:4px;">
-        <!-- ±1σ band -->
-        <div style="position:absolute;top:50%;transform:translateY(-50%);height:10px;background:{{ col }};opacity:0.15;border-radius:3px;left:{{ [band_left,0]|max }}%;width:{{ [band_hw*2, 100 - [band_left,0]|max]|min }}%;"></div>
-        <!-- center line -->
-        <div style="position:absolute;top:0;bottom:0;width:1px;background:{{ col }};opacity:0.25;left:{{ center_pct }}%;"></div>
-        <!-- dot -->
-        <div style="position:absolute;top:50%;transform:translate(-50%,-50%);width:{{ dot_px }}px;height:{{ dot_px }}px;border-radius:50%;background:{{ col }};left:{{ center_pct }}%;box-shadow:0 0 8px {{ col }}55;"></div>
-      </div>
-      <!-- score value -->
-      <div style="min-width:44px;text-align:right;font-size:0.78rem;font-weight:700;color:#e0e0ee;font-variant-numeric:tabular-nums;flex-shrink:0;">{{ "%.2f"|format(v.avg_score) }}</div>
-      <!-- std badge -->
-      <div style="min-width:52px;font-size:0.68rem;color:#7878a0;flex-shrink:0;">σ&thinsp;{{ "%.2f"|format(v['std']) }}</div>
-    </div>
-    {% endif %}{% endfor %}
-  </div>
-
-  <div style="margin-top:1rem;padding-top:0.75rem;border-top:1px solid #1a1a28;display:flex;gap:1.5rem;flex-wrap:wrap;">
-    <div style="font-size:0.72rem;color:#7878a0;line-height:1.6;">
-      <strong style="color:#9090b8;">σ (sigma)</strong> = consistency within that scene — lower means your shots in that scene are more uniformly rated. All scenes cluster in the {{ "%.1f"|format(s_min) }}–{{ "%.1f"|format(s_max) }} range on the 0–100 scale, typical for a curated personal library.
-    </div>
-  </div>
-</div>
-{% endif %}
-{% endif %}
-
 <!-- Color Grading + Color & Mood -->
 <div class="row c5-7 mb">
   <div class="card">
@@ -869,58 +896,56 @@ canvas { max-height: 300px; }
         <div class="stat-s">{{ cgs.color_temperature_description or "" }}</div>
       </div>
     </div>
-    {% if cgs.avg_tonal_shadow_pct is not none %}
-    <div style="font-size:0.68rem;color:#7878a0;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:0.5rem;">Tonal Zone Split</div>
-    {% for lbl, val, col in [("Shadows", cgs.avg_tonal_shadow_pct,"#6366f1"),("Midtones",cgs.avg_tonal_mid_pct,"#f59e0b"),("Highlights",cgs.avg_tonal_highlight_pct,"#34d399")] %}
-      {% if val is not none %}
-      <div class="dbar">
-        <div class="dbar-row"><span>{{ lbl }}</span><span>{{ "%.1f"|format(val*100) }}%</span></div>
-        <div class="dbar-bg"><div class="dbar-fill" style="width:{{ "%.0f"|format(val*100) }}%;background:{{ col }};"></div></div>
-      </div>
-      {% endif %}
-    {% endfor %}
-    {% endif %}
     {% set hps = cgs.harmony_pcts %}
     {% if hps %}
     <div style="font-size:0.68rem;color:#7878a0;text-transform:uppercase;letter-spacing:0.07em;margin:0.9rem 0 0.5rem;">Color Harmony</div>
     {% set hcols = {"analogous":"#7c6af7","complementary":"#f97316","triadic":"#10b981","monochromatic":"#94a3b8","mixed":"#f59e0b"} %}
     {% for htype, pct in hps.items() %}
     <div class="dbar">
-      <div class="dbar-row">
-        <span style="text-transform:capitalize;">{{ htype }}{% if htype == cgs.dominant_harmony %} <span style="color:#8080aa;">·dom</span>{% endif %}</span>
-        <span>{{ pct }}%</span>
-      </div>
+      <div class="dbar-row"><span style="text-transform:capitalize;">{{ htype }}</span><span>{{ pct }}%</span></div>
       <div class="dbar-bg"><div class="dbar-fill" style="width:{{ pct }}%;background:{{ hcols.get(htype,'#4b5563') }};"></div></div>
     </div>
     {% endfor %}
     {% endif %}
-    {% set st = cgs.split_toning %}
-    {% if st %}
-    <div style="font-size:0.68rem;color:#7878a0;text-transform:uppercase;letter-spacing:0.07em;margin:0.9rem 0 0.4rem;">Split Toning</div>
-    <div style="font-size:0.82rem;color:#b8b8d0;margin-bottom:0.6rem;">{{ st.toning_style }}</div>
-    <div style="display:flex;gap:0.8rem;align-items:flex-start;margin-bottom:0.6rem;">
-      {% for zone_label, zone_color, lum_shift in [("Shadows", st.shadow_color, st.shadow_lum_shift), ("Midtones", st.midtone_color, st.midtone_lum_shift), ("Highlights", st.highlight_color, st.highlight_lum_shift)] %}
-      <div style="text-align:center;">
-        <div style="width:36px;height:36px;border-radius:6px;background:{{ zone_color or '#1e1e2e' }};border:1px solid #2a2a3e;margin:0 auto 4px;" title="{{ zone_label }}{% if lum_shift %} · lum {{ '%+.0f'|format(lum_shift) }}{% endif %}"></div>
-        <div style="font-size:0.6rem;color:#7878a0;text-transform:uppercase;letter-spacing:0.05em;">{{ zone_label[:3] }}</div>
-        {% if lum_shift and lum_shift|abs > 0.5 %}<div style="font-size:0.6rem;color:{% if lum_shift > 1 %}#34d399{% elif lum_shift < -1 %}#f87171{% else %}#7878a0{% endif %};">{{ '%+.0f'|format(lum_shift) }}</div>{% else %}<div style="font-size:0.6rem;color:#5a5a78;">—</div>{% endif %}
+    {% if split_toning and split_toning.toning_style %}
+    <div style="font-size:0.68rem;color:#7878a0;text-transform:uppercase;letter-spacing:0.07em;margin:0.9rem 0 0.5rem;">Split Toning Fingerprint</div>
+    <div style="display:flex;gap:0.5rem;align-items:center;margin-bottom:0.5rem;">
+      {% for label, key in [("Shadows", "shadow_color"), ("Midtones", "midtone_color"), ("Highlights", "highlight_color")] %}
+      <div style="display:flex;flex-direction:column;align-items:center;gap:0.25rem;flex:1;">
+        <div style="width:100%;height:28px;border-radius:5px;background:{{ split_toning[key] }};border:1px solid #2a2a3e;"></div>
+        <div style="font-size:0.58rem;color:#7878a0;">{{ label }}</div>
+        <div style="font-size:0.6rem;color:#9090b8;font-family:monospace;">{{ split_toning[key] }}</div>
       </div>
       {% endfor %}
-      <div style="margin-left:0.4rem;font-size:0.72rem;color:#7878a0;padding-top:4px;">Balance<br><strong style="color:#9090b8;">{{ '%+.0f'|format(st.avg_balance) }}</strong><br><span style="font-size:0.6rem;">−100 shad ↔ +100 hi</span></div>
     </div>
+    <div style="font-size:0.72rem;color:#c8c8e8;">{{ split_toning.toning_style }}</div>
+    {% if split_toning.avg_balance is not none %}
+    <div style="font-size:0.65rem;color:#7878a0;margin-top:0.3rem;">Balance {{ "%+.1f"|format(split_toning.avg_balance) }} · shadow lift {{ "%.1f"|format(split_toning.shadow_lum_shift) }} EV · highlight push {{ "%.1f"|format(split_toning.highlight_lum_shift) }} EV</div>
+    {% endif %}
     {% endif %}
   </div>
 
   <div class="card">
     <div class="card-title">Color &amp; Mood</div>
+    {% if fg_palette_colors or bg_palette_colors %}
+    <div style="margin-bottom:0.75rem;">
+      {% if fg_palette_colors %}
+      <div style="font-size:0.62rem;color:#7878a0;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:0.3rem;">Subject</div>
+      <div class="swatches" style="margin-bottom:0.5rem;">{% for rgb in fg_palette_colors %}<div class="swatch" style="background:rgb({{ rgb[0] }},{{ rgb[1] }},{{ rgb[2] }});"></div>{% endfor %}</div>
+      {% endif %}
+      {% if bg_palette_colors %}
+      <div style="font-size:0.62rem;color:#7878a0;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:0.3rem;">Background</div>
+      <div class="swatches">{% for rgb in bg_palette_colors %}<div class="swatch" style="background:rgb({{ rgb[0] }},{{ rgb[1] }},{{ rgb[2] }});"></div>{% endfor %}</div>
+      {% endif %}
+    </div>
+    {% else %}
     {% set palette_colors = [] %}
     {% for photo in photos %}{% if photo.color and photo.color.palette %}{% for sw in photo.color.palette %}{% if palette_colors|length < 40 %}{% set _ = palette_colors.append(sw.rgb) %}{% endif %}{% endfor %}{% endif %}{% endfor %}
     <div class="swatches">{% for rgb in palette_colors %}<div class="swatch" style="background:rgb({{ rgb[0] }},{{ rgb[1] }},{{ rgb[2] }});"></div>{% endfor %}</div>
-    <div class="stat-grid" style="margin-bottom:1rem;">
-      <div class="stat"><div class="stat-l">Saturation</div><div class="stat-v">{{ "%.2f"|format(color_stats.avg_saturation or 0) }}</div><div class="stat-s">0 grey · 1 vivid</div></div>
-      <div class="stat"><div class="stat-l">Sat Std Dev</div><div class="stat-v">{{ "%.3f"|format(color_stats.saturation_std or 0) }}</div></div>
-      <div class="stat"><div class="stat-l">Brightness</div><div class="stat-v">{{ "%.2f"|format(color_stats.avg_brightness or 0) }}</div></div>
-      <div class="stat"><div class="stat-l">Contrast</div><div class="stat-v">{{ "%.2f"|format(color_stats.avg_contrast or 0) }}</div></div>
+    {% endif %}
+    <div class="stat-grid" style="margin-bottom:1rem;grid-template-columns:1fr 1fr;">
+      <div class="stat"><div class="stat-l">Saturation</div><div class="stat-v">{{ "%.2f"|format(color_stats.avg_saturation or 0) }}</div><div class="stat-s">{% if editing_consistency and editing_consistency.interpretation %}{{ editing_consistency.interpretation }}{% endif %}</div></div>
+      <div class="stat"><div class="stat-l">Brightness</div><div class="stat-v">{{ "%.2f"|format(color_stats.avg_brightness or 0) }}</div><div class="stat-s">0 dark · 1 bright</div></div>
     </div>
     {% set wd = color_stats.warmth_distribution %}
     {% set wt = (wd.warm or 0) + (wd.cool or 0) + (wd.neutral or 0) %}
@@ -935,11 +960,25 @@ canvas { max-height: 300px; }
     {% endif %}
     <div style="display:flex;justify-content:space-between;align-items:baseline;margin:0.9rem 0 0.4rem;">
       <div style="font-size:0.68rem;color:#7878a0;text-transform:uppercase;letter-spacing:0.07em;">Hue Distribution</div>
-      <div style="font-size:0.65rem;color:#606080;">chromatic images only (sat &gt; 15%)</div>
+      <div style="font-size:0.65rem;color:#606080;">dominant color ranges across your library (chromatic images, sat &gt; 15%)</div>
     </div>
     <div class="chart-h" style="max-height:160px;"><canvas id="hueChart" style="max-height:160px;"></canvas></div>
     <div style="font-size:0.68rem;color:#7878a0;text-transform:uppercase;letter-spacing:0.07em;margin:0.8rem 0 0.4rem;">Saturation Distribution</div>
-    <div class="chart-h" style="max-height:100px;"><canvas id="satHistChart" style="max-height:100px;"></canvas></div>
+    {% set sh = saturation_histogram %}
+    {% if sh and sh.buckets %}
+    {% set max_b = sh.buckets | max or 1 %}
+    {% set sh_total = sh.buckets | sum or 1 %}
+    <div style="height:18px;border-radius:4px;background:linear-gradient(to right,#2a2a3e 0%,rgba(236,72,153,0.25) 35%,rgba(236,72,153,0.65) 70%,#ec4899 100%);margin-bottom:6px;" title="Saturation from muted (left) to vivid (right)"></div>
+    <div style="display:flex;gap:1px;margin-bottom:3px;">
+      {% for v in sh.buckets %}
+      {% set pct = (v / sh_total * 100)|round|int %}
+      <div style="flex:1;text-align:center;font-size:0.58rem;color:{% if pct > 5 %}#9090b8{% else %}#4a4a68{% endif %};">{% if pct > 0 %}{{ pct }}%{% endif %}</div>
+      {% endfor %}
+    </div>
+    <div style="display:flex;justify-content:space-between;font-size:0.6rem;color:#5a5a78;">
+      <span>Muted</span><span>Vivid</span>
+    </div>
+    {% endif %}
   </div>
 </div>
 
@@ -999,6 +1038,36 @@ canvas { max-height: 300px; }
 </div>
 {% endif %}
 
+<!-- Editing DNA (HSL fingerprint) -->
+{% if hsl_fingerprint %}
+<div class="card mb">
+  <div class="card-title">Editing DNA <span style="color:#8080aa;font-weight:400;">HSL channel fingerprint · avg across Lightroom library</span></div>
+  <div class="card-desc">How you systematically shift individual colour channels in post — your tonal and colour signature.</div>
+  {% set hsl_channels = ["Red","Orange","Yellow","Green","Aqua","Blue","Purple","Magenta"] %}
+  {% set ch_colors = {"Red":"#ef4444","Orange":"#f97316","Yellow":"#eab308","Green":"#22c55e","Aqua":"#06b6d4","Blue":"#3b82f6","Purple":"#8b5cf6","Magenta":"#ec4899"} %}
+  <div style="display:grid;grid-template-columns:80px repeat(3,1fr);gap:3px;margin-bottom:4px;">
+    <div></div>
+    <div style="text-align:center;font-size:0.68rem;color:#7878a0;text-transform:uppercase;letter-spacing:0.06em;">Hue</div>
+    <div style="text-align:center;font-size:0.68rem;color:#7878a0;text-transform:uppercase;letter-spacing:0.06em;">Sat</div>
+    <div style="text-align:center;font-size:0.68rem;color:#7878a0;text-transform:uppercase;letter-spacing:0.06em;">Lum</div>
+  </div>
+  {% for ch in hsl_channels %}
+  {% set row = hsl_fingerprint[ch] %}
+  <div style="display:grid;grid-template-columns:80px repeat(3,1fr);gap:3px;margin-bottom:3px;align-items:center;">
+    <div style="font-size:0.72rem;color:{{ ch_colors[ch] }};font-weight:600;">{{ ch }}</div>
+    {% for val, key in [(row.hue_adj,'hue'),(row.sat_adj,'sat'),(row.lum_adj,'lum')] %}
+    {% set intensity = [((val|abs)/15), 1.0] | min %}
+    {% set bg = "rgba(124,106,247," + (intensity*0.85)|round(2)|string + ")" if val > 0 else ("rgba(239,68,68," + (intensity*0.75)|round(2)|string + ")" if val < 0 else "rgba(30,30,46,0.5)") %}
+    <div style="background:{{ bg }};border-radius:4px;padding:3px 5px;text-align:center;font-size:0.72rem;color:{% if val|abs > 3 %}#e8e8f8{% else %}#7878a0{% endif %};">
+      {{ "%+.1f"|format(val) }}
+    </div>
+    {% endfor %}
+  </div>
+  {% endfor %}
+  <div style="margin-top:0.5rem;font-size:0.68rem;color:#5a5a78;">Purple = raised &nbsp;·&nbsp; Red = lowered &nbsp;·&nbsp; Dark = near-zero</div>
+</div>
+{% endif %}
+
 <!-- LR Develop Settings -->
 {% if develop_stats and develop_stats.total_with_develop > 0 %}
 <div class="card mb">
@@ -1020,8 +1089,9 @@ canvas { max-height: 300px; }
   {% if develop_stats.by_scene %}
   {% set dev_sliders = [("Exposure2012","Exposure"),("Contrast","Contrast"),("Highlights2012","Highlights"),("Shadows2012","Shadows"),("Whites2012","Whites"),("Blacks2012","Blacks"),("Vibrance","Vibrance"),("Saturation","Saturation"),("Sharpness","Sharpness"),("LuminanceSmoothing","Lum. Noise"),("ColorNoiseReduction","Color NR")] %}
   {% set dev_scenes = develop_stats.by_scene.keys() | list %}
-  <div style="margin-top:1.4rem;overflow-x:auto;">
-    <div style="font-size:0.68rem;color:#7878a0;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:0.6rem;">Avg Slider Value by Scene</div>
+  <details style="margin-top:1.2rem;">
+    <summary style="cursor:pointer;list-style:none;font-size:0.68rem;color:#7878a0;text-transform:uppercase;letter-spacing:0.08em;padding:0.3rem 0;">Avg Slider Value by Scene ▾</summary>
+    <div style="margin-top:0.6rem;overflow-x:auto;">
     <table style="width:100%;border-collapse:separate;border-spacing:2px;font-size:0.68rem;table-layout:fixed;">
       <colgroup>
         <col style="width:90px;">
@@ -1056,39 +1126,9 @@ canvas { max-height: 300px; }
       </tbody>
     </table>
     <div style="margin-top:0.5rem;font-size:0.68rem;color:#505070;">Green = pushed above default &nbsp;·&nbsp; Red = pulled below &nbsp;·&nbsp; Intensity = magnitude of avg shift</div>
-  </div>
-  {% endif %}
-</div>
-{% endif %}
-
-<!-- Editing DNA (HSL fingerprint + intensity) -->
-{% if hsl_fingerprint %}
-<div class="card mb">
-  <div class="card-title">Editing DNA <span style="color:#8080aa;font-weight:400;">HSL channel fingerprint · avg across Lightroom library</span></div>
-  <div class="card-desc">How you systematically shift individual colour channels in post — your tonal and colour signature.</div>
-  {% set hsl_channels = ["Red","Orange","Yellow","Green","Aqua","Blue","Purple","Magenta"] %}
-  {% set ch_colors = {"Red":"#ef4444","Orange":"#f97316","Yellow":"#eab308","Green":"#22c55e","Aqua":"#06b6d4","Blue":"#3b82f6","Purple":"#8b5cf6","Magenta":"#ec4899"} %}
-  <!-- column headers -->
-  <div style="display:grid;grid-template-columns:80px repeat(3,1fr);gap:3px;margin-bottom:4px;">
-    <div></div>
-    <div style="text-align:center;font-size:0.68rem;color:#7878a0;text-transform:uppercase;letter-spacing:0.06em;">Hue</div>
-    <div style="text-align:center;font-size:0.68rem;color:#7878a0;text-transform:uppercase;letter-spacing:0.06em;">Sat</div>
-    <div style="text-align:center;font-size:0.68rem;color:#7878a0;text-transform:uppercase;letter-spacing:0.06em;">Lum</div>
-  </div>
-  {% for ch in hsl_channels %}
-  {% set row = hsl_fingerprint[ch] %}
-  <div style="display:grid;grid-template-columns:80px repeat(3,1fr);gap:3px;margin-bottom:3px;align-items:center;">
-    <div style="font-size:0.72rem;color:{{ ch_colors[ch] }};font-weight:600;">{{ ch }}</div>
-    {% for val, key in [(row.hue_adj,'hue'),(row.sat_adj,'sat'),(row.lum_adj,'lum')] %}
-    {% set intensity = [((val|abs)/15), 1.0] | min %}
-    {% set bg = "rgba(124,106,247," + (intensity*0.85)|round(2)|string + ")" if val > 0 else ("rgba(239,68,68," + (intensity*0.75)|round(2)|string + ")" if val < 0 else "rgba(30,30,46,0.5)") %}
-    <div style="background:{{ bg }};border-radius:4px;padding:3px 5px;text-align:center;font-size:0.72rem;color:{% if val|abs > 3 %}#e8e8f8{% else %}#7878a0{% endif %};">
-      {{ "%+.1f"|format(val) }}
     </div>
-    {% endfor %}
-  </div>
-  {% endfor %}
-  <div style="margin-top:0.5rem;font-size:0.68rem;color:#5a5a78;">Purple = raised &nbsp;·&nbsp; Red = lowered &nbsp;·&nbsp; Dark = near-zero</div>
+  </details>
+  {% endif %}
 </div>
 {% endif %}
 
@@ -1111,8 +1151,9 @@ canvas { max-height: 300px; }
       </div>
       <div class="cs-pills">
         {% if d.avg_aesthetic %}<span class="cs-pill" style="color:{{ col }};">⬡ {{ "%.1f"|format(d.avg_aesthetic) }}</span>{% endif %}
+        {% if iq_by_scene.get(scene) is not none %}<span class="cs-pill" style="color:#10b981;">IQ {{ iq_by_scene[scene] }}</span>{% endif %}
         {% if d.aesthetic_std is not none %}<span class="cs-pill">σ {{ "%.2f"|format(d.aesthetic_std) }}</span>{% endif %}
-        {% if d.editing_intensity is not none %}<span class="cs-pill">✏ {{ d.editing_intensity|round(0)|int }}</span>{% endif %}
+        {% if d.editing_intensity is defined and d.editing_intensity is not none %}<span class="cs-pill">✏ {{ d.editing_intensity|round(0)|int }}</span>{% endif %}
         <span class="cs-pill">sat {{ "%.2f"|format(d.avg_saturation or 0) }}</span>
         <span class="cs-pill">bri {{ "%.2f"|format(d.avg_brightness or 0) }}</span>
         {% if d.avg_contrast is not none %}<span class="cs-pill">con {{ "%.2f"|format(d.avg_contrast) }}</span>{% endif %}
@@ -1122,7 +1163,7 @@ canvas { max-height: 300px; }
     {% endif %}
     {% endfor %}
   </div>
-  <div style="margin-top:0.75rem;font-size:0.68rem;color:#5a5a78;">⬡ = avg aesthetic score · σ = consistency (lower = more uniform) · ✏ = editing intensity (sum of Lr slider deviations)</div>
+  <div style="margin-top:0.75rem;font-size:0.68rem;color:#5a5a78;">⬡ = avg aesthetic score · IQ = avg technical quality · σ = consistency (lower = more uniform) · ✏ = editing intensity</div>
 </div>
 {% endif %}
 
@@ -1130,7 +1171,22 @@ canvas { max-height: 300px; }
 {% if editing_trends and editing_trends|length > 1 %}
 <div class="card mb">
   <div class="card-title">Editing Trends Over Time</div>
-  <div class="chart-h"><canvas id="trendsChart"></canvas></div>
+  <div class="chart-h" style="height:220px;"><canvas id="trendsChart" style="max-height:220px;"></canvas></div>
+  {% if period_stats and period_stats.early and period_stats.recent %}
+  <div style="display:flex;gap:0.75rem;margin-top:1rem;flex-wrap:wrap;">
+    {% for label, ps in period_stats.items() %}
+    <div style="flex:1;min-width:120px;background:#13131f;border-radius:8px;padding:0.7rem 0.85rem;border:1px solid #1a1a28;">
+      <div style="font-size:0.62rem;text-transform:uppercase;letter-spacing:0.05em;color:#9090b8;margin-bottom:0.4rem;">{{ label }}</div>
+      <div style="font-size:1.15rem;font-weight:700;color:#c8c8e8;">{{ "%.1f"|format(ps.avg_aesthetic) if ps.avg_aesthetic is not none else "—" }}</div>
+      <div style="font-size:0.62rem;color:#7878a0;margin-bottom:0.3rem;">avg aesthetic</div>
+      <div style="display:flex;gap:0.6rem;flex-wrap:wrap;">
+        <span style="font-size:0.68rem;"><span style="color:#7c6af7;font-weight:600;">{{ "%.0f"|format(ps.avg_edit_intensity) if ps.avg_edit_intensity is not none else "—" }}</span> <span style="color:#7878a0;">intensity</span></span>
+        <span style="font-size:0.68rem;"><span style="color:#10b981;font-weight:600;">{{ "%.0f"|format(ps.automation_score * 100) if ps.automation_score is not none else "—" }}%</span> <span style="color:#7878a0;">automated</span></span>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
 </div>
 {% endif %}
 
@@ -1176,7 +1232,7 @@ canvas { max-height: 300px; }
         <div style="font-size:0.68rem;color:#7878a0;">model bias</div>
       </div>
     </div>
-    <div style="margin-top:0.6rem;font-size:0.7rem;color:#6060808;">
+    <div style="margin-top:0.6rem;font-size:0.7rem;color:#606080;">
       {% if delta > 2 %}The model strongly agrees with your curation — it scores your chosen images noticeably higher.
       {% elif delta > 0.5 %}The model leans toward agreeing with your selections — a modest positive bias.
       {% elif delta > -0.5 %}The model is essentially neutral — it doesn't distinguish your curated images from the rest.
@@ -1186,63 +1242,90 @@ canvas { max-height: 300px; }
   {% endif %}
 
   {% if album_stats.albums %}
-  <table style="width:100%;border-collapse:collapse;">
+  <details style="margin-top:0.75rem;">
+    <summary style="cursor:pointer;font-size:0.78rem;color:#7878a0;list-style:none;padding:0.3rem 0;">Show album details ▾</summary>
+  <table style="width:100%;border-collapse:collapse;margin-top:0.5rem;">
     <thead><tr>
       <th style="text-align:left;padding:4px 8px;font-size:0.68rem;color:#7878a0;border-bottom:1px solid #1a1a28;">Album</th>
       <th style="text-align:right;padding:4px 8px;font-size:0.68rem;color:#7878a0;border-bottom:1px solid #1a1a28;">Images</th>
-      <th style="text-align:right;padding:4px 8px;font-size:0.68rem;color:#7878a0;border-bottom:1px solid #1a1a28;white-space:nowrap;">Avg. Aesthetic</th>
+      <th style="text-align:right;padding:4px 8px;font-size:0.68rem;color:#7878a0;border-bottom:1px solid #1a1a28;white-space:nowrap;">Avg Aesthetic</th>
       <th style="text-align:right;padding:4px 8px;font-size:0.68rem;color:#7878a0;border-bottom:1px solid #1a1a28;">σ</th>
       <th style="text-align:right;padding:4px 8px;font-size:0.68rem;color:#7878a0;border-bottom:1px solid #1a1a28;white-space:nowrap;">Edit Intensity</th>
-      <th style="text-align:left;padding:4px 8px;font-size:0.68rem;color:#7878a0;border-bottom:1px solid #1a1a28;min-width:80px;">Saturation</th>
-      <th style="text-align:left;padding:4px 8px;font-size:0.68rem;color:#7878a0;border-bottom:1px solid #1a1a28;min-width:80px;">Brightness</th>
-      <th style="text-align:left;padding:4px 8px;font-size:0.68rem;color:#7878a0;border-bottom:1px solid #1a1a28;">Warmth</th>
       <th style="text-align:left;padding:4px 8px;font-size:0.68rem;color:#7878a0;border-bottom:1px solid #1a1a28;">Palette</th>
     </tr></thead>
     <tbody>
     {% for a in album_stats.albums %}
-    {% set s = a.avg_saturation or 0 %}{% set b2 = a.avg_brightness or 0 %}{% set w = a.avg_warmth or 0 %}
-    {% set wc = "#38bdf8" if w < 0.4 else ("#94a3b8" if w < 0.5 else ("#fb923c" if w < 0.62 else "#f97316")) %}
     <tr>
       <td style="padding:5px 8px;font-size:0.78rem;color:#c0c0d8;">{{ a.name }}</td>
       <td style="padding:5px 8px;font-size:0.78rem;color:#9090b8;text-align:right;">{{ a.count }}</td>
       <td style="padding:5px 8px;font-size:0.82rem;color:#7c6af7;text-align:right;font-weight:600;">{{ "%.1f"|format(a.avg_aesthetic) if a.avg_aesthetic is not none else "—" }}</td>
       <td style="padding:5px 8px;font-size:0.72rem;color:#7878a0;text-align:right;">{{ "%.2f"|format(a.aesthetic_std) if a.aesthetic_std is not none else "—" }}</td>
       <td style="padding:5px 8px;font-size:0.72rem;color:#9090b8;text-align:right;">{{ a.avg_editing_intensity|round(0)|int if a.avg_editing_intensity is not none else "—" }}</td>
-      <td style="padding:5px 8px;">
-        <div style="display:flex;align-items:center;gap:5px;">
-          <div style="flex:1;height:5px;background:#1a1a28;border-radius:3px;min-width:50px;max-width:80px;">
-            <div style="width:{{ '%.0f'|format(s*100) }}%;height:5px;background:#7c6af7;border-radius:3px;"></div>
-          </div>
-          <span style="font-size:0.68rem;color:#7878a0;min-width:26px;">{{ '%.0f'|format(s*100) }}%</span>
-        </div>
-      </td>
-      <td style="padding:5px 8px;">
-        <div style="display:flex;align-items:center;gap:5px;">
-          <div style="flex:1;height:5px;background:#1a1a28;border-radius:3px;min-width:50px;max-width:80px;">
-            <div style="width:{{ '%.0f'|format(b2*100) }}%;height:5px;background:#f59e0b;border-radius:3px;"></div>
-          </div>
-          <span style="font-size:0.68rem;color:#7878a0;min-width:26px;">{{ '%.0f'|format(b2*100) }}%</span>
-        </div>
-      </td>
-      <td style="padding:5px 8px;">
-        <div style="display:flex;align-items:center;gap:4px;">
-          <span style="display:inline-block;width:14px;height:14px;border-radius:3px;background:{{ wc }};" title="Warmth {{ '%.0f'|format(w*100) }}%"></span>
-          <span style="font-size:0.65rem;color:{{ wc }};">{{ '%.0f'|format(w*100) }}%</span>
-        </div>
-      </td>
       <td style="padding:5px 8px;">{% if a.top_colors %}{% for c in a.top_colors %}<span style="display:inline-block;width:13px;height:13px;background:{{ c }};border-radius:2px;margin-right:1px;vertical-align:middle;" title="{{ c }}"></span>{% endfor %}{% else %}<span style="font-size:0.65rem;color:#5a5a78;">—</span>{% endif %}</td>
     </tr>
     {% endfor %}
     </tbody>
   </table>
+  </details>
   {% endif %}
 </div>
 {% endif %}
 
-<!-- ══════════════════════════════════════ WHEN YOU SHOOT ══════════════════ -->
-<div id="s-when"></div>
+</details>
 
-<div class="row two mb">
+<!-- ══════════════════════════════════════ EDITING JOURNEY ════════════════ -->
+{% if _sources.has_lightroom %}
+<details open id="s-editing-journey" style="margin-bottom:0;">
+<summary style="cursor:pointer;list-style:none;display:flex;align-items:center;gap:0.5rem;padding:0.6rem 0 0.5rem;font-size:0.68rem;font-weight:700;color:#7878a0;text-transform:uppercase;letter-spacing:0.12em;border-bottom:1px solid #1a1a2e;margin-bottom:1rem;" class="section-summary">Editing Journey</summary>
+
+{% if editing_journey and editing_journey|length > 1 %}
+<div class="card mb">
+  <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.5rem;margin-bottom:0.5rem;">
+    <div class="card-title" style="margin:0;">Editing Journey Over Time</div>
+    <div style="display:flex;flex-wrap:wrap;gap:0.3rem;" id="ejParamPicker">
+      {% for key, label, col in [("Exposure2012","Exposure","#f59e0b"),("Clarity2012","Clarity","#7c6af7"),("Saturation","Saturation","#f97316"),("Vibrance","Vibrance","#10b981"),("Highlights2012","Highlights","#34d399"),("Shadows2012","Shadows","#818cf8"),("Texture","Texture","#60a5fa"),("Dehaze","Dehaze","#a78bfa"),("GrainAmount","Grain","#9090b8")] %}
+      <button data-ej-key="{{ key }}" data-ej-col="{{ col }}" data-ej-axis="{% if key == 'Exposure2012' %}y1{% else %}y2{% endif %}" onclick="ejToggle(this)" style="padding:2px 8px;font-size:0.65rem;border-radius:12px;border:1px solid {{ col }};background:{% if key in ['Exposure2012','Clarity2012','Saturation','Vibrance'] %}{{ col }}22{% else %}transparent{% endif %};color:{{ col }};cursor:pointer;opacity:{% if key in ['Exposure2012','Clarity2012','Saturation','Vibrance'] %}1{% else %}0.45{% endif %};">{{ label }}</button>
+      {% endfor %}
+    </div>
+  </div>
+  <div class="chart-h" style="height:240px;"><canvas id="editingJourneyChart" style="max-height:240px;"></canvas></div>
+</div>
+<div class="card mb">
+  <div class="card-title">Workflow Adoption <span style="color:#8080aa;font-weight:400;">% of images per month using each technique · includes automation score</span></div>
+  <div class="chart-h" style="height:220px;"><canvas id="adoptionChart" style="max-height:220px;"></canvas></div>
+</div>
+{% endif %}
+
+<div class="row three mb">
+</div>
+
+{% if edit_recency and edit_recency.values() | sum > 0 %}
+{% set er_total = edit_recency.values() | sum %}
+<div class="card mb">
+  <div class="card-title">Edit Recency <span style="color:#8080aa;font-weight:400;font-size:0.6rem;">how soon after capture were photos edited</span></div>
+  <div style="display:flex;gap:0.75rem;flex-wrap:wrap;">
+    {% set er_items = [("same_day","Same Day","#4ade80"),("within_week","Within Week","#a3e635"),("within_month","Within Month","#f59e0b"),("later","Later","#9090b8")] %}
+    {% for key, label, color in er_items %}
+    {% set cnt = edit_recency.get(key, 0) %}
+    {% set pct = (cnt / er_total * 100)|round|int %}
+    <div style="flex:1;min-width:80px;text-align:center;background:#13131f;border-radius:8px;padding:0.6rem 0.4rem;">
+      <div style="font-size:1.3rem;font-weight:700;color:{{ color }};">{{ pct }}%</div>
+      <div style="font-size:0.68rem;color:#7878a0;margin-top:2px;">{{ label }}</div>
+      <div style="font-size:0.62rem;color:#505068;">{{ cnt }} images</div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+
+{% endif %}{# has_lightroom #}
+</details>
+
+<!-- ══════════════════════════════════════ WHEN YOU SHOOT ══════════════════ -->
+<details open id="s-when" style="margin-bottom:0;">
+<summary style="cursor:pointer;list-style:none;display:flex;align-items:center;gap:0.5rem;padding:0.6rem 0 0.5rem;font-size:0.68rem;font-weight:700;color:#7878a0;text-transform:uppercase;letter-spacing:0.12em;border-bottom:1px solid #1a1a2e;margin-bottom:1rem;" class="section-summary">When You Shoot</summary>
+
+<div class="row {% if dow_distribution and dow_distribution.values() | sum > 0 %}three{% else %}two{% endif %} mb">
   <div class="card">
     <div class="card-title">Shooting Hours <span style="color:#8080aa;font-weight:400;">golden hour = 5–7 AM/PM highlighted</span></div>
     <div class="chart-h" style="height:220px;"><canvas id="hoursChart" style="max-height:220px;"></canvas></div>
@@ -1251,7 +1334,74 @@ canvas { max-height: 300px; }
     <div class="card-title">Monthly Shooting</div>
     <div class="chart-h" style="height:220px;"><canvas id="monthlyChart" style="max-height:220px;"></canvas></div>
   </div>
+  {% if dow_distribution and dow_distribution.values() | sum > 0 %}
+  <div class="card">
+    <div class="card-title">Day of Week <span style="color:#8080aa;font-weight:400;font-size:0.6rem;">Lightroom capture dates</span></div>
+    <div class="chart-h" style="height:220px;"><canvas id="dowChart" style="max-height:220px;"></canvas></div>
+  </div>
+  {% endif %}
 </div>
+
+{% if technical_settings_analysis and technical_settings_analysis.gps and technical_settings_analysis.gps.count > 0 %}
+<div id="s-where"></div>
+<div class="card mb">
+  <div class="card-title">Where You Shoot <span style="color:#8080aa;font-weight:400;font-size:0.6rem;">{{ technical_settings_analysis.gps.count }} images with GPS · {{ technical_settings_analysis.gps.pct }}% of library</span></div>
+  <div id="gps-map" style="height:340px;border-radius:8px;overflow:hidden;"></div>
+  <script>
+  (function(){
+    const _gpsSamples = {{ technical_settings_analysis.gps.samples | tojson }};
+    const _b = {{ technical_settings_analysis.gps.bounds | tojson }};
+    const _gpsMap = L.map('gps-map', {zoomControl:true, scrollWheelZoom:false});
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+      attribution:'© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> © <a href="https://carto.com/">CARTO</a>',
+      subdomains:'abcd', maxZoom:19
+    }).addTo(_gpsMap);
+    _gpsSamples.forEach(function(p){
+      L.circleMarker([p.lat, p.lon], {radius:4, color:'#7c6af7', fillColor:'#7c6af7', fillOpacity:0.55, weight:0}).addTo(_gpsMap);
+    });
+    _gpsMap.fitBounds([[_b.lat_min, _b.lon_min],[_b.lat_max, _b.lon_max]], {padding:[20,20]});
+  })();
+  </script>
+</div>
+{% endif %}
+
+</details>
+
+<!-- Shooting Profile by Context -->
+<details open id="s-context" style="margin-bottom:0;">
+<summary style="cursor:pointer;list-style:none;display:flex;align-items:center;gap:0.5rem;padding:0.6rem 0 0.5rem;font-size:0.68rem;font-weight:700;color:#7878a0;text-transform:uppercase;letter-spacing:0.12em;border-bottom:1px solid #1a1a2e;margin-bottom:1rem;" class="section-summary">Shooting Profile</summary>
+{% if shooting_profile_by_context %}
+<div class="card mb">
+  <div class="card-title">Shooting Profile by Context <span style="color:#8080aa;font-weight:400;">time of day × scene — typical gear and results</span></div>
+  <table style="width:100%;" id="contextTable">
+    <thead>
+      <tr>
+        <th>Time</th><th>Scene</th><th>N</th><th>Focal (mm)</th><th>f/</th><th>ISO</th><th>Avg Aes</th><th>Best Combo</th>
+      </tr>
+    </thead>
+    <tbody>
+    {% for row in shooting_profile_by_context[:20] %}
+      <tr class="ctx-row{% if loop.index > 5 %} ctx-extra" style="display:none{% endif %}">
+        <td>{{ row.time_of_day }}</td>
+        <td style="text-transform:capitalize;">{{ row.scene }}</td>
+        <td style="color:#9090b8;">{{ row.count }}</td>
+        <td>{{ "%.0f"|format(row.median_focal) if row.median_focal is not none else "—" }}</td>
+        <td>{{ "%.1f"|format(row.median_aperture) if row.median_aperture is not none else "—" }}</td>
+        <td>{{ "%.0f"|format(row.median_iso) if row.median_iso is not none else "—" }}</td>
+        <td style="color:{% if row.avg_aesthetic and row.avg_aesthetic >= 65 %}#22c55e{% elif row.avg_aesthetic and row.avg_aesthetic >= 45 %}#f59e0b{% else %}#9090b8{% endif %};">{{ "%.1f"|format(row.avg_aesthetic) if row.avg_aesthetic is not none else "—" }}</td>
+        <td style="color:#7c6af7;font-size:0.72rem;">{{ row.best_combo or "—" }}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  {% if shooting_profile_by_context | length > 5 %}
+  <button onclick="document.querySelectorAll('.ctx-extra').forEach(r=>r.style.display=r.style.display?'':'none');this.textContent=this.textContent.includes('Show')?'Show fewer ↑':'Show all ({{ shooting_profile_by_context | length }}) ↓';"
+    style="margin-top:0.6rem;background:transparent;border:1px solid #2a2a3e;border-radius:5px;color:#7878a0;font-size:0.72rem;padding:4px 10px;cursor:pointer;">
+    Show all ({{ shooting_profile_by_context | length }}) ↓
+  </button>
+  {% endif %}
+</div>
+{% endif %}
 
 <!-- Pick / Reject Analysis -->
 {% if pick_stats and (pick_stats.picks.count or pick_stats.rejects.count) %}
@@ -1292,7 +1442,7 @@ canvas { max-height: 300px; }
 {% if events and events.total_events > 0 %}
 <div class="card mb">
   <div class="card-title">Photo Events <span style="color:#8080aa;font-weight:400;">time gaps &gt; 4 h = new event</span></div>
-  <div class="card-desc">Shooting sessions grouped by capture time. Narrative synthesized from the 3 most visually diverse images per event using existing BLIP captions.</div>
+  <div class="card-desc">Shooting sessions grouped by capture time — events separated by gaps &gt;4 hours.</div>
   <div class="strip mb">
     <div class="strip-item">
       <div class="strip-v">{{ events.total_events }}</div>
@@ -1311,78 +1461,104 @@ canvas { max-height: 300px; }
     </div>
   </div>
   {% if events.events %}
-  <table>
+  <table id="eventsTable">
     <thead>
       <tr>
         <th style="width:100px;">Date</th>
         <th style="width:110px;">Scene</th>
         <th style="width:64px;text-align:right;">Images</th>
         <th style="width:64px;text-align:right;">Duration</th>
-        <th>Narrative</th>
       </tr>
     </thead>
     <tbody>
     {% for ev in events.events %}
-    <tr>
+    <tr data-ev-date="{{ ev.date[:4] if ev.date else '' }}">
       <td style="white-space:nowrap;font-weight:600;color:#c0c0d8;">{{ ev.date }}</td>
       <td>{% if ev.top_scene %}<span style="font-size:0.68rem;background:rgba(124,106,247,0.15);color:#a090e0;border-radius:4px;padding:2px 7px;">{{ ev.top_scene }}</span>{% else %}<span style="color:#3a3a5a;">—</span>{% endif %}</td>
       <td style="text-align:right;color:#9090b8;">{{ ev.photo_count }}</td>
       <td style="text-align:right;color:#9090b8;white-space:nowrap;">{% if ev.duration_mins >= 60 %}{{ (ev.duration_mins / 60)|round(1) }}h{% else %}{{ ev.duration_mins|int }}m{% endif %}</td>
-      <td style="color:#7878a0;font-style:italic;line-height:1.5;">{{ ev.narrative or "—" }}</td>
     </tr>
     {% endfor %}
     </tbody>
   </table>
+  <script>
+  (() => {
+    const rows = Array.from(document.querySelectorAll('#eventsTable tbody tr'));
+    const thisYear = String(new Date().getFullYear());
+    let showAll = false;
+    rows.forEach(r => { if (r.dataset.evDate !== thisYear) r.style.display = 'none'; });
+    const hasOlder = rows.some(r => r.dataset.evDate !== thisYear);
+    if (!hasOlder) return;
+    const btn = document.createElement('button');
+    btn.textContent = 'Show all years ↓';
+    btn.style.cssText = 'margin-top:0.6rem;background:transparent;border:1px solid #2a2a3e;border-radius:5px;color:#7878a0;font-size:0.72rem;padding:4px 10px;cursor:pointer;';
+    btn.onclick = () => {
+      showAll = !showAll;
+      rows.forEach(r => { if (r.dataset.evDate !== thisYear) r.style.display = showAll ? '' : 'none'; });
+      btn.textContent = showAll ? 'Show year to date ↑' : 'Show all years ↓';
+    };
+    document.getElementById('eventsTable').after(btn);
+  })();
+  </script>
   {% endif %}
 </div>
 {% endif %}
 
-<!-- Similar Image Groups -->
+<!-- Similar Image Groups + Burst Shooting -->
 {% set has_cull = storage_tiers and storage_tiers.cluster_count > 0 %}
+{% set has_burst = burst_groups and burst_groups.total_bursts %}
+{% if has_cull or has_burst %}
+<div style="display:grid;grid-template-columns:{% if has_cull and has_burst %}1fr 1fr{% else %}1fr{% endif %};gap:1rem;align-items:start;margin-bottom:1rem;">
 {% if has_cull %}
-<div class="card mb">
+<div class="card">
   <div class="card-title">Similar Image Groups <span style="color:#8080aa;font-weight:400;">DINOv2 · DBSCAN ε=0.05</span></div>
   <div class="card-desc">Images grouped by visual similarity using DINOv2 embeddings and DBSCAN clustering — the best-scoring image in each group is the keep candidate; the rest are safe to cull. Top 10 largest groups shown.</div>
   <div class="strip mb">
     <div class="strip-item">
-      <div class="strip-l" style="margin-bottom:0.25rem;">Groups Found</div>
       <div class="strip-v">{{ storage_tiers.cluster_count }}</div>
+      <div class="strip-l">Groups Found</div>
       <div class="strip-s">similarity clusters</div>
     </div>
     <div class="strip-item">
-      <div class="strip-l" style="margin-bottom:0.25rem;">Redundant Images</div>
       <div class="strip-v">{{ storage_tiers.redundant_count }}</div>
+      <div class="strip-l">Redundant Images</div>
       <div class="strip-s">safe to cull</div>
     </div>
     <div class="strip-item">
-      <div class="strip-l" style="margin-bottom:0.25rem;">Redundancy Rate</div>
       <div class="strip-v" style="color:#7c6af7;">{{ storage_tiers.redundancy_pct }}%</div>
+      <div class="strip-l">Redundancy Rate</div>
       <div class="strip-s">of analysed library</div>
     </div>
     <div class="strip-item">
-      <div class="strip-l" style="margin-bottom:0.25rem;">Unique Images</div>
       <div class="strip-v">{{ storage_tiers.unclustered_count }}</div>
+      <div class="strip-l">Unique Images</div>
       <div class="strip-s">no similar match found</div>
     </div>
   </div>
-  <table style="width:100%;border-collapse:collapse;">
-    <thead><tr>
-      <th style="text-align:left;padding:4px 8px;font-size:0.68rem;color:#7878a0;border-bottom:1px solid #1a1a28;">Scene</th>
-      <th style="text-align:right;padding:4px 8px;font-size:0.68rem;color:#7878a0;border-bottom:1px solid #1a1a28;">Group Size</th>
-      <th style="text-align:right;padding:4px 8px;font-size:0.68rem;color:#7878a0;border-bottom:1px solid #1a1a28;">Best Score</th>
-      <th style="text-align:right;padding:4px 8px;font-size:0.68rem;color:#7878a0;border-bottom:1px solid #1a1a28;">To Cull</th>
-    </tr></thead>
-    <tbody>
-    {% for g in storage_tiers.tiers %}
-    <tr>
-      <td style="padding:4px 8px;font-size:0.78rem;color:#9090b8;">{{ g.scene or "—" }}</td>
-      <td style="padding:4px 8px;font-size:0.78rem;color:#c0c0d8;text-align:right;">{{ g.size }}</td>
-      <td style="padding:4px 8px;font-size:0.78rem;color:#7c6af7;text-align:right;">{{ g.best_score }}</td>
-      <td style="padding:4px 8px;font-size:0.78rem;color:#f87171;text-align:right;">{{ g.size - 1 }}</td>
-    </tr>
-    {% endfor %}
-    </tbody>
-  </table>
+</div>
+{% endif %}
+{% if has_burst %}
+<div class="card">
+  <div class="card-title">Burst Shooting</div>
+  <div class="stat-grid" style="grid-template-columns:1fr 1fr 1fr;">
+    <div class="stat">
+      <div class="stat-l">Bursts</div>
+      <div class="stat-v">{{ burst_groups.total_bursts }}</div>
+      <div class="stat-s">shooting sessions</div>
+    </div>
+    <div class="stat">
+      <div class="stat-l">In Bursts</div>
+      <div class="stat-v">{{ burst_groups.photos_in_bursts }}</div>
+      <div class="stat-s">{{ (burst_groups.photos_in_bursts / photo_count * 100)|round(1) }}% of library</div>
+    </div>
+    <div class="stat">
+      <div class="stat-l">Largest</div>
+      <div class="stat-v">{{ burst_groups.largest_burst }}</div>
+      <div class="stat-s">shots in one burst</div>
+    </div>
+  </div>
+</div>
+{% endif %}
 </div>
 {% endif %}
 
@@ -1420,7 +1596,7 @@ canvas { max-height: 300px; }
     <div>
       {% if has_keywords %}
       <div style="font-size:0.68rem;color:#7878a0;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:0.5rem;">Top Keywords (top 20)</div>
-      <canvas id="keywordsChart" style="max-height:280px;"></canvas>
+      <div class="chart-h" style="height:280px;"><canvas id="keywordsChart" style="max-height:280px;"></canvas></div>
       {% endif %}
     </div>
   </div>
@@ -1450,12 +1626,15 @@ canvas { max-height: 300px; }
 </div>
 {% endif %}
 
+</details>
+
 <!-- ELA Forensics -->
-<div id="s-forensics"></div>
+<details open id="s-forensics" style="margin-bottom:0;">
+<summary style="cursor:pointer;list-style:none;display:flex;align-items:center;gap:0.5rem;padding:0.6rem 0 0.5rem;font-size:0.68rem;font-weight:700;color:#7878a0;text-transform:uppercase;letter-spacing:0.12em;border-bottom:1px solid #1a1a2e;margin-bottom:1rem;" class="section-summary">Forensics</summary>
 {% if ela_stats and ela_stats.total_jpegs > 0 %}
 <div class="card mb">
   <div class="card-title">ELA Forensics <span style="color:#8080aa;font-weight:400;">JPEG compression analysis</span></div>
-  <div class="card-desc">Error Level Analysis detects regions with inconsistent JPEG compression — a technique used in forensic contexts to identify locally edited or composited areas. <strong style="color:#f59e0b;">Note:</strong> images that have been processed in Lightroom and exported as JPEG (as most in this library are) will naturally score higher than unedited camera originals. This is expected — Lightroom applies sharpening, noise reduction, and local adjustments that create compression-level variation across regions. A high score here reflects <em>editing activity</em>, not AI generation or deceptive manipulation. Use it as a relative signal — outliers with an unusually high score compared to the rest of your library are worth a closer look. The extreme outlier count above uses a 3×IQR fence: any image whose max error exceeds Q3 + 3 × (Q3 − Q1), where Q1 and Q3 are your library's 25th and 75th percentile scores, is flagged. This adapts to your library's own baseline rather than a fixed cutoff.</div>
+  <div class="card-desc">Error Level Analysis flags regions with inconsistent JPEG compression — a relative signal for local edits or compositing. Lightroom-exported JPEGs naturally score higher than raw camera originals; use the extreme outlier count as a within-library signal, not an absolute threshold.</div>
   <div class="strip mb">
     <div class="strip-item">
       <div class="strip-v">{{ ela_stats.total_jpegs }}</div>
@@ -1472,6 +1651,13 @@ canvas { max-height: 300px; }
       <div class="strip-l">Extreme Outliers</div>
       <div class="strip-s">max error &gt; {{ ela_stats.extreme_outlier_threshold or "—" }} (3×IQR above Q3)</div>
     </div>
+    {% if ela_stats.ela_iq_conflict_count %}
+    <div class="strip-item">
+      <div class="strip-v" style="color:#f59e0b;">{{ ela_stats.ela_iq_conflict_count }}</div>
+      <div class="strip-l">ELA/IQ Conflict</div>
+      <div class="strip-s">high compression artifact · low IQ score</div>
+    </div>
+    {% endif %}
   </div>
 </div>
 {% endif %}
@@ -1495,6 +1681,7 @@ canvas { max-height: 300px; }
 </div>
 {% endif %}
 
+
 </div><!-- /page -->
 
 <script>
@@ -1504,65 +1691,92 @@ const GD = { responsive: true, plugins: { legend: { display: false } }, scales: 
   y: { grid: { color: "#14142a" }, ticks: { color: "#8080aa", font: { size: 13 } } },
 }};
 
-// Scene doughnut
+// Scene doughnut (compact)
 (function() {
   const sd = {{ scene_dist | tojson }};
-  const labels = Object.keys(sd).filter(k => sd[k] > 0);
+  const labels = Object.keys(sd).filter(k => sd[k] > 0).sort((a,b) => sd[b]-sd[a]);
   const data = labels.map(k => sd[k]);
   const total = data.reduce((a,b) => a+b, 0);
   new Chart(document.getElementById("sceneChart"), {
     type: "doughnut",
-    data: { labels: labels.map((k,i) => `${k} (${Math.round(data[i]/total*100)}%)`), datasets: [{ data, backgroundColor: SC, borderWidth: 0 }] },
-    options: { responsive: true, cutout: "62%",
-      plugins: { legend: { display: true, position: "bottom",
-        labels: { color: "#6060881", boxWidth: 10, font: { size: 12 }, color: "#9090b8", padding: 10 }},
-        tooltip: { callbacks: { label: ctx => ` ${ctx.raw} images (${Math.round(ctx.raw/total*100)}%)` }}
+    data: { labels, datasets: [{ data, backgroundColor: SC, borderWidth: 0 }] },
+    options: { responsive: true, maintainAspectRatio: false, cutout: "60%",
+      plugins: { legend: { display: false },
+        tooltip: { callbacks: { label: ctx => ` ${ctx.label}: ${Math.round(ctx.raw/total*100)}%` }}
       }
     }
   });
 })();
 
-// UMAP
+// UMAP with color-by selector
 (function() {
   const pts = {{ umap_points | tojson }};
   if (!pts.length) return;
-  const allScenes = [...new Set(pts.map(p => p.scene_type))].sort();
-  const sc = {}; allScenes.forEach((s,i) => sc[s] = SC[i % SC.length]);
-  const ds = {};
-  pts.forEach(p => {
-    if (!ds[p.scene_type]) ds[p.scene_type] = { label: p.scene_type, data: [], backgroundColor: sc[p.scene_type] + "88", pointRadius: 3, pointHoverRadius: 6 };
-    ds[p.scene_type].data.push({ x: p.x, y: p.y, path: p.path, score: p.aesthetic_score, thumb: p.thumb, scene_type: p.scene_type });
-  });
 
-  // Custom thumbnail tooltip overlay
   const umapWrap = document.getElementById("umapChart").parentElement;
   umapWrap.style.position = "relative";
   const tip = document.createElement("div");
   tip.style.cssText = "position:absolute;pointer-events:none;display:none;background:#10101a;border:1px solid #2a2a3a;border-radius:8px;padding:8px;z-index:10;box-shadow:0 4px 16px #00000088;min-width:100px;text-align:center;";
   umapWrap.appendChild(tip);
 
-  new Chart(document.getElementById("umapChart"), {
-    type: "scatter", data: { datasets: Object.values(ds) },
+  const allScenes = [...new Set(pts.map(p => p.scene_type))].sort();
+  const scenePalette = {}; allScenes.forEach((s,i) => scenePalette[s] = SC[i % SC.length]);
+
+  const ds = {};
+  pts.forEach(p => {
+    const key = p.scene_type || "unknown";
+    const col = scenePalette[key] || "#5a5a78";
+    if (!ds[key]) ds[key] = { label: key, data: [], backgroundColor: col + "88", pointRadius: 3, pointHoverRadius: 6 };
+    ds[key].data.push({ x: p.x, y: p.y, score: p.aesthetic_score, thumb: p.thumb, scene_type: p.scene_type, exif: p.exif || {} });
+  });
+
+  const sceneLabelsPlugin = {
+    id: "sceneLabels",
+    afterDraw(ch) {
+      const ctx2 = ch.ctx, xSc = ch.scales.x, ySc = ch.scales.y;
+      const centroids = {};
+      pts.forEach(p => {
+        if (!p.scene_type) return;
+        if (!centroids[p.scene_type]) centroids[p.scene_type] = { sx: 0, sy: 0, n: 0 };
+        centroids[p.scene_type].sx += p.x; centroids[p.scene_type].sy += p.y; centroids[p.scene_type].n++;
+      });
+      ctx2.save();
+      ctx2.font = "bold 10px sans-serif";
+      ctx2.textAlign = "center";
+      ctx2.lineWidth = 2;
+      Object.entries(centroids).forEach(([scene, c]) => {
+        const px = xSc.getPixelForValue(c.sx / c.n), py = ySc.getPixelForValue(c.sy / c.n);
+        ctx2.strokeStyle = "#0d0d1a"; ctx2.strokeText(scene, px, py);
+        ctx2.fillStyle = "#e0e0f0"; ctx2.fillText(scene, px, py);
+      });
+      ctx2.restore();
+    }
+  };
+
+  const chart = new Chart(document.getElementById("umapChart"), {
+    type: "scatter",
+    data: { datasets: Object.values(ds).sort((a,b) => a.label.localeCompare(b.label)) },
+    plugins: [],
     options: { responsive: true, maintainAspectRatio: false,
       plugins: {
-        legend: { display: true, labels: { color: "#9090b8", boxWidth: 9, font: { size: 12 } }},
+        legend: { display: true, labels: { color: "#9090b8", boxWidth: 9, font: { size: 11 } }},
         tooltip: { enabled: false, external: (ctx) => {
           const el = ctx.chart.canvas;
-          const rect = el.getBoundingClientRect();
           if (!ctx.tooltip.dataPoints || !ctx.tooltip.dataPoints.length) { tip.style.display = "none"; return; }
           const d = ctx.tooltip.dataPoints[0].raw;
+          const ex = d.exif || {};
           let html = "";
-          if (d.thumb) {
-            html += `<img src="data:image/jpeg;base64,${d.thumb}" style="width:72px;height:72px;object-fit:cover;border-radius:5px;display:block;margin:0 auto 5px;">`;
-            html += `<div style="font-size:10px;color:#7c6af7;font-weight:600;margin-bottom:2px;">★ Album</div>`;
-          } else {
-            html += `<div style="font-size:10px;color:#7878a0;font-family:monospace;margin-bottom:3px;">${d.path || ""}</div>`;
-          }
-          html += `<div style="font-size:11px;color:#9090b8;text-transform:capitalize;">${d.scene_type || ""}</div>`;
-          if (d.score != null) html += `<div style="font-size:11px;color:#a78bfa;font-weight:600;">Score ${d.score.toFixed(1)}</div>`;
+          if (d.thumb) html += `<img src="data:image/jpeg;base64,${d.thumb}" style="width:72px;height:72px;object-fit:cover;border-radius:5px;display:block;margin:0 auto 5px;">`;
+          html += `<div style="font-size:10px;color:#9090b8;text-transform:capitalize;margin-bottom:3px;">${d.scene_type || ""}</div>`;
+          if (d.score != null) html += `<div style="font-size:11px;color:#a78bfa;font-weight:600;margin-bottom:3px;">Aesthetic ${d.score.toFixed(1)}</div>`;
+          const exifParts = [];
+          if (ex.focal_length_mm) exifParts.push(ex.focal_length_mm + "mm");
+          if (ex.aperture_f) exifParts.push("f/" + ex.aperture_f);
+          if (ex.iso) exifParts.push("ISO " + ex.iso);
+          if (exifParts.length) html += `<div style="font-size:10px;color:#7878a0;">${exifParts.join(" · ")}</div>`;
           tip.innerHTML = html;
           tip.style.display = "block";
-          const tipW = 100, tipH = 120;
+          const tipW = 110, tipH = d.thumb ? 150 : 80;
           let left = ctx.tooltip.caretX + 10, top = ctx.tooltip.caretY - tipH / 2;
           if (left + tipW > el.offsetWidth) left = ctx.tooltip.caretX - tipW - 10;
           top = Math.max(0, Math.min(top, el.offsetHeight - tipH));
@@ -1575,44 +1789,97 @@ const GD = { responsive: true, plugins: { legend: { display: false } }, scales: 
   document.getElementById("umapChart").addEventListener("mouseleave", () => { tip.style.display = "none"; });
 })();
 
-// Focal length
+// Shared bar-label plugin — draws count to right of each horizontal bar
+const _hBarLabels = {
+  id: 'hBarLabels',
+  afterDatasetsDraw(chart) {
+    const ctx = chart.ctx;
+    chart.data.datasets.forEach((ds, i) => {
+      chart.getDatasetMeta(i).data.forEach((bar, idx) => {
+        const val = ds.data[idx];
+        if (!val) return;
+        ctx.save();
+        ctx.fillStyle = '#9090b8';
+        ctx.font = '10px sans-serif';
+        ctx.textAlign = 'left';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(val, bar.x + 5, bar.y);
+        ctx.restore();
+      });
+    });
+  }
+};
+// Shared bar-label plugin — draws count above each vertical bar
+const _vBarLabels = {
+  id: 'vBarLabels',
+  afterDatasetsDraw(chart) {
+    const ctx = chart.ctx;
+    chart.data.datasets.forEach((ds, i) => {
+      chart.getDatasetMeta(i).data.forEach((bar, idx) => {
+        const val = ds.data[idx];
+        if (!val) return;
+        ctx.save();
+        ctx.fillStyle = '#9090b8';
+        ctx.font = '10px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'bottom';
+        ctx.fillText(val, bar.x, bar.y - 3);
+        ctx.restore();
+      });
+    });
+  }
+};
+
+// HOW YOU SHOOT — all three as horizontal bars, shared x-axis max
 (function() {
-  const vals = {{ focal_length_histogram | tojson }};
-  if (!vals.length) return;
-  const buckets = [["<24mm",0,24],["24–35mm",24,35],["35–50mm",35,50],["50–85mm",50,85],["85–135mm",85,135],["135mm+",135,1e9]];
-  new Chart(document.getElementById("focalChart"), {
-    type: "bar",
-    data: { labels: buckets.map(b=>b[0]), datasets: [{ data: buckets.map(b => vals.filter(v=>v>=b[1]&&v<b[2]).length), backgroundColor: "#f97316aa", borderRadius: 4 }] },
-    options: { ...GD }
+  const _fExact = {{ focal_length_exact | tojson }};
+  const _apVals = {{ aperture_histogram | tojson }};
+  const _isoVals = {{ iso_histogram | tojson }};
+
+  const focalSorted = [..._fExact].sort((a,b) => b[1]-a[1]).slice(0,12);
+  const focalData   = focalSorted.map(([,c]) => c);
+
+  const apStops = [1.4,1.8,2,2.8,4,5.6,8,11,16,22];
+  const apData  = apStops.map((s,i) => { const lo = i===0?0:apStops[i-1]; return _apVals.filter(v=>v>lo&&v<=s).length; });
+
+  const isoBuckets = [["≤100",0,100],["101–400",100,400],["401–800",400,800],["801–1600",800,1600],["1601–3200",1600,3200],["3201+",3200,1e9]];
+  const isoData    = isoBuckets.map(x => _isoVals.filter(v=>v>x[1]&&v<=x[2]).length);
+
+  const _xMax = Math.ceil(Math.max(...focalData, ...apData, ...isoData) * 1.1);
+
+  const _opts = () => ({
+    indexAxis: "y",
+    responsive: true, maintainAspectRatio: false,
+    layout: { padding: { right: 44 } },
+    plugins: { legend: { display: false }, tooltip: { callbacks: { title: ctx => ctx[0].label, label: ctx => ` ${ctx.raw} images` } } },
+    scales: {
+      x: { min: 0, max: _xMax, grid: { color: "#1a1a28" }, ticks: { color: "#7878a0", maxTicksLimit: 5 } },
+      y: { grid: { color: "#1a1a28" }, ticks: { color: "#c0c0d8", font: { size: 11 } } },
+    },
   });
+
+  if (_fExact.length)
+    new Chart(document.getElementById("focalChart"), {
+      type: "bar",
+      data: { labels: focalSorted.map(([fl]) => fl+"mm"), datasets: [{ data: focalData, backgroundColor: "#f97316cc", borderRadius: 3, borderSkipped: false, barPercentage: 0.8 }] },
+      options: _opts(), plugins: [_hBarLabels],
+    });
+
+  if (_apVals.length)
+    new Chart(document.getElementById("apertureChart"), {
+      type: "bar",
+      data: { labels: apStops.map((s,i) => i===0?"≤f/"+s:"f/"+s), datasets: [{ data: apData, backgroundColor: "#10b981cc", borderRadius: 3, borderSkipped: false, barPercentage: 0.8 }] },
+      options: _opts(), plugins: [_hBarLabels],
+    });
+
+  if (_isoVals.length)
+    new Chart(document.getElementById("isoChart"), {
+      type: "bar",
+      data: { labels: isoBuckets.map(x=>x[0]), datasets: [{ data: isoData, backgroundColor: "#f59e0bcc", borderRadius: 3, borderSkipped: false, barPercentage: 0.8 }] },
+      options: _opts(), plugins: [_hBarLabels],
+    });
 })();
 
-// Aperture
-(function() {
-  const vals = {{ aperture_histogram | tojson }};
-  if (!vals.length) return;
-  const stops = [1.4,1.8,2,2.8,4,5.6,8,11,16,22];
-  new Chart(document.getElementById("apertureChart"), {
-    type: "bar",
-    data: { labels: stops.map((s,i) => i===0?"≤f/"+s:"f/"+s),
-            datasets: [{ data: stops.map((s,i) => { const lo=i===0?0:stops[i-1]; return vals.filter(v=>v>lo&&v<=s).length; }), backgroundColor: "#10b981aa", borderRadius: 4 }] },
-    options: { ...GD }
-  });
-})();
-
-// ISO
-(function() {
-  const vals = {{ iso_histogram | tojson }};
-  if (!vals.length) return;
-  const b = [["≤100",0,100],["101–400",100,400],["401–800",400,800],["801–1600",800,1600],["1601–3200",1600,3200],["3201+",3200,1e9]];
-  new Chart(document.getElementById("isoChart"), {
-    type: "bar",
-    data: { labels: b.map(x=>x[0]), datasets: [{ data: b.map(x => vals.filter(v=>v>x[1]&&v<=x[2]).length), backgroundColor: "#f59e0baa", borderRadius: 4 }] },
-    options: { ...GD }
-  });
-})();
-
-// aestheticChart removed — all scores in one bucket, histogram uninformative
 
 // Hue
 (function() {
@@ -1622,22 +1889,11 @@ const GD = { responsive: true, plugins: { legend: { display: false } }, scales: 
   new Chart(document.getElementById("hueChart"), {
     type: "bar",
     data: { labels: hd.labels, datasets: [{ data: hd.buckets, backgroundColor: hc.map(c=>c+"cc"), borderRadius: 3 }] },
-    options: { responsive: true, plugins: { legend: { display: false } },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } },
       scales: { x: { grid: { color: "#14142a" }, ticks: { color: "#7878a0", font: { size: 9 }, maxRotation: 45 } }, y: { grid: { color: "#14142a" }, ticks: { color: "#7878a0" } } }}
   });
 })();
 
-// Saturation histogram
-(function() {
-  const sd = {{ saturation_histogram | tojson }};
-  if (!sd.buckets) return;
-  new Chart(document.getElementById("satHistChart"), {
-    type: "bar",
-    data: { labels: sd.labels, datasets: [{ data: sd.buckets, backgroundColor: "#ec4899aa", borderRadius: 3 }] },
-    options: { responsive: true, plugins: { legend: { display: false } },
-      scales: { x: { grid: { color: "#14142a" }, ticks: { color: "#7878a0", font: { size: 9 } } }, y: { grid: { color: "#14142a" }, ticks: { color: "#7878a0" } } }}
-  });
-})();
 
 // Shooting hours
 (function() {
@@ -1679,29 +1935,145 @@ const GD = { responsive: true, plugins: { legend: { display: false } }, scales: 
   });
 })();
 
-// Editing trends
+// Day-of-week chart
+{% if dow_distribution and dow_distribution.values() | sum > 0 %}
+(function(){
+  const dowData = {{ dow_distribution | tojson }};
+  const dowLabels = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
+  const dowCounts = [0,1,2,3,4,5,6].map(i => dowData[String(i)] || 0);
+  const weekendColor = "#f59e0b55";
+  const weekdayColor = "#7c6af733";
+  new Chart(document.getElementById("dowChart"), {
+    type: "bar",
+    data: {
+      labels: dowLabels,
+      datasets: [{ data: dowCounts, backgroundColor: dowLabels.map((_,i) => i>=5 ? weekendColor : weekdayColor), borderColor: dowLabels.map((_,i) => i>=5 ? "#f59e0b99" : "#7c6af755"), borderWidth: 1, borderRadius: 4 }]
+    },
+    options: { ...GD, maintainAspectRatio: false,
+      plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => ` ${ctx.raw} photos` } } },
+      scales: {
+        x: { grid: { color: "#14142a" }, ticks: { color: "#7878a0" } },
+        y: { grid: { color: "#14142a" }, ticks: { color: "#7878a0" } }
+      }
+    }
+  });
+})();
+{% endif %}
+
+// Editing trends — Aesthetic + IQ Score + Edit Intensity over time
 (function() {
   const trends = {{ editing_trends | tojson }};
   const months = Object.keys(trends).sort();
   if (months.length < 2) return;
+  const hasIQ = months.some(m => trends[m].avg_iq != null);
+  const hasIntensity = months.some(m => trends[m].avg_edit_intensity != null);
+  const datasets = [
+    { label: "Aesthetic Score", data: months.map(m => trends[m].avg_aesthetic ?? null), borderColor: "#7c6af7", backgroundColor: "#7c6af715", tension: 0.3, fill: true, pointRadius: 3, spanGaps: true, yAxisID: "y" },
+  ];
+  if (hasIQ) {
+    datasets.push({ label: "IQ Score", data: months.map(m => trends[m].avg_iq ?? null), borderColor: "#10b981", tension: 0.3, pointRadius: 2, borderDash: [4,3], spanGaps: true, yAxisID: "y" });
+  }
+  if (hasIntensity) {
+    datasets.push({ label: "Edit Intensity", data: months.map(m => trends[m].avg_edit_intensity ?? null), borderColor: "#f97316", tension: 0.3, pointRadius: 2, borderDash: [6,3], spanGaps: true, yAxisID: "y2" });
+  }
   new Chart(document.getElementById("trendsChart"), {
     type: "line",
-    data: { labels: months, datasets: [
-      { label: "Aesthetic", data: months.map(m=>trends[m].avg_aesthetic), borderColor: "#7c6af7", backgroundColor: "#7c6af715", tension: 0.3, yAxisID: "y1", fill: true, pointRadius: 3 },
-      { label: "Saturation", data: months.map(m=>trends[m].avg_saturation), borderColor: "#f97316", tension: 0.3, yAxisID: "y2", pointRadius: 2, borderDash: [4,3] },
-      { label: "Brightness", data: months.map(m=>trends[m].avg_brightness), borderColor: "#10b981", tension: 0.3, yAxisID: "y2", pointRadius: 2, borderDash: [2,4] },
-    ]},
-    options: { responsive: true, interaction: { mode: "index", intersect: false },
+    data: { labels: months, datasets },
+    options: { responsive: true, maintainAspectRatio: false, interaction: { mode: "index", intersect: false },
       plugins: { legend: { display: true, labels: { color: "#5a5a78", boxWidth: 12, font: { size: 11 } }}},
       scales: {
         x: { grid: { color: "#14142a" }, ticks: { color: "#7878a0", maxRotation: 45 }},
-        y1: { position: "left", grid: { color: "#14142a" }, ticks: { color: "#7878a0" }, title: { display: true, text: "Aesthetic", color: "#7c6af7", font: { size: 10 }}},
-        y2: { position: "right", grid: { drawOnChartArea: false }, ticks: { color: "#7878a0" }, min: 0, max: 1 },
+        y: { min: 0, max: 100, grid: { color: "#14142a" }, ticks: { color: "#7878a0" }, title: { display: true, text: "Score (0–100)", color: "#7878a0", font: { size: 10 }}},
+        y2: { position: "right", grid: { drawOnChartArea: false }, ticks: { color: "#f97316" }, title: { display: hasIntensity, text: "Intensity", color: "#f97316", font: { size: 10 }}},
       }
     }
   });
 })();
 
+
+// Editing Journey multi-line chart with toggleable params
+{% if _sources.has_lightroom and editing_journey and editing_journey|length > 1 %}
+(function() {
+  const ej = {{ editing_journey | tojson }};
+  const months = Object.keys(ej).sort();
+  const elJ = document.getElementById("editingJourneyChart");
+  if (!elJ) return;
+
+  const _ejAllParams = {
+    Exposure2012: { label: "Exposure", color: "#f59e0b", axis: "y1" },
+    Clarity2012:  { label: "Clarity",  color: "#7c6af7", axis: "y2" },
+    Saturation:   { label: "Saturation", color: "#f97316", axis: "y2" },
+    Vibrance:     { label: "Vibrance", color: "#10b981", axis: "y2" },
+    Highlights2012: { label: "Highlights", color: "#34d399", axis: "y2" },
+    Shadows2012:  { label: "Shadows",  color: "#818cf8", axis: "y2" },
+    Texture:      { label: "Texture",  color: "#60a5fa", axis: "y2" },
+    Dehaze:       { label: "Dehaze",   color: "#a78bfa", axis: "y2" },
+    GrainAmount:  { label: "Grain",    color: "#9090b8", axis: "y2" },
+  };
+  const _ejActive = new Set(["Exposure2012", "Clarity2012", "Saturation", "Vibrance"]);
+
+  function _ejBuildDatasets() {
+    return Object.entries(_ejAllParams)
+      .filter(([k]) => _ejActive.has(k))
+      .map(([k, cfg]) => ({
+        label: cfg.label,
+        data: months.map(m => ej[m][k] ?? null),
+        borderColor: cfg.color,
+        tension: 0.3,
+        yAxisID: cfg.axis,
+        pointRadius: 2,
+        spanGaps: true,
+        ...(cfg.axis === "y2" && k === "GrainAmount" ? { borderDash: [4, 3] } : {}),
+      }));
+  }
+
+  const _ejChart = new Chart(elJ, {
+    type: "line",
+    data: { labels: months, datasets: _ejBuildDatasets() },
+    options: { responsive: true, interaction: { mode: "index", intersect: false },
+      plugins: { legend: { display: true, labels: { color: "#5a5a78", boxWidth: 10, font: { size: 10 } }}},
+      scales: {
+        x: { grid: { color: "#14142a" }, ticks: { color: "#7878a0", maxRotation: 45, font: { size: 9 }}},
+        y1: { position: "left", grid: { color: "#14142a" }, ticks: { color: "#f59e0b" }, title: { display: true, text: "Exposure (EV)", color: "#f59e0b", font: { size: 9 }}},
+        y2: { position: "right", grid: { drawOnChartArea: false }, ticks: { color: "#7878a0" }},
+      }
+    }
+  });
+
+  window.ejToggle = function(btn) {
+    const key = btn.dataset.ejKey;
+    const col = btn.dataset.ejCol;
+    if (_ejActive.has(key)) {
+      _ejActive.delete(key);
+      btn.style.background = "transparent";
+      btn.style.opacity = "0.45";
+    } else {
+      _ejActive.add(key);
+      btn.style.background = col + "22";
+      btn.style.opacity = "1";
+    }
+    _ejChart.data.datasets = _ejBuildDatasets();
+    _ejChart.update();
+  };
+
+  const elA = document.getElementById("adoptionChart");
+  if (elA) {
+    new Chart(elA, {
+      type: "line",
+      data: { labels: months, datasets: [
+        { label: "Toning %", data: months.map(m=>ej[m].toning_pct), borderColor: "#7c6af7", backgroundColor: "#7c6af718", tension: 0.3, pointRadius: 2, fill: false },
+        { label: "Crop %", data: months.map(m=>ej[m].crop_pct), borderColor: "#f97316", tension: 0.3, pointRadius: 2, fill: false },
+        { label: "Custom Curve %", data: months.map(m=>ej[m].custom_curve_pct), borderColor: "#10b981", tension: 0.3, pointRadius: 2, fill: false },
+        { label: "Auto WB %", data: months.map(m=>ej[m].auto_wb_pct), borderColor: "#f59e0b", tension: 0.3, pointRadius: 2, fill: false },
+        { label: "Automation %", data: months.map(m=>(ej[m].automation_score||0)*100), borderColor: "#94a3b8", tension: 0.3, pointRadius: 2, fill: false, borderDash: [4,3] },
+      ]},
+      options: { responsive: true, maintainAspectRatio: false, interaction: { mode: "index", intersect: false },
+        plugins: { legend: { display: true, labels: { color: "#5a5a78", boxWidth: 10, font: { size: 10 }}}},
+        scales: { x: { grid: { color: "#14142a" }, ticks: { color: "#7878a0", font: { size: 9 }, maxRotation: 45 }}, y: { grid: { color: "#14142a" }, ticks: { color: "#7878a0" }, min: 0, max: 100, title: { display: true, text: "%", color: "#9090b8", font: { size: 9 }}}}}
+    });
+  }
+})();
+{% endif %}
 
 // Keywords
 {% set _kw_data = keyword_map.top_keywords if (keyword_map and keyword_map.top_keywords) else [] %}
@@ -1712,49 +2084,11 @@ const GD = { responsive: true, plugins: { legend: { display: false } }, scales: 
   const top = kws.slice(0,20);
   new Chart(el, { type: "bar",
     data: { labels: top.map(k=>k.word||k.keyword), datasets: [{ data: top.map(k=>k.count), backgroundColor: "#7c6af7bb", borderRadius: 3 }] },
-    options: { indexAxis: "y", responsive: true, plugins: { legend: { display: false }},
+    options: { indexAxis: "y", responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }},
       scales: { x: { grid: { color: "#14142a" }, ticks: { color: "#7878a0" }}, y: { grid: { color: "#14142a" }, ticks: { color: "#7878a0", font: { size: 11 }}} }}
   });
 })();
 </script>
-
-<!-- Technical IQ Stats -->
-{% if iq_stats and not iq_stats.unavailable %}
-<div class="card mb">
-  <div class="card-title">Technical IQ Score <span style="color:#8080aa;font-weight:400;">MUSIQ · 0–1 scale · higher = better sharpness &amp; exposure</span></div>
-  <div class="strip mb">
-    <div class="strip-item">
-      <div class="strip-v">{{ "%.2f"|format(iq_stats.avg) if iq_stats.avg is not none else "—" }}</div>
-      <div class="strip-l">Avg IQ Score</div>
-      <div class="strip-s">std {{ "%.2f"|format(iq_stats.std) if iq_stats.std is not none else "—" }}</div>
-    </div>
-    {% if iq_stats.high_aesthetic_low_iq_count > 0 %}
-    <div class="strip-item">
-      <div class="strip-v" style="color:#fbbf24;">{{ iq_stats.high_aesthetic_low_iq_count }}</div>
-      <div class="strip-l">High Aesthetic, Low IQ</div>
-      <div class="strip-s">beautiful but technically soft</div>
-    </div>
-    {% endif %}
-  </div>
-  {% if iq_stats.distribution %}
-  <div style="font-size:0.68rem;color:#7878a0;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:0.5rem;">Score Distribution</div>
-  <div class="chart-h" style="height:140px;"><canvas id="iqDistChart"></canvas></div>
-  <script>
-  (() => {
-    const el = document.getElementById("iqDistChart");
-    if (!el) return;
-    const dist = {{ iq_stats.distribution | tojson }};
-    const labels = dist.map((_, i) => (i/10).toFixed(1) + "–" + ((i+1)/10).toFixed(1));
-    new Chart(el, { type: "bar",
-      data: { labels, datasets: [{ data: dist, backgroundColor: "#34d399bb", borderRadius: 3 }] },
-      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }},
-        scales: { x: { grid: { color: "#14142a" }, ticks: { color: "#7878a0", font: { size: 10 }}}, y: { grid: { color: "#14142a" }, ticks: { color: "#7878a0" }}}}
-    });
-  })();
-  </script>
-  {% endif %}
-</div>
-{% endif %}
 
 
 </div><!-- /.page -->
@@ -1772,6 +2106,21 @@ const GD = { responsive: true, plugins: { legend: { display: false } }, scales: 
     sbLinks.forEach((a, i) => a.classList.toggle("sb-active", i === current));
   }
   window.addEventListener("scroll", update, { passive: true });
+  // Deep links: update URL hash as user scrolls
+  window.addEventListener("scroll", function () {
+    let current = null;
+    targets.forEach((el, i) => { if (el && el.getBoundingClientRect().top <= 90) current = sbLinks[i]; });
+    if (current) {
+      const href = current.getAttribute("href");
+      if (href && location.hash !== href) history.replaceState(null, "", href);
+    }
+  }, { passive: true });
+  // On load: scroll to hash if present
+  const _initHash = location.hash;
+  if (_initHash) {
+    const _target = document.querySelector(_initHash);
+    if (_target) setTimeout(() => _target.scrollIntoView({ behavior: "smooth" }), 80);
+  }
   update();
 })();
 
@@ -1784,5 +2133,6 @@ const GD = { responsive: true, plugins: { legend: { display: false } }, scales: 
 })();
 </script>
 
+</details>
 </body>
 </html>

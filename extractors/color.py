@@ -13,10 +13,13 @@ def extract_color(img: Image.Image) -> dict:
     pixels = np.array(img).reshape(-1, 3).astype(float)
     sample = pixels[np.random.choice(len(pixels), min(2000, len(pixels)), replace=False)]
 
-    km = KMeans(n_clusters=5, n_init=3, random_state=42)
+    n_clusters = min(5, len(np.unique(sample.astype(np.uint8), axis=0)))
+    if n_clusters < 1:
+        return {}
+    km = KMeans(n_clusters=n_clusters, n_init=1, random_state=42)
     km.fit(sample)
     centers = km.cluster_centers_.astype(int)
-    counts = np.bincount(km.labels_, minlength=5)
+    counts = np.bincount(km.labels_, minlength=n_clusters)
     weights = (counts / counts.sum()).tolist()
 
     palette = [{"rgb": c.tolist(), "weight": round(w, 3)} for c, w in zip(centers, weights, strict=False)]

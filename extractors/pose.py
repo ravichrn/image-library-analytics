@@ -2,7 +2,7 @@ from pathlib import Path
 
 import numpy as np
 
-_MODEL_NAME = "yolov8n-pose.pt"
+_MODEL_NAME = "yolo11n-pose.pt"
 _CACHE_PATH = Path.home() / ".cache" / "ultralytics" / _MODEL_NAME
 
 # COCO keypoint indices used for pose classification
@@ -46,55 +46,62 @@ def _classify_pose(kpts_xy: np.ndarray) -> str | None:
     return "lying"
 
 
+def _parse_pred(pred, model) -> dict:
+    detected_objects: list[dict] = []
+    if pred.boxes is not None:
+        for box in pred.boxes:
+            cls_id = int(box.cls[0])
+            conf = float(box.conf[0])
+            if conf >= 0.3:
+                detected_objects.append({"label": model.names[cls_id], "confidence": round(conf, 3)})
+
+    person_count = 0
+    pose_type = None
+    body_coverage = None
+
+    if pred.keypoints is not None:
+        person_count = len(pred.keypoints)
+        if person_count > 0:
+            kpts_xy = pred.keypoints.xy[0].cpu().numpy()
+            pose_type = _classify_pose(kpts_xy)
+
+            person_boxes = [b for b in (pred.boxes or []) if model.names[int(b.cls[0])] == "person"]
+            if person_boxes:
+                img_h, img_w = pred.orig_shape
+                best = max(person_boxes, key=lambda b: float(b.conf[0]))
+                x1, y1, x2, y2 = best.xyxy[0].tolist()
+                body_coverage = round((x2 - x1) * (y2 - y1) / (img_h * img_w), 3)
+
+    return {
+        "detected_objects": detected_objects,
+        "pose": {"pose_type": pose_type, "person_count": person_count, "body_coverage": body_coverage},
+    }
+
+
 def extract_pose_batch(paths: list, model, device: str) -> list[dict]:
-    """Run YOLOv8n-pose on each path. Returns object detections + pose per photo."""
+    """Run YOLO11n-pose on a batch of paths. Returns object detections + pose per photo."""
     results: list[dict] = [{}] * len(paths)
 
-    for i, path in enumerate(paths):
-        if path is None:
-            continue
-        try:
-            preds = model(str(path), verbose=False, device=device)[0]
+    valid = [(i, p) for i, p in enumerate(paths) if p is not None]
+    if not valid:
+        return results
 
-            detected_objects: list[dict] = []
-            if preds.boxes is not None:
-                for box in preds.boxes:
-                    cls_id = int(box.cls[0])
-                    conf = float(box.conf[0])
-                    if conf >= 0.3:
-                        detected_objects.append(
-                            {
-                                "label": model.names[cls_id],
-                                "confidence": round(conf, 3),
-                            }
-                        )
-
-            person_count = 0
-            pose_type = None
-            body_coverage = None
-
-            if preds.keypoints is not None:
-                person_count = len(preds.keypoints)
-                if person_count > 0:
-                    kpts_xy = preds.keypoints.xy[0].cpu().numpy()
-                    pose_type = _classify_pose(kpts_xy)
-
-                    person_boxes = [b for b in (preds.boxes or []) if model.names[int(b.cls[0])] == "person"]
-                    if person_boxes:
-                        img_h, img_w = preds.orig_shape
-                        best = max(person_boxes, key=lambda b: float(b.conf[0]))
-                        x1, y1, x2, y2 = best.xyxy[0].tolist()
-                        body_coverage = round((x2 - x1) * (y2 - y1) / (img_h * img_w), 3)
-
-            results[i] = {
-                "detected_objects": detected_objects,
-                "pose": {
-                    "pose_type": pose_type,
-                    "person_count": person_count,
-                    "body_coverage": body_coverage,
-                },
-            }
-        except Exception:
-            results[i] = {}
+    indices, valid_paths = zip(*valid, strict=False)
+    try:
+        # YOLO accepts a list of paths — processes as a true batch
+        batch_preds = model([str(p) for p in valid_paths], verbose=False, device=device)
+        for i, pred in zip(indices, batch_preds, strict=False):
+            try:
+                results[i] = _parse_pred(pred, model)
+            except Exception:
+                results[i] = {}
+    except Exception:
+        # fallback: one at a time if batch fails
+        for i, path in valid:
+            try:
+                pred = model(str(path), verbose=False, device=device)[0]
+                results[i] = _parse_pred(pred, model)
+            except Exception:
+                results[i] = {}
 
     return results

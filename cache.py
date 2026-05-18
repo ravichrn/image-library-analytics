@@ -13,6 +13,8 @@ def _db() -> sqlite3.Connection:
     if _conn is None:
         CACHE_DIR.mkdir(exist_ok=True)
         _conn = sqlite3.connect(DB_PATH, check_same_thread=False)
+        _conn.execute("PRAGMA journal_mode=WAL")
+        _conn.execute("PRAGMA synchronous=NORMAL")
         _conn.execute("CREATE TABLE IF NOT EXISTS photos (hash TEXT PRIMARY KEY, data TEXT NOT NULL)")
         _conn.commit()
     return _conn

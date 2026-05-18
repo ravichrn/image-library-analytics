@@ -7,26 +7,30 @@ dependencies = [
     "cryptography>=48.0.0",
     "einops>=0.8.2",
     "jinja2>=3.1.6",
-    "open-clip-torch>=3.3.0",
     "opencv-python>=4.13.0.92",
+    "aesthetic-predictor-v2-5>=0.1.0",
     "pandas>=3.0.2",
+    "pyiqa>=0.1.9",
     "piexif>=1.1.3",
     "pillow>=12.2.0",
     "python-dotenv>=1.2.2",
     "requests>=2.33.1",
     "rich>=15.0.0",
     "scikit-learn>=1.8.0",
-    "pyiqa>=0.1.9",
     "timm>=1.0.27",
     "torch>=2.11.0",
-    "transformers>=5.8.0",
+    "transformers>=4.56.0",
     "ultralytics>=8.3.0",
     "umap-learn>=0.5.12",
+    "kornia>=0.8.2",
+    "psutil>=6.0.0",
+    "pyyaml>=6.0.2",
 ]
 
 [dependency-groups]
 dev = [
     "pre-commit>=4.6.0",
+    "pytest>=8.0.0",
     "ruff>=0.9",
 ]
 
@@ -44,4 +48,3 @@ ignore = [
 [tool.ruff.lint.per-file-ignores]
 "analysis.py" = ["E402", "E741"]          # lazy imports after guard fn; l/ll in math code
 "extractors/composition.py" = ["E741"]    # l for line in HoughLines CV code
-"extractors/caption.py" = ["B023"]        # intentional loop-closure pattern in batch fn

@@ -33,6 +33,81 @@ def hour_to_time_of_day(h: int) -> str:
     return "morning_evening"
 
 
+def camera_device_category(make: str | None, model: str | None) -> str:
+    """Classify camera body into broad device category."""
+    if not make and not model:
+        return "unknown"
+    combined = f"{make or ''} {model or ''}".lower()
+    phone_brands = ("apple", "samsung", "google", "pixel", "iphone", "huawei", "xiaomi", "oneplus", "oppo", "vivo", "realme")
+    mirrorless_keywords = (
+        "ilce",
+        "α",
+        "a7",
+        "a6",
+        "zfc",
+        "z50",
+        "z6",
+        "z7",
+        "z8",
+        "z9",
+        "xt",
+        "x-t",
+        "x-s",
+        "gfx",
+        "om-1",
+        "om-5",
+        "e-m",
+        "sl2",
+        "sl3",
+        "rp",
+        "r5",
+        "r6",
+        "r7",
+        "r8",
+        "r10",
+        "r50",
+        "r100",
+        "r3",
+        "r1",
+        "s5",
+        "s9",
+        "gh6",
+        "gh7",
+        "g9",
+    )
+    dslr_keywords = (
+        "eos",
+        "nikon d",
+        "nikon z",
+        "d3",
+        "d4",
+        "d5",
+        "d6",
+        "d7",
+        "d8",
+        "d500",
+        "d750",
+        "d800",
+        "d810",
+        "d850",
+        "7d",
+        "5d",
+        "6d",
+        "rebel",
+        "k-",
+        "pentax",
+    )
+    if any(b in combined for b in phone_brands):
+        return "phone"
+    if any(k in combined for k in mirrorless_keywords):
+        return "mirrorless"
+    if any(k in combined for k in dslr_keywords):
+        return "dslr"
+    if make:
+        return "other"
+    return "unknown"
+
+
 def extract_exif(img: Image.Image) -> dict:
     """Accept an already-open PIL image — caller opens the file once and reuses it."""
     result = {
@@ -45,6 +120,16 @@ def extract_exif(img: Image.Image) -> dict:
         "dof_category": None,
         "light_category": None,
         "megapixels": None,
+        # new fields
+        "camera_make": None,
+        "camera_model": None,
+        "lens_model": None,
+        "shutter_speed": None,
+        "shutter_category": None,
+        "flash_fired": None,
+        "metering_mode": None,
+        "gps_lat": None,
+        "gps_lon": None,
     }
     try:
         w, h = img.size
@@ -80,6 +165,46 @@ def extract_exif(img: Image.Image) -> dict:
                 result["year"] = dt.year
                 result["time_of_day"] = hour_to_time_of_day(dt.hour)
             except ValueError:
+                pass
+
+        # Camera & lens make/model
+        make = exif.get("Make")
+        model = exif.get("Model")
+        lens = exif.get("LensModel") or exif.get("LensInfo") or exif.get("Lens")
+        result["camera_make"] = str(make).strip() if make else None
+        result["camera_model"] = str(model).strip() if model else None
+        result["lens_model"] = str(lens).strip() if lens else None
+
+        # Shutter speed
+        et = exif.get("ExposureTime")
+        if et:
+            et_f = _safe_rational(et)
+            if et_f is not None:
+                result["shutter_speed"] = round(et_f, 6)
+                result["shutter_category"] = "freeze" if et_f <= 1 / 500 else "hand" if et_f <= 1 / 60 else "slow" if et_f <= 1 / 15 else "bulb"
+
+        # Flash
+        flash_val = exif.get("Flash")
+        result["flash_fired"] = bool(flash_val & 0x1) if isinstance(flash_val, int) else None
+
+        # Metering mode
+        metering_map = {1: "average", 2: "center_weighted", 3: "spot", 5: "multi_spot", 6: "multi_segment"}
+        m = exif.get("MeteringMode")
+        result["metering_mode"] = metering_map.get(m, "other") if m is not None else None
+
+        # GPS
+        gps_info = exif.get("GPSInfo")
+        if gps_info:
+
+            def _dms(dms, ref):
+                d, mn, s = [float(x) for x in dms]
+                dd = d + mn / 60 + s / 3600
+                return -dd if ref in ("S", "W") else dd
+
+            try:
+                result["gps_lat"] = round(_dms(gps_info.get(2, [0, 0, 0]), gps_info.get(1, "N")), 5)
+                result["gps_lon"] = round(_dms(gps_info.get(4, [0, 0, 0]), gps_info.get(3, "E")), 5)
+            except Exception:
                 pass
     except Exception:
         pass

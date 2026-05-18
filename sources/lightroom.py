@@ -123,6 +123,103 @@ def _parse_develop(payload: dict) -> dict:
     return result
 
 
+def _rational(val) -> float | None:
+    """Convert [numerator, denominator] or scalar to float."""
+    try:
+        if isinstance(val, list | tuple) and len(val) == 2:
+            return val[0] / val[1] if val[1] else None
+        return float(val)
+    except Exception:
+        return None
+
+
+def _parse_xmp_exif(payload: dict) -> dict:
+    """Extract camera EXIF from payload.xmp — available directly from Lightroom API."""
+    xmp = payload.get("xmp", {})
+    tiff = xmp.get("tiff", {})
+    exif = xmp.get("exif", {})
+    aux = xmp.get("aux", {})
+    src = payload.get("importSource", {})
+
+    make = tiff.get("Make")
+    model = tiff.get("Model")
+    lens = aux.get("Lens") or aux.get("LensModel")
+
+    fl_raw = exif.get("FocalLengthIn35mmFilm") or exif.get("FocalLength")
+    fl = _rational(fl_raw)
+    focal_category = None
+    if fl:
+        focal_category = "wide" if fl < 35 else ("normal" if fl <= 70 else "telephoto")
+
+    ap_raw = exif.get("FNumber") or exif.get("ApertureValue")
+    aperture = _rational(ap_raw)
+    dof_category = None
+    if aperture:
+        dof_category = "shallow" if aperture < 2.8 else ("mid" if aperture < 8 else "deep")
+
+    iso = exif.get("ISOSpeedRatings")
+    iso_int = int(iso) if iso is not None else None
+    light_category = None
+    if iso_int is not None:
+        light_category = "low_light" if iso_int > 1600 else ("indoor" if iso_int > 400 else "bright")
+
+    et = _rational(exif.get("ExposureTime"))
+    shutter_category = None
+    if et:
+        shutter_category = "freeze" if et <= 1 / 500 else ("hand" if et <= 1 / 60 else ("slow" if et <= 1 / 15 else "bulb"))
+
+    metering_map = {"pattern": "multi_segment", "center weighted average": "center_weighted", "spot": "spot", "average": "average", "multi-spot": "multi_spot"}
+    metering_raw = exif.get("MeteringMode", "")
+    metering = metering_map.get(str(metering_raw).lower()) if metering_raw else None
+
+    flash_fired = exif.get("FlashFired")
+    flash_fired = bool(flash_fired) if flash_fired is not None else None
+
+    cap_date = payload.get("captureDate", "")
+    hour = year_month = year = time_of_day = None
+    if cap_date:
+        try:
+            from datetime import datetime
+
+            from extractors.exif import hour_to_time_of_day
+
+            dt = datetime.fromisoformat(cap_date.replace("Z", "+00:00"))
+            hour = dt.hour
+            year_month = dt.strftime("%Y-%m")
+            year = dt.year
+            time_of_day = hour_to_time_of_day(hour)
+        except Exception:
+            pass
+
+    orig_h = src.get("originalHeight", 0)
+    orig_w = src.get("originalWidth", 0)
+    megapixels = round(orig_h * orig_w / 1_000_000, 2) if orig_h and orig_w else None
+
+    result = {
+        "focal_length_mm": round(fl, 2) if fl else None,
+        "aperture_f": round(aperture, 2) if aperture else None,
+        "iso": iso_int,
+        "shutter_speed": round(et, 6) if et else None,
+        "shutter_category": shutter_category,
+        "focal_category": focal_category,
+        "dof_category": dof_category,
+        "light_category": light_category,
+        "camera_make": str(make).strip() if make else None,
+        "camera_model": str(model).strip() if model else None,
+        "lens_model": str(lens).strip() if lens else None,
+        "flash_fired": flash_fired,
+        "metering_mode": metering,
+        "time_of_day": time_of_day,
+        "hour": hour,
+        "year_month": year_month,
+        "year": year,
+        "megapixels": megapixels,
+        "gps_lat": None,
+        "gps_lon": None,
+    }
+    return result
+
+
 def _parse_asset(asset: dict) -> dict:
     payload = asset.get("payload", {})
     raw_filename = payload.get("importSource", {}).get("fileName", "")
@@ -135,8 +232,10 @@ def _parse_asset(asset: dict) -> dict:
         "lightroom_pick": payload.get("pick", 0),
         "lightroom_keywords": payload.get("keywords", []),
         "lightroom_capture_date": payload.get("captureDate", ""),
+        "lightroom_updated": asset.get("updated"),
         "lightroom_filename": raw_filename,
         "lightroom_filename_stem": Path(raw_filename).stem if raw_filename else "",
+        "lightroom_exif": _parse_xmp_exif(payload),
     }
 
 
@@ -172,7 +271,11 @@ def get_token_and_catalog() -> tuple[str, str]:
     return token, _get_catalog_id(token)
 
 
-def load_lightroom(sample: int | None = None) -> list[dict]:
+def load_lightroom(
+    sample: int | None = None,
+    album_name: str | None = None,
+    since_override: str | None = None,
+) -> list[dict]:
     """
     Fetch asset metadata from Lightroom cloud.
 
@@ -180,16 +283,23 @@ def load_lightroom(sample: int | None = None) -> list[dict]:
     (assets updated since last sync). If the delta is empty the API returns
     immediately and all records are loaded from the local SQLite cache —
     no further network calls needed.
+
+    album_name: if set, restrict results to photos in the named album.
+    since_override: if set, only fetch assets captured on or after this ISO date string.
     """
     from rich.console import Console
     from rich.progress import BarColumn, MofNCompleteColumn, Progress, SpinnerColumn, TaskProgressColumn, TextColumn
 
     from auth.lightroom import get_access_token
-    from cache import load_all_cached, save_cache
+    from cache import load_all_cached, load_cache, save_cache
 
     console = Console()
     sync_state = _read_sync_state()
-    since = sync_state.get("last_synced")
+    # since_override takes priority over delta-sync state
+    since = since_override or sync_state.get("last_synced")
+
+    if since_override:
+        console.print(f"  [dim]--lightroom-since {since_override}: filtering assets captured after this date.[/dim]")
 
     token = get_access_token()
     catalog_id = _get_catalog_id(token)
@@ -222,6 +332,9 @@ def load_lightroom(sample: int | None = None) -> list[dict]:
 
             console.print(f"  [red]Album fetch failed:[/red] {type(exc).__name__}: {exc}")
             console.print(f"  [dim]{traceback.format_exc()}[/dim]")
+        if album_name:
+            cached_records = [r for r in cached_records if album_name in (r.get("lightroom_album_names") or [])]
+            console.print(f"  [dim]--lightroom-album '{album_name}':[/dim] {len(cached_records)} photos match.")
         if sample and sample < len(cached_records):
             import random
 
@@ -259,7 +372,11 @@ def load_lightroom(sample: int | None = None) -> list[dict]:
             if cached_rendition.exists():
                 record["path"] = str(cached_rendition)
 
-            save_cache(sha256, record)
+            # Merge with existing cache to preserve pixel-level data (color, composition, etc.)
+            existing = load_cache(sha256) or {}
+            merged = {**existing, **record}
+            save_cache(sha256, merged)
+            record = merged
             new_records.append(record)
             progress.advance(task)
 
@@ -295,7 +412,14 @@ def load_lightroom(sample: int | None = None) -> list[dict]:
         console.print(f"  [red]Album fetch failed:[/red] {type(exc).__name__}: {exc}")
         console.print(f"  [dim]{traceback.format_exc()}[/dim]")
 
-    return list(all_by_hash.values())
+    all_records = list(all_by_hash.values())
+
+    if album_name:
+        filtered = [r for r in all_records if album_name in (r.get("lightroom_album_names") or [])]
+        console.print(f"  [dim]--lightroom-album '{album_name}':[/dim] {len(filtered)}/{len(all_records)} photos match.")
+        return filtered
+
+    return all_records
 
 
 def _read_sync_state() -> dict:
