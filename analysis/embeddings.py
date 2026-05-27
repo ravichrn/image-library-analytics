@@ -9,6 +9,23 @@ from umap import UMAP
 
 from ._helpers import _show_thumbnails, _thumb_b64
 
+# Cosine-distance threshold for near-duplicate clustering. eps=0.05 ≈ 0.95 cosine
+# similarity — the point where near-identical burst frames cluster together without
+# merging visually distinct shots. Validated in tests/test_near_dup.py (precision/recall).
+NEAR_DUP_EPS = 0.05
+NEAR_DUP_MIN_SAMPLES = 2
+
+
+def near_duplicate_labels(vectors, eps: float = NEAR_DUP_EPS, min_samples: int = NEAR_DUP_MIN_SAMPLES) -> np.ndarray:
+    """Cluster L2-normalized embeddings by cosine distance. Returns a DBSCAN label per
+    vector; label -1 means "no near-duplicate". Pure function — testable in isolation."""
+    mat = np.asarray(vectors, dtype=np.float32)
+    norms = np.linalg.norm(mat, axis=1, keepdims=True) + 1e-9
+    mat = mat / norms
+    sim = mat @ mat.T
+    dist = np.clip(1.0 - sim, 0, 2).astype(np.float64)
+    return DBSCAN(eps=eps, min_samples=min_samples, metric="precomputed").fit_predict(dist)
+
 
 def analyze(records: list[dict]) -> dict:
     # ── UMAP + KMeans ────────────────────────────────────────────────────────
@@ -73,12 +90,7 @@ def analyze(records: list[dict]) -> dict:
     ]
     if len(dino_records) >= 2:
         _hashes_d, vecs_d, scores_d, scenes_d, paths_d = zip(*dino_records, strict=False)
-        mat_d = np.array(vecs_d, dtype=np.float32)
-        norms_d = np.linalg.norm(mat_d, axis=1, keepdims=True) + 1e-9
-        mat_d = mat_d / norms_d
-        sim_d = mat_d @ mat_d.T
-        dist_d = np.clip(1.0 - sim_d, 0, 2).astype(np.float64)
-        labels_d = DBSCAN(eps=0.05, min_samples=2, metric="precomputed").fit_predict(dist_d)
+        labels_d = near_duplicate_labels(vecs_d)
 
         cluster_ids = [ll for ll in set(labels_d) if ll != -1]
         groups_d = []

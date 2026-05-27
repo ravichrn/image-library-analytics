@@ -24,3 +24,5 @@ cache/
 # macOS
 .DS_Store
 Thumbs.db
+
+*.md
