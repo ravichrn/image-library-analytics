@@ -12,6 +12,11 @@ def load_dino_model() -> tuple:
     )
     model.eval()
     model.to(device)
+    if device == "cuda":
+        try:
+            model = torch.compile(model)
+        except Exception:
+            pass
     return model, processor, device
 
 

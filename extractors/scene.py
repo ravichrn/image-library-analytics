@@ -25,6 +25,11 @@ def load_siglip_model(device: str) -> tuple:
     dtype = torch.float16 if device != "cpu" else torch.float32
     model = AutoModel.from_pretrained("google/siglip2-so400m-patch14-384", torch_dtype=dtype).eval().to(device)
     processor = AutoProcessor.from_pretrained("google/siglip2-so400m-patch14-384")
+    if device == "cuda":
+        try:
+            model = torch.compile(model)
+        except Exception:
+            pass
     return model, processor
 
 
@@ -43,22 +48,26 @@ def classify_scene_batch(
     processor,
     device: str,
     text_features: torch.Tensor,
+    _preloaded: tuple[list, list[int]] | None = None,
 ) -> tuple[list[dict], torch.Tensor | None]:
     """
     SigLIP 2 sigmoid scoring.
     Returns (scene_results, image_features) — image_features reused for VQA.
     scene_results: one {"scene": {...}} dict per path.
     image_features: (N_valid, D) normalised tensor, or None if no valid images.
+    _preloaded: optional (imgs, valid_idx) from prefetcher to skip disk IO.
     """
-    imgs: list = []
-    valid_idx: list[int] = []
-    for i, path in enumerate(paths):
-        try:
-            with Image.open(path) as img:
-                imgs.append(img.convert("RGB"))
-            valid_idx.append(i)
-        except Exception:
-            pass
+    if _preloaded is not None:
+        imgs, valid_idx = _preloaded
+    else:
+        imgs, valid_idx = [], []
+        for i, path in enumerate(paths):
+            try:
+                with Image.open(path) as img:
+                    imgs.append(img.convert("RGB"))
+                valid_idx.append(i)
+            except Exception:
+                pass
 
     results = [{"scene": {"scene_type": "unknown", "scene_scores": {}}} for _ in paths]
     if not imgs:
@@ -142,6 +151,11 @@ def load_aesthetic_model(device: str):
         trust_remote_code=True,
     )
     model = model.to(dtype).to(device).eval()
+    if device == "cuda":
+        try:
+            model = torch.compile(model)
+        except Exception:
+            pass
     return model, preprocessor
 
 
@@ -151,6 +165,8 @@ def extract_aesthetic_batch(paths: list, aesthetic, batch_size: int = 4) -> list
     Scores are on a 1-10 scale internally; normalised to 0-100 for consistency.
     batch_size capped at 4 — model is SigLIP SO400M-based and memory-heavy.
     """
+    from .prefetch import iter_prefetched
+
     results: list[float | None] = [None] * len(paths)
     if aesthetic is None:
         return results
@@ -158,18 +174,9 @@ def extract_aesthetic_batch(paths: list, aesthetic, batch_size: int = 4) -> list
     model, preprocessor = aesthetic
     device = next(model.parameters()).device
     dtype = next(model.parameters()).dtype
-    valid = [(i, p) for i, p in enumerate(paths) if p is not None]
+    valid_paths = [p if p is not None else None for p in paths]
 
-    for start in range(0, len(valid), batch_size):
-        chunk = valid[start : start + batch_size]
-        imgs: list = []
-        indices: list[int] = []
-        for i, path in chunk:
-            try:
-                imgs.append(Image.open(path).convert("RGB"))
-                indices.append(i)
-            except Exception:
-                pass
+    for _batch_paths, imgs, indices in iter_prefetched(valid_paths, batch_size):
         if not imgs:
             continue
         try:
@@ -179,7 +186,6 @@ def extract_aesthetic_batch(paths: list, aesthetic, batch_size: int = 4) -> list
             if isinstance(logits, float):
                 logits = [logits]
             for idx, raw in zip(indices, logits, strict=False):
-                # raw is on 1-10 scale; normalise to 0-100
                 results[idx] = round(max(0.0, min(100.0, (raw - 1) / 9 * 100)), 2)
         except Exception:
             pass

@@ -14,9 +14,12 @@ wheels/
 .ruff_cache/
 
 # App outputs
-docs/results.json
+docs/*.json
 cache/
 *.db
+
+# Model weights (downloaded automatically)
+*.pt
 
 # Environment
 .env

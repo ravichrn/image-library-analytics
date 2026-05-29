@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Image Library Analytics</title>
+<title>On-Device Image Analytics</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -357,8 +357,8 @@ canvas { max-height: 300px; }
 <div id="sidebar-overlay" onclick="document.getElementById('sidebar').classList.remove('open');document.getElementById('sidebar-overlay').classList.remove('open');"></div>
 
 <nav id="sidebar">
-  <div class="sb-logo">Analytics</div>
-  <div class="sb-label">Library</div>
+  <div class="sb-logo">On-Device</div>
+  <div class="sb-label">Photo Analytics</div>
   <a href="#s-overview">Overview</a>
   <div class="sb-label">Explore</div>
   <a href="#s-semantic">What You Shoot</a>
@@ -378,8 +378,8 @@ canvas { max-height: 300px; }
 
 <!-- ══════════════════════════════════════ HERO ══════════════════ -->
 <div class="hero" id="s-overview">
-  <h1 class="hero-title" style="font-size:1.9rem;letter-spacing:0.04em;font-weight:800;text-transform:uppercase;color:#c8c8de;">Image Library Analytics</h1>
-  <p class="hero-sub">{{ photo_count }} images · analyzed entirely on-device · SigLIP 2 · aesthetic-predictor-v2-5 · CLIP-IQA+ · DINOv2 · RMBG-2.0</p>
+  <h1 class="hero-title" style="font-size:1.9rem;letter-spacing:0.04em;font-weight:800;text-transform:uppercase;color:#c8c8de;">On-Device Image Analytics</h1>
+  <p class="hero-sub">{{ photo_count }} images · SigLIP 2 · aesthetic-predictor-v2-5 · CLIP-IQA+ · DINOv2 · RMBG-2.0</p>
   <p style="font-size:0.82rem;color:#8080aa;line-height:1.7;margin-bottom:1rem;">This report analyzes your photo library using on-device AI models — covering shooting habits, composition patterns, editing style, color grading, and technical quality.</p>
   <div style="font-size:0.68rem;font-weight:700;color:#7878a0;text-transform:uppercase;letter-spacing:0.12em;margin-bottom:0.6rem;">Highlights</div>
   <div class="stat-grid">

@@ -1,18 +1,22 @@
 import argparse
 import gc
+import json
 import os
 import sys
+import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from datetime import datetime
 from pathlib import Path
 
 import torch
 from dotenv import load_dotenv
 from rich.console import Console
 from rich.progress import BarColumn, MofNCompleteColumn, Progress, SpinnerColumn, TaskProgressColumn, TextColumn
+from rich.table import Table
 
 from analysis import aggregate
 from cache import load_cache, save_cache
-from coach_client import aggregate_flags
+from coach_client import aggregate_flags, calibrate_thresholds
 from extractors import (
     classify_scene_batch,
     encode_scene_labels_siglip,
@@ -72,6 +76,28 @@ def _download_renditions() -> bool:
 
 _lr_token: str = ""
 _lr_catalog_id: str = ""
+_pass_stats: list[dict] = []
+_cache_hits: int = 0
+_cache_misses: int = 0
+_PROFILE_PATH = Path("docs/pipeline_profile.json")
+
+
+def _flush_pass_profile() -> None:
+    """Merge the latest entry in _pass_stats into pipeline_profile.json."""
+    if not _pass_stats or _pass_stats[-1].get("skipped"):
+        return
+    existing: dict = {}
+    if _PROFILE_PATH.exists():
+        try:
+            existing = json.loads(_PROFILE_PATH.read_text())
+        except Exception:
+            pass
+    by_name = {p["name"]: p for p in existing.get("passes", [])}
+    by_name[_pass_stats[-1]["name"]] = _pass_stats[-1]
+    existing["passes"] = list(by_name.values())
+    existing["run_date"] = datetime.now().strftime("%Y-%m-%d")
+    _PROFILE_PATH.parent.mkdir(exist_ok=True)
+    _PROFILE_PATH.write_text(json.dumps(existing, indent=2))
 
 
 def _device() -> str:
@@ -80,6 +106,33 @@ def _device() -> str:
     if torch.cuda.is_available():
         return "cuda"
     return "cpu"
+
+
+def _memory_mb() -> float | None:
+    """Current allocated device memory in MB, after syncing pending ops."""
+    if torch.cuda.is_available():
+        torch.cuda.synchronize()
+        return torch.cuda.memory_allocated() / 1e6
+    if torch.backends.mps.is_available():
+        try:
+            torch.mps.synchronize()
+            return torch.mps.current_allocated_memory() / 1e6
+        except AttributeError:
+            pass
+    return None
+
+
+def _reset_peak() -> None:
+    if torch.cuda.is_available():
+        torch.cuda.reset_peak_memory_stats()
+
+
+def _peak_mb() -> float | None:
+    """Peak allocated device memory in MB since last _reset_peak()."""
+    if torch.cuda.is_available():
+        return torch.cuda.max_memory_allocated() / 1e6
+    # MPS: use current as proxy (called right after model load, before unload)
+    return _memory_mb()
 
 
 def parse_args() -> argparse.Namespace:
@@ -111,8 +164,9 @@ def parse_args() -> argparse.Namespace:
         "--clear-key",
         type=str,
         default=None,
-        metavar="KEY",
-        help="Delete cached values for KEY (e.g. saliency, iq_score) from all records, then exit.",
+        metavar="KEY(S)",
+        help="Delete cached values for KEY (or comma-separated keys) from all records, then exit. "
+        "Use 'ml' as a shorthand for all ML keys: scene,caption,aesthetic_score,iq_score,dinov2,saliency,pose_data",
     )
     parser.add_argument(
         "--lightroom-album",
@@ -287,10 +341,15 @@ def main() -> None:
     if args.prune:
         _prune_stale(sources, raw, dry_run=args.dry_run)
 
+    global _cache_hits, _cache_misses
     records: dict[str, dict] = {}
     for r in raw:
         h = r["hash"]
         cached = load_cache(h) or {}
+        if cached:
+            _cache_hits += 1
+        else:
+            _cache_misses += 1
         merged = {**r, **{k: v for k, v in cached.items() if k not in ("path", "hash", "source")}}
         # Always use fresh lightroom_exif from the API (never from cache — it can change)
         if r.get("lightroom_exif"):
@@ -306,18 +365,25 @@ def main() -> None:
         if r.get("source") in ("lightroom", "both") and r.get("lightroom_id"):
             save_cache(r["hash"], r)
 
-    # ── --clear-key: wipe one cache key from all records, then exit ───────────
+    # ── --clear-key: wipe one or more cache keys from all records, then exit ────
+    _ML_KEYS = {"scene", "caption", "aesthetic_score", "iq_score", "dinov2", "saliency", "pose_data"}
     if args.clear_key:
         from cache import load_all_cached
 
-        key = args.clear_key
+        raw_keys = "scene,caption,aesthetic_score,iq_score,dinov2,saliency,pose_data" if args.clear_key == "ml" else args.clear_key
+        keys = {k.strip() for k in raw_keys.split(",") if k.strip()}
         cleared = 0
         for r in load_all_cached():
-            if key in r:
-                del r[key]
+            changed = False
+            for key in keys:
+                if key in r:
+                    del r[key]
+                    changed = True
+            if changed:
                 save_cache(r["hash"], r)
                 cleared += 1
-        console.print(f"Cleared [yellow]{key}[/yellow] from [green]{cleared}[/green] cache entr{'y' if cleared == 1 else 'ies'}.\n")
+        label = "ml" if args.clear_key == "ml" else ", ".join(sorted(keys))
+        console.print(f"Cleared [yellow]{label}[/yellow] from [green]{cleared}[/green] cache entr{'y' if cleared == 1 else 'ies'}.\n")
         return
 
     # ── selective-pass filtering ──────────────────────────────────────────────
@@ -333,6 +399,7 @@ def main() -> None:
         console.print("[bold]--report-only:[/bold] skipping all ML passes, regenerating report from cache.")
         all_records = list(records.values())
         aggregated = aggregate(all_records)
+        calibrate_thresholds(all_records)
         coach_data = aggregate_flags(all_records)
         data = {"photos": all_records, "aggregated": aggregated, "coach": coach_data}
         generate_json(data)
@@ -364,8 +431,10 @@ def main() -> None:
     ]
     if "exif" in _skip_passes:
         console.print("[bold]Pass 1/6:[/bold] skipped (--skip exif)\n")
+        _pass_stats.append({"name": "Pass 1: EXIF · Color · Composition · ELA", "skipped": True})
     elif todo:
         console.print(f"[bold]Pass 1/6:[/bold] EXIF · Color · Composition ({len(todo)} photos)")
+        _p1_t0 = time.perf_counter()
 
         _failures: list[int] = []  # thread-safe via GIL; append is atomic
         _no_path: list[int] = []
@@ -407,6 +476,18 @@ def main() -> None:
             console.print(f"  [dim]{len(_no_path)} photo(s) skipped — no local file (set LIGHTROOM_DOWNLOAD_RENDITIONS=true to enable)[/dim]")
         if _failures:
             console.print(f"  [yellow]⚠ {len(_failures)} image(s) failed extraction in Pass 1[/yellow]")
+        _p1_elapsed = time.perf_counter() - _p1_t0
+        _pass_stats.append(
+            {
+                "name": "Pass 1: EXIF · Color · Composition · ELA",
+                "photos": len(todo),
+                "elapsed_s": round(_p1_elapsed, 2),
+                "throughput_img_s": round(len(todo) / _p1_elapsed, 1) if _p1_elapsed > 0 else None,
+                "load_s": None,
+                "model_memory_mb": None,
+            }
+        )
+        _flush_pass_profile()
         console.print()
 
     # ── Pass 2 — SigLIP 2: scene classification + zero-shot VQA ─────────────────
@@ -417,21 +498,29 @@ def main() -> None:
     todo = [r for r in todo if r.get("path") or (r.get("source") in ("lightroom", "both") and _download_renditions())]
     if "scene" in _skip_passes:
         console.print("[bold]Pass 2/6:[/bold] skipped (--skip scene)\n")
+        _pass_stats.append({"name": "Pass 2: SigLIP 2 SO400M", "skipped": True})
     elif todo:
         console.print(f"[bold]Pass 2/6:[/bold] SigLIP 2 scene + VQA ({len(todo)} photos, batch={siglip_batch})")
         device = _device()
+        _reset_peak()
+        _p2_t0 = time.perf_counter()
         with console.status("Loading SigLIP 2 SO400M..."):
             siglip_model, siglip_processor = load_siglip_model(device)
             scene_feats = encode_scene_labels_siglip(siglip_model, siglip_processor, device)
             vqa_feats = encode_vqa_labels_siglip(siglip_model, siglip_processor, device)
+        _p2_load_s = time.perf_counter() - _p2_t0
+        _p2_model_mb = _peak_mb()
+
+        from extractors.prefetch import iter_prefetched
 
         _siglip_failed = 0
+        _all_siglip_paths = [_ensure_path(r) for r in todo]
+        _siglip_start = 0
         with _progress(SpinnerColumn(), BarColumn(), TextColumn("{task.description}"), MofNCompleteColumn(), TaskProgressColumn()) as p:
             task = p.add_task("Classifying scenes + VQA...", total=len(todo))
-            for start in range(0, len(todo), siglip_batch):
-                batch = todo[start : start + siglip_batch]
-                paths = [_ensure_path(r) for r in batch]
-                scene_results, img_feats = classify_scene_batch(paths, siglip_model, siglip_processor, device, scene_feats)
+            for batch_paths, imgs, valid_idx in iter_prefetched(_all_siglip_paths, siglip_batch):
+                batch = todo[_siglip_start : _siglip_start + len(batch_paths)]
+                scene_results, img_feats = classify_scene_batch(batch_paths, siglip_model, siglip_processor, device, scene_feats, _preloaded=(imgs, valid_idx))
                 vqa_results = extract_vqa_batch(img_feats, vqa_feats) if img_feats is not None else [{} for _ in batch]
                 for r, scene_res, vqa_res in zip(batch, scene_results, vqa_results, strict=False):
                     if scene_res["scene"].get("scene_scores"):
@@ -442,13 +531,26 @@ def main() -> None:
                     else:
                         _siglip_failed += 1
                 p.advance(task, len(batch))
+                _siglip_start += len(batch_paths)
 
         if _siglip_failed:
             console.print(f"  [yellow]⚠ {_siglip_failed} image(s) failed SigLIP (no file or load error)[/yellow]")
         _save_batch(todo)
+        del scene_feats, vqa_feats  # free before unload so empty_cache() inside sees clean state
         unload_model(siglip_model)
-        del scene_feats, vqa_feats
         gc.collect()
+        _p2_elapsed = time.perf_counter() - _p2_t0
+        _pass_stats.append(
+            {
+                "name": "Pass 2: SigLIP 2 SO400M",
+                "photos": len(todo),
+                "elapsed_s": round(_p2_elapsed, 2),
+                "throughput_img_s": round(len(todo) / _p2_elapsed, 1) if _p2_elapsed > 0 else None,
+                "load_s": round(_p2_load_s, 2),
+                "model_memory_mb": round(_p2_model_mb, 1) if _p2_model_mb else None,
+            }
+        )
+        _flush_pass_profile()
         console.print()
 
     # ── Pass 3a — aesthetic-predictor-v2-5: aesthetic score ──────────────────
@@ -457,10 +559,15 @@ def main() -> None:
     aes_todo = needs_path("aesthetic_score")
     if "aesthetic" in _skip_passes:
         console.print("[bold]Pass 3a/6:[/bold] skipped (--skip aesthetic)\n")
+        _pass_stats.append({"name": "Pass 3a: aesthetic-predictor-v2-5", "skipped": True})
     elif aes_todo:
         console.print(f"[bold]Pass 3a/6:[/bold] Aesthetic scoring ({len(aes_todo)} photos, batch={aes_batch})")
+        _reset_peak()
+        _p3a_t0 = time.perf_counter()
         with console.status("Loading aesthetic-predictor-v2-5..."):
             aesthetic = load_aesthetic_model(_device())
+        _p3a_load_s = time.perf_counter() - _p3a_t0
+        _p3a_model_mb = _peak_mb()
 
         _aes_failed = 0
         with _progress(SpinnerColumn(), BarColumn(), TextColumn("{task.description}"), MofNCompleteColumn(), TaskProgressColumn()) as p:
@@ -481,6 +588,18 @@ def main() -> None:
         gc.collect()
         if torch.backends.mps.is_available():
             torch.mps.empty_cache()
+        _p3a_elapsed = time.perf_counter() - _p3a_t0
+        _pass_stats.append(
+            {
+                "name": "Pass 3a: aesthetic-predictor-v2-5",
+                "photos": len(aes_todo),
+                "elapsed_s": round(_p3a_elapsed, 2),
+                "throughput_img_s": round(len(aes_todo) / _p3a_elapsed, 1) if _p3a_elapsed > 0 else None,
+                "load_s": round(_p3a_load_s, 2),
+                "model_memory_mb": round(_p3a_model_mb, 1) if _p3a_model_mb else None,
+            }
+        )
+        _flush_pass_profile()
         console.print()
 
     # ── Pass 3b — CLIP-IQA+: technical IQ score (MPS/CUDA/CPU) ──────────────
@@ -488,11 +607,16 @@ def main() -> None:
     iq_todo = needs_path("iq_score")
     if "iq" in _skip_passes or os.environ.get("SKIP_IQ", "false").lower() == "true":
         console.print("[bold]Pass 3b/6:[/bold] CLIP-IQA+ skipped\n")
+        _pass_stats.append({"name": "Pass 3b: CLIP-IQA+", "skipped": True})
     elif iq_todo:
         device = _device()
         console.print(f"[bold]Pass 3b/6:[/bold] CLIP-IQA+ technical quality ({len(iq_todo)} photos, batch={iq_batch}, {device})")
+        _reset_peak()
+        _p3b_t0 = time.perf_counter()
         with console.status("Loading CLIP-IQA+ (pyiqa)..."):
             iq_metric = load_clipiqa_metric(device)
+        _p3b_load_s = time.perf_counter() - _p3b_t0
+        _p3b_model_mb = _peak_mb()
 
         if isinstance(iq_metric, Exception):
             console.print(f"  [yellow]CLIP-IQA+ failed to load: {iq_metric}. Skipping.[/yellow]\n")
@@ -519,6 +643,18 @@ def main() -> None:
             gc.collect()
             if torch.backends.mps.is_available():
                 torch.mps.empty_cache()
+            _p3b_elapsed = time.perf_counter() - _p3b_t0
+            _pass_stats.append(
+                {
+                    "name": "Pass 3b: CLIP-IQA+",
+                    "photos": len(iq_todo),
+                    "elapsed_s": round(_p3b_elapsed, 2),
+                    "throughput_img_s": round(len(iq_todo) / _p3b_elapsed, 1) if _p3b_elapsed > 0 else None,
+                    "load_s": round(_p3b_load_s, 2),
+                    "model_memory_mb": round(_p3b_model_mb, 1) if _p3b_model_mb else None,
+                }
+            )
+            _flush_pass_profile()
         console.print()
 
     # ── Pass 4 — DINOv2 embeddings (batched) ─────────────────────────────────
@@ -526,10 +662,15 @@ def main() -> None:
     todo = needs_path("dinov2")
     if "dino" in _skip_passes:
         console.print("[bold]Pass 4/6:[/bold] skipped (--skip dino)\n")
+        _pass_stats.append({"name": "Pass 4: DINOv2-base", "skipped": True})
     elif todo:
         console.print(f"[bold]Pass 4/6:[/bold] DINOv2 embeddings ({len(todo)} photos, batch={dino_batch})")
+        _reset_peak()
+        _p4_t0 = time.perf_counter()
         with console.status("Loading DINOv2 (base)..."):
             dino_model, dino_processor, device = load_dino_model()
+        _p4_load_s = time.perf_counter() - _p4_t0
+        _p4_model_mb = _peak_mb()
 
         _dino_failed = 0
         with _progress(SpinnerColumn(), BarColumn(), TextColumn("{task.description}"), MofNCompleteColumn(), TaskProgressColumn()) as p:
@@ -549,6 +690,18 @@ def main() -> None:
         _save_batch(todo)
         unload_model(dino_model)
         gc.collect()
+        _p4_elapsed = time.perf_counter() - _p4_t0
+        _pass_stats.append(
+            {
+                "name": "Pass 4: DINOv2-base",
+                "photos": len(todo),
+                "elapsed_s": round(_p4_elapsed, 2),
+                "throughput_img_s": round(len(todo) / _p4_elapsed, 1) if _p4_elapsed > 0 else None,
+                "load_s": round(_p4_load_s, 2),
+                "model_memory_mb": round(_p4_model_mb, 1) if _p4_model_mb else None,
+            }
+        )
+        _flush_pass_profile()
         console.print()
 
     # ── Pass 5 — RMBG 2.0 saliency (batched) ──────────────────────────────────
@@ -556,10 +709,15 @@ def main() -> None:
     todo = needs_path("saliency")
     if "saliency" in _skip_passes:
         console.print("[bold]Pass 5/6:[/bold] skipped (--skip saliency)\n")
+        _pass_stats.append({"name": "Pass 5: RMBG-2.0", "skipped": True})
     elif todo:
         console.print(f"[bold]Pass 5/6:[/bold] Saliency ({len(todo)} photos, batch={sal_batch})")
+        _reset_peak()
+        _p5_t0 = time.perf_counter()
         with console.status("Loading RMBG-2.0 (briaai/RMBG-2.0)..."):
             saliency_pipe = load_saliency_model(_device())
+        _p5_load_s = time.perf_counter() - _p5_t0
+        _p5_model_mb = _peak_mb()
 
         _sal_failed = 0
         with _progress(SpinnerColumn(), BarColumn(), TextColumn("{task.description}"), MofNCompleteColumn(), TaskProgressColumn()) as p:
@@ -582,6 +740,18 @@ def main() -> None:
         gc.collect()
         if torch.backends.mps.is_available():
             torch.mps.empty_cache()
+        _p5_elapsed = time.perf_counter() - _p5_t0
+        _pass_stats.append(
+            {
+                "name": "Pass 5: RMBG-2.0",
+                "photos": len(todo),
+                "elapsed_s": round(_p5_elapsed, 2),
+                "throughput_img_s": round(len(todo) / _p5_elapsed, 1) if _p5_elapsed > 0 else None,
+                "load_s": round(_p5_load_s, 2),
+                "model_memory_mb": round(_p5_model_mb, 1) if _p5_model_mb else None,
+            }
+        )
+        _flush_pass_profile()
         console.print()
 
     # ── Pass 6 — YOLO11-Pose: object detection + pose (portrait photos) ────────
@@ -594,11 +764,16 @@ def main() -> None:
     ]
     if "pose" in _skip_passes:
         console.print("[bold]Pass 6/6:[/bold] skipped (--skip pose)\n")
+        _pass_stats.append({"name": "Pass 6: YOLO11n-pose", "skipped": True})
     elif todo:
         console.print(f"[bold]Pass 6/6:[/bold] YOLO11-Pose object detection ({len(todo)} portrait photos)")
         device = _device()
+        _reset_peak()
+        _p6_t0 = time.perf_counter()
         with console.status("Loading YOLO11n-pose..."):
             pose_model = load_pose_model(device)
+        _p6_load_s = time.perf_counter() - _p6_t0
+        _p6_model_mb = _peak_mb()
 
         _pose_failed = 0
         with _progress(SpinnerColumn(), BarColumn(), TextColumn("{task.description}"), MofNCompleteColumn(), TaskProgressColumn()) as p:
@@ -612,6 +787,10 @@ def main() -> None:
                         r["pose_data"] = pr
                     else:
                         _pose_failed += 1
+                # YOLO loads on CPU at model-load time; weights move to device on first inference.
+                # Re-sample here so the profile captures the actual on-device footprint.
+                if start == 0 and not _p6_model_mb:
+                    _p6_model_mb = _memory_mb()
                 p.advance(task, len(batch))
 
         if _pose_failed:
@@ -619,6 +798,18 @@ def main() -> None:
         _save_batch(todo)
         unload_pose_model(pose_model)
         gc.collect()
+        _p6_elapsed = time.perf_counter() - _p6_t0
+        _pass_stats.append(
+            {
+                "name": "Pass 6: YOLO11n-pose",
+                "photos": len(todo),
+                "elapsed_s": round(_p6_elapsed, 2),
+                "throughput_img_s": round(len(todo) / _p6_elapsed, 1) if _p6_elapsed > 0 else None,
+                "load_s": round(_p6_load_s, 2),
+                "model_memory_mb": round(_p6_model_mb, 1) if _p6_model_mb else None,
+            }
+        )
+        _flush_pass_profile()
         console.print()
 
     all_records = list(records.values())
@@ -633,12 +824,51 @@ def main() -> None:
     aggregated = aggregate(all_records)
 
     console.print("[bold]Running quality issue detection...[/bold]")
+    calibrate_thresholds(all_records)
     coach_data = aggregate_flags(all_records)
     console.print()
 
     data = {"photos": all_records, "aggregated": aggregated, "coach": coach_data}
     generate_json(data)
     generate_html(data)
+
+    # ── Pipeline profile summary ──────────────────────────────────────────────
+    if _pass_stats:
+        _total_photos = len(all_records)
+        _hit_rate = 100 * _cache_hits / _total_photos if _total_photos else 0.0
+        _active = [p for p in _pass_stats if not p.get("skipped")]
+        _total_elapsed = sum(p["elapsed_s"] for p in _active)
+        # Estimate time saved: avg per-photo time × cache hits
+        _avg_s_per_photo = _total_elapsed / max(sum(p["photos"] for p in _active), 1)
+        _saved_s = _avg_s_per_photo * _cache_hits
+
+        console.print("\n[bold]── Pipeline Profile ─────────────────────────────────────────────────[/bold]")
+        t = Table(show_header=True, header_style="bold", box=None, padding=(0, 1))
+        t.add_column("Pass", style="cyan")
+        t.add_column("Photos", justify="right")
+        t.add_column("Time", justify="right")
+        t.add_column("img/s", justify="right")
+        t.add_column("Load", justify="right")
+        t.add_column("Peak mem", justify="right")
+        for p in _pass_stats:
+            if p.get("skipped"):
+                t.add_row(p["name"], "–", "skipped", "–", "–", "–")
+            else:
+                t.add_row(
+                    p["name"],
+                    str(p["photos"]),
+                    f"{p['elapsed_s']:.1f}s",
+                    f"{p['throughput_img_s']:.1f}" if p.get("throughput_img_s") else "–",
+                    f"{p['load_s']:.1f}s" if p.get("load_s") else "–",
+                    f"{p['model_memory_mb']:.0f} MB" if p.get("model_memory_mb") else "–",
+                )
+        console.print(t)
+        console.print(
+            f"  Total: [green]{_total_elapsed:.1f}s[/green]  ·  "
+            f"Cache: [green]{_cache_hits}[/green] hits / [yellow]{_cache_misses}[/yellow] misses "
+            f"([green]{_hit_rate:.1f}%[/green])  ·  "
+            f"~[green]{_saved_s:.0f}s[/green] saved by cache\n"
+        )
 
     console.print("\n[bold green]Done![/bold green]")
     console.print("  [dim]JSON →[/dim] [cyan]docs/results.json[/cyan]")

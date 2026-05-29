@@ -35,6 +35,62 @@ def _load_thresholds() -> dict:
 THRESHOLDS = _load_thresholds()
 
 
+def calibrate_thresholds(records: list[dict]) -> None:
+    """Auto-tune library-relative thresholds from the actual data distribution.
+
+    Each tunable threshold is derived from a percentile of the library so the
+    coach flags the bottom/top slice of *this* library rather than applying
+    global defaults. Fixed technical thresholds (horizon_tilt_deg,
+    highlight_clipping, shadow_clipping) are not touched.
+
+    Manual overrides in coach_rules.yaml are re-applied after calibration and
+    always win.
+    """
+    import numpy as np
+
+    def _collect_comp(key):
+        return [v for r in records if (v := r.get("composition", {}).get(key)) is not None]
+
+    def _collect_sal(key):
+        return [v for r in records if (v := r.get("saliency", {}).get(key)) is not None]
+
+    aes = [r["aesthetic_score"] for r in records if r.get("aesthetic_score") is not None]
+    iqs = [r["iq_score"] for r in records if r.get("iq_score") is not None]
+    thirds = _collect_comp("thirds_score")
+    clutter = _collect_comp("foreground_clutter")
+    neg_space = _collect_comp("negative_space")
+    isolation = _collect_comp("subject_isolation")
+    off_center = _collect_sal("subject_off_center")
+
+    calibrated: dict = {}
+    if aes:
+        calibrated["aesthetic_floor"] = round(float(np.percentile(aes, 15)), 1)
+        calibrated["aesthetic_high"] = round(float(np.percentile(aes, 65)), 1)
+    if iqs:
+        calibrated["iq_floor"] = round(float(np.percentile(iqs, 15)), 1)
+    if thirds:
+        calibrated["thirds_score_min"] = round(float(np.percentile(thirds, 20)), 3)
+    if clutter:
+        calibrated["foreground_clutter"] = round(float(np.percentile(clutter, 80)), 3)
+    if neg_space:
+        calibrated["negative_space_min"] = round(float(np.percentile(neg_space, 20)), 3)
+    if isolation:
+        calibrated["subject_isolation_min"] = round(float(np.percentile(isolation, 15)), 3)
+    if off_center:
+        calibrated["saliency_off_center"] = round(float(np.percentile(off_center, 75)), 3)
+
+    THRESHOLDS.update(calibrated)
+
+    # Re-apply manual overrides so they always win over calibrated values
+    p = Path("coach_rules.yaml")
+    if p.exists():
+        import yaml
+
+        with p.open() as f:
+            overrides = yaml.safe_load(f) or {}
+        THRESHOLDS.update({k: v for k, v in overrides.items() if k in THRESHOLDS})
+
+
 def _comp(r, k):
     return r.get("composition", {}).get(k)
 
@@ -103,7 +159,7 @@ RULES = [
         lambda r: (THRESHOLDS["aesthetic_floor"] - r["aesthetic_score"]) / THRESHOLDS["aesthetic_floor"]
         if r.get("aesthetic_score") is not None and r["aesthetic_score"] < THRESHOLDS["aesthetic_floor"]
         else None,
-        f"The aesthetic-predictor-v2-5 (trained on human aesthetic ratings) scored this photo below {THRESHOLDS['aesthetic_floor']}/100. "
+        "The aesthetic-predictor-v2-5 (trained on human aesthetic ratings) scored this photo below the library floor. "
         "Common causes: flat or cluttered composition, poor exposure, heavy noise, or an uninteresting subject. "
         "Typical edited photos score 40–60; professional work 60+.",
     ),

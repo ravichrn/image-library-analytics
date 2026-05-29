@@ -1,4 +1,5 @@
 import os
+from concurrent.futures import Future, ThreadPoolExecutor
 
 import numpy as np
 import torch
@@ -7,7 +8,7 @@ from sklearn.cluster import KMeans
 from torchvision import transforms
 
 # 512×512 for the segmentation model; palette sampling at 128×128 is fast and sufficient
-_INPUT_SIZE = 512
+_INPUT_SIZE = 384
 _PALETTE_SIZE = 128
 
 _transform = transforms.Compose(
@@ -46,6 +47,7 @@ def _palette_from_pixels(pixels: np.ndarray, n: int = 5) -> list[dict]:
 
 
 def load_saliency_model(device: str):
+    import torch
     from transformers import AutoModelForImageSegmentation
 
     token = os.environ.get("HF_TOKEN") or None
@@ -54,6 +56,11 @@ def load_saliency_model(device: str):
     if device in ("mps", "cuda"):
         model = model.half()
     model.to(device)
+    if device == "cuda":
+        try:
+            model = torch.compile(model)
+        except Exception:
+            pass
     return model
 
 
@@ -66,56 +73,57 @@ def _parse_pred(output) -> torch.Tensor:
     return pred
 
 
+def _compute_palette(img: Image.Image, mask512: np.ndarray) -> tuple[list, list]:
+    """CPU-only palette extraction — runs in a background thread while GPU processes next batch."""
+    img_small = np.array(img.convert("RGB").resize((_PALETTE_SIZE, _PALETTE_SIZE))).reshape(-1, 3).astype(float)
+    mask_small = np.array(Image.fromarray((mask512 * 255).astype(np.uint8)).resize((_PALETTE_SIZE, _PALETTE_SIZE), Image.NEAREST)).reshape(-1) / 255.0
+    return _palette_from_pixels(img_small[mask_small > 0.5]), _palette_from_pixels(img_small[mask_small <= 0.5])
+
+
 def extract_saliency_batch(paths: list, model, batch_size: int = 4) -> list[dict]:
+    from .prefetch import iter_prefetched
+
     results: list[dict] = [dict(_null)] * len(paths)
     device = next(model.parameters()).device
     dtype = next(model.parameters()).dtype
 
-    valid_idx: list[int] = []
-    imgs: list[Image.Image] = []
+    # Each entry: (future, result_index, partial_result_without_palettes)
+    pending: list[tuple[Future, int, dict]] = []
 
-    for i, path in enumerate(paths):
-        if path is None:
-            continue
-        try:
-            img = Image.open(path).convert("RGB")
-            imgs.append(img)
-            valid_idx.append(i)
-        except Exception:
-            pass
+    with ThreadPoolExecutor(max_workers=min(batch_size, 4)) as pool:
+        for _batch_paths, batch_imgs, batch_idx in iter_prefetched(paths, batch_size):
+            if not batch_imgs:
+                continue
 
-    for batch_start in range(0, len(imgs), batch_size):
-        batch_imgs = imgs[batch_start : batch_start + batch_size]
-        batch_idx = valid_idx[batch_start : batch_start + batch_size]
+            # Collect previous batch's palette futures — they ran while GPU processed this batch
+            for fut, idx, base in pending:
+                fg_palette, bg_palette = fut.result()
+                results[idx] = {**base, "fg_palette": fg_palette, "bg_palette": bg_palette}
+            pending = []
 
-        tensors = torch.stack([_transform(img) for img in batch_imgs]).to(device=device, dtype=dtype)
-        with torch.no_grad():
-            pred = _parse_pred(model(tensors))  # (B, 1, 512, 512)
+            tensors = torch.stack([_transform(img) for img in batch_imgs]).to(device=device, dtype=dtype)
+            with torch.no_grad():
+                pred = _parse_pred(model(tensors))  # (B, 1, 512, 512)
 
-        # Work at 512×512 — no upsampling to original resolution needed.
-        # Area %, centroid, and off-center are scale-invariant so values are identical.
-        masks = pred.float().sigmoid().squeeze(1).cpu().numpy()  # (B, 512, 512)
+            masks = pred.float().sigmoid().squeeze(1).cpu().numpy()  # (B, 512, 512)
 
-        for j, mask512 in enumerate(masks):
-            area_pct = float(mask512.mean())
-            ys, xs = np.where(mask512 > 0.5)
-            cx = float(xs.mean() / _INPUT_SIZE) if len(xs) else 0.5
-            cy = float(ys.mean() / _INPUT_SIZE) if len(ys) else 0.5
+            for j, mask512 in enumerate(masks):
+                area_pct = float(mask512.mean())
+                ys, xs = np.where(mask512 > 0.5)
+                cx = float(xs.mean() / _INPUT_SIZE) if len(xs) else 0.5
+                cy = float(ys.mean() / _INPUT_SIZE) if len(ys) else 0.5
+                base = {
+                    "subject_area_pct": round(area_pct, 4),
+                    "subject_cx": round(cx, 4),
+                    "subject_cy": round(cy, 4),
+                    "subject_off_center": round(float(np.hypot(cx - 0.5, cy - 0.5)), 4),
+                }
+                # Submit palette work — runs while GPU processes the next batch
+                pending.append((pool.submit(_compute_palette, batch_imgs[j], mask512), batch_idx[j], base))
 
-            # Palette extraction at _PALETTE_SIZE × _PALETTE_SIZE
-            img_small = np.array(batch_imgs[j].convert("RGB").resize((_PALETTE_SIZE, _PALETTE_SIZE))).reshape(-1, 3).astype(float)
-            mask_small = np.array(Image.fromarray((mask512 * 255).astype(np.uint8)).resize((_PALETTE_SIZE, _PALETTE_SIZE), Image.NEAREST)).reshape(-1) / 255.0
-
-            fg_palette = _palette_from_pixels(img_small[mask_small > 0.5])
-            bg_palette = _palette_from_pixels(img_small[mask_small <= 0.5])
-
-            results[batch_idx[j]] = {
-                "subject_area_pct": round(area_pct, 4),
-                "subject_cx": round(cx, 4),
-                "subject_cy": round(cy, 4),
-                "subject_off_center": round(float(np.hypot(cx - 0.5, cy - 0.5)), 4),
-                "fg_palette": fg_palette,
-                "bg_palette": bg_palette,
-            }
+        # Collect the final batch's palette futures
+        for fut, idx, base in pending:
+            fg_palette, bg_palette = fut.result()
+            results[idx] = {**base, "fg_palette": fg_palette, "bg_palette": bg_palette}
 
     return results

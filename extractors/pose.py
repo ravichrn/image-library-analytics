@@ -21,8 +21,14 @@ def load_pose_model(device: str):
 def unload_pose_model(model) -> None:
     import gc
 
+    import torch
+
     del model
     gc.collect()
+    if torch.backends.mps.is_available():
+        torch.mps.empty_cache()
+    elif torch.cuda.is_available():
+        torch.cuda.empty_cache()
 
 
 def _classify_pose(kpts_xy: np.ndarray) -> str | None:
