@@ -20,9 +20,8 @@ def _best_conditions(photos: list) -> list[dict]:
             val = exif.get(key)
             if val:
                 buckets.setdefault(f"{key}:{val}", []).append(score)
-        scene = (p.get("scene") or {}).get("scene_type")
-        if scene:
-            buckets.setdefault(f"scene:{scene}", []).append(score)
+        for sc in (p.get("scene") or {}).get("scene_types") or []:
+            buckets.setdefault(f"scene:{sc}", []).append(score)
     return sorted(
         [{"condition": k, "avg_score": round(sum(v) / len(v), 1), "count": len(v)} for k, v in buckets.items() if len(v) >= 10],
         key=lambda x: -x["avg_score"],
@@ -41,9 +40,9 @@ def _compute_key_insights(agg: dict, photos: list, prime_pct: int | None) -> lis
     aesthetic_by_scene = agg.get("aesthetic_by_scene", {})
     visual_attributes = agg.get("visual_attributes", {})
 
-    dom_scene = scene_stats.get("dominant_scene")
+    dom_scenes = scene_stats.get("dominant_scenes") or []
 
-    # Best-scoring scene ≠ dominant scene → actionable redirect
+    # Best-scoring scene ≠ any dominant scene → actionable redirect
     if aesthetic_by_scene:
 
         def _scene_score(item):
@@ -54,7 +53,7 @@ def _compute_key_insights(agg: dict, photos: list, prime_pct: int | None) -> lis
 
         best_scene_name, best_val = max(aesthetic_by_scene.items(), key=_scene_score)
         best_score = _scene_score((best_scene_name, best_val))
-        if best_score and best_scene_name != dom_scene:
+        if best_score and best_scene_name not in dom_scenes:
             insights.append(
                 {
                     "type": "suggestion",
@@ -152,7 +151,7 @@ def _compute_key_insights(agg: dict, photos: list, prime_pct: int | None) -> lis
 
     # Centred compositions dominate → weak thirds usage
     comp_stats = agg.get("composition_stats", {})
-    thirds = comp_stats.get("thirds_score")
+    thirds = comp_stats.get("avg_thirds_score")
     if thirds is not None and thirds < 0.65:
         insights.append(
             {
@@ -257,7 +256,23 @@ def generate_html(data: dict, path: Path = OUTPUT_DIR / "report.html") -> None:
     fl_counter = Counter(round(f) for f in fl_raw if f is not None)
     focal_length_exact = fl_counter.most_common(20)
 
+    # Pre-bucketed for HTML bar rendering
+    _n = agg.get("photo_count") or 1
+    focal_length_bars = [{"label": f"{fl}mm", "count": cnt, "pct": round(cnt / _n * 100, 1)} for fl, cnt in focal_length_exact[:12]]
+
+    _ap_raw = agg.get("aperture_histogram", [])
+    _ap_stops = [1.4, 1.8, 2.0, 2.8, 4.0, 5.6, 8.0, 11.0, 16.0, 22.0]
+    aperture_bars = []
+    for i, stop in enumerate(_ap_stops):
+        lo = _ap_stops[i - 1] if i > 0 else 0
+        cnt = sum(1 for v in _ap_raw if lo < v <= stop)
+        if cnt:
+            aperture_bars.append({"label": f"≤f/{stop:.4g}" if i == 0 else f"f/{stop:.4g}", "count": cnt, "pct": round(cnt / _n * 100, 1)})
+
     iso_raw = agg.get("iso_histogram", [])
+    _iso_defs = [("≤100", 0, 100), ("101–400", 100, 400), ("401–800", 400, 800), ("801–1600", 800, 1600), ("1601–3200", 1600, 3200), ("3201+", 3200, 1e9)]
+    iso_bars = [{"label": lbl, "count": cnt, "pct": round(cnt / _n * 100, 1)} for lbl, lo, hi in _iso_defs if (cnt := sum(1 for v in iso_raw if lo < v <= hi))]
+
     iso_median = sorted(iso_raw)[len(iso_raw) // 2] if iso_raw else None
     iso_label = None
     if iso_median is not None:
@@ -294,13 +309,14 @@ def generate_html(data: dict, path: Path = OUTPUT_DIR / "report.html") -> None:
         dominant_shutter = shutter_label_map.get(dom_cat, dom_cat)
         dominant_shutter_pct = round(dom_cnt / total_sh * 100) if total_sh else None
 
-    # ── IQ score per scene ────────────────────────────────────────────────
+    # ── IQ score per scene (multi-label) ─────────────────────────────────
     _iq_by_scene: dict = {}
     for p in photos:
-        scene = (p.get("scene") or {}).get("scene_type")
         iq = p.get("iq_score")
-        if scene and iq is not None:
-            _iq_by_scene.setdefault(scene, []).append(iq)
+        if iq is None:
+            continue
+        for sc in (p.get("scene") or {}).get("scene_types") or []:
+            _iq_by_scene.setdefault(sc, []).append(iq)
     iq_by_scene = {s: round(sum(v) / len(v), 1) for s, v in _iq_by_scene.items()}
 
     # ── IQ score per focal category ───────────────────────────────────────
@@ -327,11 +343,35 @@ def generate_html(data: dict, path: Path = OUTPUT_DIR / "report.html") -> None:
         editing_trends_enriched[month] = entry
 
     # ── Enrich editing_trends with avg edit intensity per month ───────────
+    # Zero intensity means all photos in that month have default/unedited
+    # Lightroom develop settings (API returned zeros). Treat as null so the
+    # chart shows a gap rather than a misleading 0% baseline.
     _ej = agg.get("editing_journey", {})
     for _month, _entry in editing_trends_enriched.items():
         _ej_month = _ej.get(_month, {})
-        if _ej_month.get("avg_edit_intensity") is not None:
-            _entry["avg_edit_intensity"] = round(_ej_month["avg_edit_intensity"], 2)
+        _ei = _ej_month.get("avg_edit_intensity")
+        if _ei is not None and _ei > 0:
+            _entry["avg_edit_intensity"] = round(_ei, 2)
+
+    # ── Month-over-month drift deltas (computed here where both signals exist) ──
+    _et_sorted = sorted(editing_trends_enriched.keys())
+    for _i, _ym in enumerate(_et_sorted):
+        _curr = editing_trends_enriched[_ym]
+        if _i == 0:
+            _curr["delta_edit_intensity"] = None
+            _curr["delta_aesthetic"] = None
+            continue
+        _prev = editing_trends_enriched[_et_sorted[_i - 1]]
+        _curr["delta_edit_intensity"] = (
+            round(_curr["avg_edit_intensity"] - _prev["avg_edit_intensity"], 1)
+            if _curr.get("avg_edit_intensity") is not None and _prev.get("avg_edit_intensity") is not None
+            else None
+        )
+        _curr["delta_aesthetic"] = (
+            round(_curr["avg_aesthetic"] - _prev["avg_aesthetic"], 2)
+            if _curr.get("avg_aesthetic") is not None and _prev.get("avg_aesthetic") is not None
+            else None
+        )
 
     # ── Editing style patterns for subsets (top 10%, curated albums) ──────
     from analysis.aesthetics import analyze as _analyze_aesthetics
@@ -417,6 +457,9 @@ def generate_html(data: dict, path: Path = OUTPUT_DIR / "report.html") -> None:
         camera_profile_distribution=agg.get("camera_profile_distribution", []),
         # derived vars
         focal_length_exact=focal_length_exact,
+        focal_length_bars=focal_length_bars,
+        aperture_bars=aperture_bars,
+        iso_bars=iso_bars,
         iso_median=iso_median,
         iso_label=iso_label,
         prime_pct=prime_pct,
@@ -436,5 +479,10 @@ def generate_html(data: dict, path: Path = OUTPUT_DIR / "report.html") -> None:
         iq_by_focal=iq_by_focal,
         score_histogram_10=agg.get("aesthetic_stats", {}).get("score_histogram_10", []),
         high_aes_low_iq=agg.get("iq_stats", {}).get("high_aesthetic_low_iq_count", 0),
+        # previously computed but not surfaced to template
+        editing_style_signatures=agg.get("editing_style_signatures", []),
+        object_frequency=agg.get("object_frequency", {}),
+        folder_breakdown=agg.get("folder_breakdown", {}),
+        composition_by_scene=agg.get("composition_by_scene", {}),
     )
     path.write_text(html)

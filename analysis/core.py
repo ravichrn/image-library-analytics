@@ -5,7 +5,7 @@ import numpy as np
 
 from extractors.scene import SCENE_LABELS
 
-from ._helpers import _cv, _dist, _horizon_bucket, _mean, _score_bucket, _std, _time_of_day
+from ._helpers import _cv, _dist, _horizon_bucket, _mean, _scene_types_list, _score_bucket, _std, _time_of_day
 
 
 def analyze(records: list[dict]) -> dict:
@@ -94,11 +94,22 @@ def analyze(records: list[dict]) -> dict:
         "score_histogram_10": buckets_10,
     }
 
-    # ── scene stats ──────────────────────────────────────────────────────────
-    scene_types = [r.get("scene", {}).get("scene_type") for r in records]
-    scene_dist = _dist(scene_types, [*SCENE_LABELS, "unknown"])
-    dominant = max((k for k in scene_dist if k != "unknown"), key=scene_dist.get, default="unknown")
-    scene_stats = {"scene_distribution": scene_dist, "dominant_scene": dominant}
+    # ── scene stats (multi-label: one photo can belong to multiple scenes) ───
+    # scene_distribution values = count of photos carrying that label (not normalised).
+    # Percentages in the report use photo_count as denominator, so bars can sum >100%.
+    _scene_label_counts: Counter = Counter()
+    for r in records:
+        for sc in _scene_types_list(r):
+            _scene_label_counts[sc] += 1
+    scene_dist = {sc: _scene_label_counts.get(sc, 0) for sc in SCENE_LABELS if _scene_label_counts.get(sc, 0) > 0}
+    # dominant_scenes: all labels within 10% of the highest count, capped at 3.
+    # Multi-label libraries can have genuinely tied or near-tied top scenes.
+    if scene_dist:
+        max_count = max(scene_dist.values())
+        dominant_scenes = [sc for sc, cnt in sorted(scene_dist.items(), key=lambda x: -x[1]) if cnt >= max_count * 0.9][:3]
+    else:
+        dominant_scenes = []
+    scene_stats = {"scene_distribution": scene_dist, "dominant_scenes": dominant_scenes}
 
     # ── editing consistency ──────────────────────────────────────────────────
     sat_cv = _cv(sats)
@@ -127,12 +138,13 @@ def analyze(records: list[dict]) -> dict:
     aperture_histogram = [v for v in ecol("aperture_f") if v is not None]
     iso_histogram = [v for v in ecol("iso") if v is not None]
 
-    # ── aesthetic by scene ───────────────────────────────────────────────────
+    # ── aesthetic by scene (multi-label: photo contributes to all its scenes) ─
     scene_scores: dict = defaultdict(list)
     for r in records:
-        scene = r.get("scene", {}).get("scene_type")
         score = r.get("aesthetic_score")
-        if scene and score is not None:
+        if score is None:
+            continue
+        for scene in _scene_types_list(r):
             scene_scores[scene].append(score)
 
     aesthetic_by_scene = {}
@@ -146,9 +158,8 @@ def analyze(records: list[dict]) -> dict:
     # ── composition by scene ─────────────────────────────────────────────────
     comp_by_scene_data: dict = defaultdict(lambda: defaultdict(list))
     for r in records:
-        scene = r.get("scene", {}).get("scene_type")
         comp = r.get("composition", {})
-        if scene:
+        for scene in _scene_types_list(r):
             for key in ("thirds_score", "symmetry_score", "negative_space"):
                 v = comp.get(key)
                 if v is not None:
@@ -180,9 +191,10 @@ def analyze(records: list[dict]) -> dict:
     sharpness_vals = [r.get("composition", {}).get("sharpness_score") for r in records]
     sharpness_by_scene: dict = defaultdict(list)
     for r in records:
-        scene = r.get("scene", {}).get("scene_type")
         s = r.get("composition", {}).get("sharpness_score")
-        if scene and s is not None:
+        if s is None:
+            continue
+        for scene in _scene_types_list(r):
             sharpness_by_scene[scene].append(s)
 
     sharpness_stats = {
@@ -211,24 +223,20 @@ def analyze(records: list[dict]) -> dict:
     }
 
     # ── folder / trip breakdown ──────────────────────────────────────────────
-    folder_data: dict = defaultdict(lambda: {"scores": [], "sats": [], "scenes": []})
+    folder_data: dict = defaultdict(lambda: {"scores": [], "sats": []})
     for r in records:
         path = r.get("path", "")
         parts = path.replace("\\", "/").split("/")
         folder = parts[-2] if len(parts) >= 2 else "root"
         score = r.get("aesthetic_score")
         sat = r.get("color", {}).get("avg_saturation")
-        scene = r.get("scene", {}).get("scene_type")
         if score is not None:
             folder_data[folder]["scores"].append(score)
         if sat is not None:
             folder_data[folder]["sats"].append(sat)
-        if scene:
-            folder_data[folder]["scenes"].append(scene)
 
     folder_breakdown = {}
     for folder, data in sorted(folder_data.items(), key=lambda x: len(x[1]["scores"]), reverse=True):
-        dominant_scene = Counter(data["scenes"]).most_common(1)[0][0] if data["scenes"] else "unknown"
         folder_breakdown[folder] = {
             "count": len(data["scores"]) + (len(folder_data[folder]["sats"]) - len(data["scores"])),
             "photo_count": sum(
@@ -237,17 +245,16 @@ def analyze(records: list[dict]) -> dict:
                 if (r.get("path", "").replace("\\", "/").split("/")[-2] if len(r.get("path", "").replace("\\", "/").split("/")) >= 2 else "root") == folder
             ),
             "avg_aesthetic": round(float(np.mean(data["scores"])), 2) if data["scores"] else None,
-            "dominant_scene": dominant_scene,
             "avg_saturation": round(float(np.mean(data["sats"])), 3) if data["sats"] else None,
         }
 
     # ── scene confidence ─────────────────────────────────────────────────────
     scene_conf_data: dict = defaultdict(list)
     for r in records:
-        scene = r.get("scene", {}).get("scene_type")
         scores_dict = r.get("scene", {}).get("scene_scores", {})
-        if scene and scene in scores_dict:
-            scene_conf_data[scene].append(scores_dict[scene])
+        for scene in _scene_types_list(r):
+            if scene in scores_dict:
+                scene_conf_data[scene].append(scores_dict[scene])
 
     scene_confidence = {scene: round(float(np.mean(vals)), 4) for scene, vals in scene_conf_data.items() if vals}
 
@@ -260,23 +267,22 @@ def analyze(records: list[dict]) -> dict:
         "max": round(float(np.max(clean_mp)), 2) if clean_mp else None,
     }
 
-    # ── color by scene ────────────────────────────────────────────────────────
+    # ── color by scene (multi-label) ──────────────────────────────────────────
     color_by_scene_data: dict = defaultdict(lambda: {"sats": [], "warm": [], "warmths": [], "brightness": [], "aesthetics": [], "contrasts": []})
     for r in records:
-        scene = r.get("scene", {}).get("scene_type")
         col_d = r.get("color", {})
-        if scene:
+        a = r.get("aesthetic_score")
+        for scene in _scene_types_list(r):
             for key2, bucket in [
                 ("avg_saturation", "sats"),
                 ("warm_ratio", "warm"),
                 ("warmth", "warmths"),
                 ("avg_brightness", "brightness"),
-                ("avg_contrast", "contrasts"),
+                ("contrast", "contrasts"),
             ]:
                 v = col_d.get(key2)
                 if v is not None:
                     color_by_scene_data[scene][bucket].append(v)
-            a = r.get("aesthetic_score")
             if a is not None:
                 color_by_scene_data[scene]["aesthetics"].append(a)
 

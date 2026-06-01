@@ -46,7 +46,7 @@ def test_umap_points_include_hash():
         {
             "hash": f"hash{i:03d}",
             "path": f"/fake/img{i}.jpg",
-            "dinov2": rng.random(768).tolist(),
+            "dinov3": rng.random(768).tolist(),
             "aesthetic_score": 50.0 + i,
             "scene": {"scene_type": "nature"},
         }
@@ -66,7 +66,7 @@ def test_umap_points_include_hash():
 def test_strict_dedup_skips_stem_merge(monkeypatch):
     """With STRICT_DEDUP=true, same-stem records from local and Lightroom must stay separate."""
     local_record = {"hash": "aaabbb", "path": "/local/DSC0001.jpg", "source": "local"}
-    lr_record = {"hash": "cccddd", "lightroom_filename_stem": "DSC0001", "source": "lightroom"}
+    lr_record = {"hash": "cccddd", "lightroom_filename": "DSC0001.ARW", "source": "lightroom"}
 
     monkeypatch.setenv("STRICT_DEDUP", "true")
     monkeypatch.setenv("SOURCES", "local,lightroom")
@@ -89,7 +89,7 @@ def test_strict_dedup_skips_stem_merge(monkeypatch):
 def test_stem_merge_happens_without_strict_dedup(monkeypatch):
     """Without STRICT_DEDUP, same-stem local+Lightroom records should merge into one."""
     local_record = {"hash": "aaabbb", "path": "/local/DSC0001.jpg", "source": "local"}
-    lr_record = {"hash": "cccddd", "lightroom_filename_stem": "DSC0001", "source": "lightroom"}
+    lr_record = {"hash": "cccddd", "lightroom_filename": "DSC0001.ARW", "source": "lightroom"}
 
     monkeypatch.setenv("STRICT_DEDUP", "false")
     monkeypatch.setenv("SOURCES", "local,lightroom")

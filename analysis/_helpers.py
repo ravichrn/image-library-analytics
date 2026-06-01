@@ -87,6 +87,10 @@ def _score_bucket(v) -> str:
     return "high"
 
 
+def _scene_types_list(r: dict) -> list[str]:
+    return (r.get("scene") or {}).get("scene_types") or []
+
+
 def _hsl_to_hex(hue_deg: float | None, sat_pct: float | None, lum: float = 0.5) -> str | None:
     if hue_deg is None or sat_pct is None or sat_pct < 2:
         return None
@@ -95,7 +99,19 @@ def _hsl_to_hex(hue_deg: float | None, sat_pct: float | None, lum: float = 0.5) 
 
 
 def _compute_edit_intensity(dev: dict) -> float:
-    keys = ["Exposure2012", "Highlights2012", "Shadows2012", "Clarity2012", "Saturation", "Vibrance"]
+    keys = [
+        "Exposure2012",
+        "Highlights2012",
+        "Shadows2012",
+        "Whites2012",
+        "Blacks2012",
+        "Contrast2012",
+        "Clarity2012",
+        "Texture",
+        "Dehaze",
+        "Saturation",
+        "Vibrance",
+    ]
     return sum(abs(float(dev.get(k, 0) or 0)) for k in keys)
 
 

@@ -15,7 +15,7 @@ wheels/
 
 # App outputs
 docs/*.json
-cache/
+artifacts/
 *.db
 
 # Model weights (downloaded automatically)

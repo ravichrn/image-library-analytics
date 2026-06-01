@@ -1,9 +1,17 @@
+import hashlib
+import json as _json
+from pathlib import Path
+
 import torch
 import torchvision.transforms as _TV
 from PIL import Image
 
+_TEXT_FEATS_CACHE = Path("artifacts/siglip_text_feats.pt")
+_SIGLIP_MODEL_ID = "google/siglip2-base-patch16-224"
+
 # CLIP-IQA+ expects 512×512 RGB tensors in [0, 1]
-_IQ_TRANSFORM = _TV.Compose([_TV.Resize((512, 512)), _TV.ToTensor()])
+_IQ_INPUT_SIZE = 512
+_IQ_TRANSFORM = _TV.Compose([_TV.Resize((_IQ_INPUT_SIZE, _IQ_INPUT_SIZE)), _TV.ToTensor()])
 
 SCENE_LABELS = [
     "nature",
@@ -23,8 +31,8 @@ def load_siglip_model(device: str) -> tuple:
     from transformers import AutoModel, AutoProcessor
 
     dtype = torch.float16 if device != "cpu" else torch.float32
-    model = AutoModel.from_pretrained("google/siglip2-so400m-patch14-384", torch_dtype=dtype).eval().to(device)
-    processor = AutoProcessor.from_pretrained("google/siglip2-so400m-patch14-384")
+    model = AutoModel.from_pretrained(_SIGLIP_MODEL_ID, torch_dtype=dtype).eval().to(device)
+    processor = AutoProcessor.from_pretrained(_SIGLIP_MODEL_ID)
     if device == "cuda":
         try:
             model = torch.compile(model)
@@ -49,10 +57,10 @@ def classify_scene_batch(
     device: str,
     text_features: torch.Tensor,
     _preloaded: tuple[list, list[int]] | None = None,
-) -> tuple[list[dict], torch.Tensor | None]:
+) -> tuple[list[dict], torch.Tensor | None, None]:
     """
-    SigLIP 2 sigmoid scoring.
-    Returns (scene_results, image_features) — image_features reused for VQA.
+    SigLIP2-base cosine scoring.
+    Returns (scene_results, image_features, None) — image_features reused for VQA.
     scene_results: one {"scene": {...}} dict per path.
     image_features: (N_valid, D) normalised tensor, or None if no valid images.
     _preloaded: optional (imgs, valid_idx) from prefetcher to skip disk IO.
@@ -69,43 +77,49 @@ def classify_scene_batch(
             except Exception:
                 pass
 
-    results = [{"scene": {"scene_type": "unknown", "scene_scores": {}}} for _ in paths]
+    results = [{"scene": {"scene_types": [], "scene_scores": {}}} for _ in paths]
     if not imgs:
-        return results, None
+        return results, None, None
 
     inputs = processor(images=imgs, return_tensors="pt", padding=True).to(device)
     with torch.no_grad():
         out = model.get_image_features(**inputs)
         image_features = out.pooler_output if hasattr(out, "pooler_output") else out
         image_features = image_features / image_features.norm(dim=-1, keepdim=True)
-        probs = torch.sigmoid(image_features @ text_features.T).cpu().tolist()
 
-    for out_i, prob_row in zip(valid_idx, probs, strict=False):
-        scores = {label: round(p, 4) for label, p in zip(SCENE_LABELS, prob_row, strict=False)}
-        results[out_i] = {"scene": {"scene_type": max(scores, key=scores.__getitem__), "scene_scores": scores}}
+        # Raw cosine similarities — no scale, no bias.
+        # SigLIP2 logit_scale pushes all scores to sigmoid ≈ 1.0 for short generic
+        # labels, making absolute thresholds useless. Cosine similarity gives
+        # meaningful relative spread: top label ~0.5–0.7, unrelated labels ~0.2–0.3.
+        cosines = (image_features @ text_features.T).cpu().tolist()
 
-    return results, image_features
+    for out_i, cos_row in zip(valid_idx, cosines, strict=False):
+        scores = {label: round(c, 4) for label, c in zip(SCENE_LABELS, cos_row, strict=False)}
+        max_cos = max(scores.values()) if scores else 0.0
+        # Multi-label: include all labels within 85% of the top cosine similarity.
+        # This catches near-ties (portrait in nature) while excluding weak matches.
+        scene_types = sorted(
+            [label for label, s in scores.items() if max_cos > 0 and s >= max_cos * 0.85],
+            key=scores.__getitem__,
+            reverse=True,
+        ) or [max(scores, key=scores.__getitem__)]
+        results[out_i] = {"scene": {"scene_types": scene_types, "scene_scores": scores}}
+
+    return results, image_features, None
 
 
+# time_of_day and season are excluded — both are derived from EXIF metadata
+# (timestamp → hour → time bucket; month → season) and never need visual inference.
 _VQA_LABELS: dict[str, list[str]] = {
     "has_person": ["a photo with a person", "a photo without a person"],
     "setting": ["an indoor photo", "an outdoor photo"],
-    "time_of_day": ["morning light", "afternoon daylight", "evening golden hour", "night or low light"],
     "weather": ["clear sunny weather", "cloudy overcast weather", "rainy or wet weather", "foggy or misty weather", "snowy weather"],
-    "season": [
-        "spring with green growth or blossoms",
-        "summer with bright sun and full foliage",
-        "autumn with golden or red leaves",
-        "winter with bare trees or snow",
-    ],
 }
 
 _VQA_SHORT: dict[str, list[str]] = {
     "has_person": ["yes", "no"],
     "setting": ["indoors", "outdoors"],
-    "time_of_day": ["morning", "afternoon", "evening", "night"],
     "weather": ["clear", "cloudy", "rainy", "foggy", "snowy"],
-    "season": ["spring", "summer", "autumn", "winter"],
 }
 
 
@@ -122,6 +136,53 @@ def encode_vqa_labels_siglip(model, processor, device: str) -> dict[str, torch.T
     return encoded
 
 
+def _text_label_hash() -> str:
+    """SHA-256 (first 16 hex chars) of model ID + all label strings.
+    Used to invalidate the text-features cache when labels or model change."""
+    payload = _json.dumps(
+        {"model": _SIGLIP_MODEL_ID, "scene": SCENE_LABELS, "vqa": _VQA_LABELS},
+        sort_keys=True,
+    )
+    return hashlib.sha256(payload.encode()).hexdigest()[:16]
+
+
+def encode_text_features_siglip(model, processor, device: str) -> tuple[torch.Tensor, dict[str, torch.Tensor]]:
+    """Encode scene + VQA text labels, with a disk cache.
+
+    The cache (artifacts/siglip_text_feats.pt) is reused across runs.
+    It is invalidated automatically when any label string or the model ID changes.
+    Returns (scene_feats, vqa_feats) on `device`.
+    """
+    expected_hash = _text_label_hash()
+    if _TEXT_FEATS_CACHE.exists():
+        try:
+            data = torch.load(_TEXT_FEATS_CACHE, map_location="cpu", weights_only=True)
+            if data.get("label_hash") == expected_hash:
+                scene_feats = data["scene"].to(device)
+                vqa_feats = {k: v.to(device) for k, v in data["vqa"].items()}
+                return scene_feats, vqa_feats
+        except Exception:
+            pass
+
+    scene_feats = encode_scene_labels_siglip(model, processor, device)
+    vqa_feats = encode_vqa_labels_siglip(model, processor, device)
+
+    try:
+        _TEXT_FEATS_CACHE.parent.mkdir(exist_ok=True)
+        torch.save(
+            {
+                "label_hash": expected_hash,
+                "scene": scene_feats.cpu(),
+                "vqa": {k: v.cpu() for k, v in vqa_feats.items()},
+            },
+            _TEXT_FEATS_CACHE,
+        )
+    except Exception:
+        pass
+
+    return scene_feats, vqa_feats
+
+
 def extract_vqa_batch(
     image_features: torch.Tensor,
     vqa_feats: dict[str, torch.Tensor],
@@ -133,7 +194,7 @@ def extract_vqa_batch(
     """
     results: list[dict] = [{} for _ in range(image_features.shape[0])]
     for key, text_feats in vqa_feats.items():
-        probs = torch.sigmoid(image_features @ text_feats.T).cpu()
+        probs = (image_features @ text_feats.T).cpu()
         short_labels = _VQA_SHORT[key]
         for i in range(image_features.shape[0]):
             best = int(probs[i].argmax())
@@ -203,41 +264,55 @@ def load_clipiqa_metric(device: str):
         return e  # caller logs the real error
 
 
-def extract_iq_batch(paths: list, iq_metric, batch_size: int = 16) -> list[float | None]:
-    """Run CLIP-IQA+ in batches. Returns a 0-100 IQ score per path."""
-    results: list[float | None] = [None] * len(paths)
-    valid: list[tuple[int, object]] = [(i, p) for i, p in enumerate(paths) if p is not None]
+def extract_iq_batch(
+    paths: list,
+    iq_metric,
+    batch_size: int = 16,
+    on_batch=None,
+) -> list[float | None]:
+    """Run CLIP-IQA+ over all paths, overlapping JPEG decode with GPU inference.
 
-    for start in range(0, len(valid), batch_size):
-        chunk = valid[start : start + batch_size]
-        tensors: list[torch.Tensor] = []
-        indices: list[int] = []
-        device = next(iter(iq_metric.parameters()), torch.tensor(0)).device
-        for i, path in chunk:
-            try:
-                img = Image.open(path).convert("RGB")
-                t = _IQ_TRANSFORM(img).to(device)
-                tensors.append(t)
-                indices.append(i)
-            except Exception:
-                pass
-        if not tensors:
-            continue
-        try:
-            batch_tensor = torch.stack(tensors)
-            with torch.no_grad():
-                scores = iq_metric(batch_tensor)
-            if isinstance(scores, torch.Tensor):
-                scores = scores.flatten().tolist()
-            for idx, score in zip(indices, scores, strict=False):
-                results[idx] = round(float(score) * 100, 2)
-        except Exception:
-            for idx, t in zip(indices, tensors, strict=False):
+    Args:
+        paths:      All image paths (may include None for missing files).
+        batch_size: GPU forward-pass batch size.
+        on_batch:   Optional callback(n_images) for progress tracking.
+    """
+    from .prefetch import iter_prefetched
+
+    results: list[float | None] = [None] * len(paths)
+    device = next(iter(iq_metric.parameters()), torch.tensor(0)).device
+    batch_start = 0
+
+    for batch_paths, imgs, valid_local_idx in iter_prefetched(paths, batch_size):
+        if imgs:
+            tensors: list[torch.Tensor] = []
+            indices: list[int] = []
+            for local_i, img in zip(valid_local_idx, imgs, strict=False):
                 try:
-                    with torch.no_grad():
-                        s = iq_metric(t.unsqueeze(0))
-                    results[idx] = round(float(s.item()) * 100, 2)
+                    tensors.append(_IQ_TRANSFORM(img).to(device))
+                    indices.append(batch_start + local_i)
                 except Exception:
                     pass
+            if tensors:
+                try:
+                    batch_tensor = torch.stack(tensors)
+                    with torch.no_grad():
+                        scores = iq_metric(batch_tensor)
+                    if isinstance(scores, torch.Tensor):
+                        scores = scores.flatten().tolist()
+                    for idx, score in zip(indices, scores, strict=False):
+                        results[idx] = round(float(score) * 100, 2)
+                except Exception:
+                    for idx, t in zip(indices, tensors, strict=False):
+                        try:
+                            with torch.no_grad():
+                                s = iq_metric(t.unsqueeze(0))
+                            results[idx] = round(float(s.item()) * 100, 2)
+                        except Exception:
+                            pass
+
+        if on_batch is not None:
+            on_batch(len(batch_paths))
+        batch_start += len(batch_paths)
 
     return results

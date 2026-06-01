@@ -65,7 +65,7 @@ def test_latency_bench_timing_order():
 
 def test_result_dataclass_fields():
     r = BenchmarkResult(
-        model="dinov2-base",
+        model="dinov3-b",
         backend="mps",
         batch_size=4,
         load_time_s=1.2,
@@ -81,10 +81,37 @@ def test_result_dataclass_fields():
         accuracy_metric=None,
         accuracy_value=None,
     )
-    assert r.model == "dinov2-base"
+    assert r.model == "dinov3-b"
     assert r.backend == "mps"
     assert r.batch_size == 4
     assert r.p95_ms >= r.p50_ms
+    assert r.preprocess_p50_ms is None  # default
+    assert r.notes == ""  # default
+
+
+def test_result_preprocess_field():
+    """preprocess_p50_ms is set for DINO/SigLIP and None for YOLO."""
+    r = BenchmarkResult(
+        model="dinov3-b",
+        backend="mps",
+        batch_size=1,
+        load_time_s=0.9,
+        p50_ms=20.0,
+        p95_ms=21.0,
+        p50_per_image_ms=20.0,
+        p95_per_image_ms=21.0,
+        imgs_per_s=50.0,
+        peak_memory_mb=None,
+        images_per_joule=None,
+        ane_power_mw=None,
+        ane_active=False,
+        accuracy_metric=None,
+        accuracy_value=None,
+        preprocess_p50_ms=3.5,
+        notes="forward pass only",
+    )
+    assert r.preprocess_p50_ms == pytest.approx(3.5)
+    assert "forward pass only" in r.notes
 
 
 def test_result_asdict():
@@ -110,6 +137,8 @@ def test_result_asdict():
     d = asdict(r)
     assert d["ane_active"] is True
     assert d["images_per_joule"] == pytest.approx(42.0)
+    assert "preprocess_p50_ms" in d  # field must be present in serialised output
+    assert d["preprocess_p50_ms"] is None  # YOLO — not set
 
 
 # ---------------------------------------------------------------------------

@@ -7,8 +7,8 @@ from PIL import Image
 from sklearn.cluster import KMeans
 from torchvision import transforms
 
-# 512×512 for the segmentation model; palette sampling at 128×128 is fast and sufficient
-_INPUT_SIZE = 384
+# 256×256 input (~2× faster than 384, MACs scale as (256/384)²≈0.44×); centroid/area metrics unaffected
+_INPUT_SIZE = 256
 _PALETTE_SIZE = 128
 
 _transform = transforms.Compose(

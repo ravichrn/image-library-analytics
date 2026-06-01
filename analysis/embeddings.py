@@ -1,13 +1,29 @@
+import hashlib
+import json
 import random as _random
-from collections import defaultdict
+import warnings
 from datetime import datetime, timedelta
 from pathlib import Path
 
 import numpy as np
 from sklearn.cluster import DBSCAN, KMeans
+from sklearn.exceptions import EfficiencyWarning
+from sklearn.neighbors import NearestNeighbors, sort_graph_by_row_values
 from umap import UMAP
 
 from ._helpers import _show_thumbnails, _thumb_b64
+
+_CACHE_PATH = Path("docs/embeddings_cache.json")
+
+
+def _fingerprint(records: list[dict]) -> str:
+    """SHA-256 of all (photo_hash, dinov3_vec) pairs sorted by hash."""
+    h = hashlib.sha256()
+    for r in sorted((r for r in records if r.get("dinov3")), key=lambda r: r["hash"]):
+        h.update(r["hash"].encode())
+        h.update(np.asarray(r["dinov3"], dtype=np.float32).tobytes())
+    return h.hexdigest()
+
 
 # Cosine-distance threshold for near-duplicate clustering. eps=0.05 ≈ 0.95 cosine
 # similarity — the point where near-identical burst frames cluster together without
@@ -18,40 +34,49 @@ NEAR_DUP_MIN_SAMPLES = 2
 
 def near_duplicate_labels(vectors, eps: float = NEAR_DUP_EPS, min_samples: int = NEAR_DUP_MIN_SAMPLES) -> np.ndarray:
     """Cluster L2-normalized embeddings by cosine distance. Returns a DBSCAN label per
-    vector; label -1 means "no near-duplicate". Pure function — testable in isolation."""
+    vector; label -1 means "no near-duplicate". Pure function — testable in isolation.
+
+    Uses a sparse radius graph (NearestNeighbors) instead of a dense n*n matrix so
+    memory stays O(n * k) rather than O(n^2). Safe at 100k+ photos.
+    """
     mat = np.asarray(vectors, dtype=np.float32)
     norms = np.linalg.norm(mat, axis=1, keepdims=True) + 1e-9
     mat = mat / norms
-    sim = mat @ mat.T
-    dist = np.clip(1.0 - sim, 0, 2).astype(np.float64)
-    return DBSCAN(eps=eps, min_samples=min_samples, metric="precomputed").fit_predict(dist)
+
+    nn = NearestNeighbors(radius=eps, metric="cosine", algorithm="brute", n_jobs=-1)
+    nn.fit(mat)
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", EfficiencyWarning)
+        sparse_dist = nn.radius_neighbors_graph(mode="distance")
+        sparse_dist = sort_graph_by_row_values(sparse_dist, warn_when_not_sorted=False)
+        return DBSCAN(eps=eps, min_samples=min_samples, metric="precomputed").fit_predict(sparse_dist)
 
 
 def analyze(records: list[dict]) -> dict:
+    fp = _fingerprint(records)
+    if _CACHE_PATH.exists():
+        try:
+            cached = json.loads(_CACHE_PATH.read_text())
+            if cached.get("_fingerprint") == fp:
+                return {k: v for k, v in cached.items() if k != "_fingerprint"}
+        except Exception:
+            pass
+
     # ── UMAP + KMeans ────────────────────────────────────────────────────────
     UMAP_MAX_POINTS = 800
-    valid = [(i, r) for i, r in enumerate(records) if r.get("dinov2") is not None]
+    valid = [(i, r) for i, r in enumerate(records) if r.get("dinov3") is not None]
     clusters_out = {"n_clusters": 0, "labels": []}
     umap_out = {"points": [], "total": len(valid), "sampled": len(valid)}
 
     if len(valid) >= 2:
         if len(valid) > UMAP_MAX_POINTS:
-            by_scene: dict = defaultdict(list)
-            for item in valid:
-                scene = item[1].get("scene", {}).get("scene_type", "unknown")
-                by_scene[scene].append(item)
-            sampled: list = []
-            for scene_items in by_scene.values():
-                quota = max(1, round(len(scene_items) / len(valid) * UMAP_MAX_POINTS))
-                sampled.extend(_random.sample(scene_items, min(quota, len(scene_items))))
-            _random.shuffle(sampled)
-            sampled = sampled[:UMAP_MAX_POINTS]
-            umap_valid = sampled
+            rng = _random.Random(42)
+            umap_valid = rng.sample(valid, UMAP_MAX_POINTS)
         else:
             umap_valid = valid
 
         _, umap_records = zip(*umap_valid, strict=False)
-        matrix = np.array([r["dinov2"] for r in umap_records], dtype=np.float32)
+        matrix = np.array([r["dinov3"] for r in umap_records], dtype=np.float32)
 
         n_clusters = max(2, min(10, len(umap_valid) // 30))
         km = KMeans(n_clusters=n_clusters, n_init=1, random_state=42)
@@ -70,7 +95,6 @@ def analyze(records: list[dict]) -> dict:
                     "cluster": lbl,
                     "hash": rec.get("hash", ""),
                     "path": Path(rec.get("path", "") or "").name,
-                    "scene_type": rec.get("scene", {}).get("scene_type", "unknown"),
                     "aesthetic_score": rec.get("aesthetic_score"),
                     "in_album": bool(rec.get("lightroom_album_names")),
                     "thumb": _thumb_b64(rec) if _show_thumbnails() else None,
@@ -86,24 +110,30 @@ def analyze(records: list[dict]) -> dict:
     burst_groups: dict = {}
     storage_tiers: dict = {}
     dino_records = [
-        (r["hash"], r["dinov2"], r.get("aesthetic_score") or 0, r.get("scene", {}).get("scene_type", ""), r.get("path", "")) for r in records if r.get("dinov2")
+        (r["hash"], r["dinov3"], r.get("aesthetic_score") or 0, r.get("path", ""), r.get("composition", {}).get("sharpness_score") or 0)
+        for r in records
+        if r.get("dinov3")
     ]
     if len(dino_records) >= 2:
-        _hashes_d, vecs_d, scores_d, scenes_d, paths_d = zip(*dino_records, strict=False)
+        _hashes_d, vecs_d, scores_d, paths_d, sharp_d = zip(*dino_records, strict=False)
         labels_d = near_duplicate_labels(vecs_d)
+
+        max_sharp = max(sharp_d) or 1.0
+
+        def _hero_rank(i: int) -> float:
+            return 0.65 * (scores_d[i] / 100) + 0.35 * (sharp_d[i] / max_sharp)
 
         cluster_ids = [ll for ll in set(labels_d) if ll != -1]
         groups_d = []
         for cid in cluster_ids:
             idxs = [i for i, ll in enumerate(labels_d) if ll == cid]
-            best = max(idxs, key=lambda i: scores_d[i])
+            best = max(idxs, key=_hero_rank)
             redundant = [paths_d[i] for i in idxs if i != best]
             groups_d.append(
                 {
                     "size": len(idxs),
                     "best_path": paths_d[best],
                     "best_score": round(float(scores_d[best]), 2),
-                    "scene": scenes_d[best],
                     "redundant_paths": redundant[:3],
                 }
             )
@@ -118,14 +148,13 @@ def analyze(records: list[dict]) -> dict:
 
         total_w_emb = len(dino_records)
         redundant_count = sum(g["size"] - 1 for g in groups_d)
-        _safe_keys = {"size", "best_score", "scene"}
         storage_tiers = {
             "cluster_count": len(groups_d),
             "hero_count": len(groups_d),
             "redundant_count": redundant_count,
             "unclustered_count": int(np.sum(labels_d == -1)),
             "redundancy_pct": round(redundant_count / total_w_emb * 100, 1) if total_w_emb else 0.0,
-            "tiers": [{k: v for k, v in g.items() if k in _safe_keys} for g in groups_d[:10]],
+            "tiers": [{"size": g["size"], "best_score": g["best_score"]} for g in groups_d[:10]],
         }
 
     # ── Event grouping (time-gap > 4 h = new event) ──────────────────────────
@@ -172,7 +201,7 @@ def analyze(records: list[dict]) -> dict:
             captions = [r.get("caption", {}) for r in ev_records if r.get("caption")]
             if not captions:
                 return ""
-            dino_ev = [(i, r.get("dinov2")) for i, r in enumerate(ev_records) if r.get("dinov2")]
+            dino_ev = [(i, r.get("dinov3")) for i, r in enumerate(ev_records) if r.get("dinov3")]
             if len(dino_ev) >= 3:
                 vecs_ev = np.array([v for _, v in dino_ev], dtype=np.float32)
                 nrm = np.linalg.norm(vecs_ev, axis=1, keepdims=True) + 1e-9
@@ -205,8 +234,11 @@ def analyze(records: list[dict]) -> dict:
             ts_list = [t for t, _ in group]
             ev_records = [r for _, r in group]
             duration_mins = (ts_list[-1] - ts_list[0]).total_seconds() / 60
-            scenes_ev = [r.get("scene", {}).get("scene_type") for r in ev_records if r.get("scene")]
-            top_scene_ev = _Counter2(s for s in scenes_ev if s).most_common(1)
+            scene_label_counts: _Counter2 = _Counter2()
+            for r in ev_records:
+                for sc in (r.get("scene") or {}).get("scene_types") or []:
+                    scene_label_counts[sc] += 1
+            top_scenes_ev = [sc for sc, _ in scene_label_counts.most_common(3)]
             hero_r = max(ev_records, key=lambda r: r.get("aesthetic_score") or 0)
             event_list.append(
                 {
@@ -214,7 +246,7 @@ def analyze(records: list[dict]) -> dict:
                     "date": ts_list[0].strftime("%Y-%m-%d"),
                     "photo_count": len(ev_records),
                     "duration_mins": round(duration_mins, 1),
-                    "top_scene": top_scene_ev[0][0] if top_scene_ev else "",
+                    "top_scenes": top_scenes_ev,
                     "hero_score": round(float(hero_r.get("aesthetic_score") or 0), 2),
                     "narrative": _event_narrative(ev_records),
                 }
@@ -229,10 +261,20 @@ def analyze(records: list[dict]) -> dict:
             "events": display_events,
         }
 
-    return {
+    result = {
         "clusters": clusters_out,
         "umap": umap_out,
         "burst_groups": burst_groups,
         "storage_tiers": storage_tiers,
         "events": events,
     }
+
+    try:
+        _CACHE_PATH.parent.mkdir(exist_ok=True)
+        tmp = _CACHE_PATH.with_suffix(".tmp")
+        tmp.write_text(json.dumps({"_fingerprint": fp, **result}))
+        tmp.replace(_CACHE_PATH)
+    except Exception:
+        pass
+
+    return result

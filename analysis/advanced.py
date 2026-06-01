@@ -4,7 +4,7 @@ import numpy as np
 
 from coach_client import THRESHOLDS
 
-from ._helpers import _mean
+from ._helpers import _mean, _scene_types_list
 
 
 def analyze(records: list[dict]) -> dict:
@@ -49,10 +49,10 @@ def analyze(records: list[dict]) -> dict:
         sal = r.get("saliency", {})
         if not sal or sal.get("subject_cx") is None:
             continue
-        sc = r.get("scene", {}).get("scene_type")
         area = sal.get("subject_area_pct")
-        if area is not None and sc:
-            sal_by_scene[sc].append(area)
+        if area is not None:
+            for sc in _scene_types_list(r):
+                sal_by_scene[sc].append(area)
         cx = sal.get("subject_cx")
         cy = sal.get("subject_cy")
         if cx is not None and cy is not None:

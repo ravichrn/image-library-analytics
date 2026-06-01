@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Evaluate KMeans cluster coherence on DINOv2 embeddings.
+"""Evaluate KMeans cluster coherence on DINOv3-B embeddings.
 
 Uses SigLIP scene_type as proxy labels — no manual annotation needed.
 
@@ -40,7 +40,7 @@ from cache import load_all_cached
 
 
 def main() -> dict:
-    parser = argparse.ArgumentParser(description="Evaluate KMeans cluster coherence on DINOv2 embeddings")
+    parser = argparse.ArgumentParser(description="Evaluate KMeans cluster coherence on DINOv3-B embeddings")
     parser.add_argument("--n-clusters", type=int, default=None, help="Number of clusters (default: auto, same as pipeline)")
     parser.add_argument("--output", type=Path, default=Path("docs/cluster_eval.json"), help="Write JSON results here (default: docs/cluster_eval.json)")
     args = parser.parse_args()
@@ -48,12 +48,12 @@ def main() -> dict:
     print("Loading embeddings from cache...")
     records = load_all_cached()
     valid = [
-        (r["hash"], r["dinov2"], r.get("scene", {}).get("scene_type", "unknown")) for r in records if r.get("dinov2") and r.get("scene", {}).get("scene_type")
+        (r["hash"], r["dinov3"], r.get("scene", {}).get("scene_type", "unknown")) for r in records if r.get("dinov3") and r.get("scene", {}).get("scene_type")
     ]
-    print(f"  {len(valid)} records with DINOv2 + scene_type")
+    print(f"  {len(valid)} records with DINOv3-B + scene_type")
 
     if len(valid) < 30:
-        print("ERROR: fewer than 30 records have both DINOv2 embeddings and scene_type", file=sys.stderr)
+        print("ERROR: fewer than 30 records have both DINOv3-B embeddings and scene_type", file=sys.stderr)
         sys.exit(1)
 
     _hashes, vecs_raw, scene_types = zip(*valid, strict=False)

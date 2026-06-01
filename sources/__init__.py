@@ -8,7 +8,7 @@ _ML_KEYS = {
     "composition",
     "scene",
     "aesthetic_score",
-    "dinov2",
+    "dinov3",
     "caption",
     "iq_score",
     "saliency",
@@ -62,7 +62,7 @@ def load_sources(
 
             # Filename-stem match: local export vs Lightroom original (different hash, same photo)
             stem = Path(r.get("path", "")).stem if r.get("path") else None
-            lr_stem = r.get("lightroom_filename_stem", "")
+            lr_stem = Path(r.get("lightroom_filename", "")).stem if r.get("lightroom_filename") else ""
             match_stem = stem or lr_stem
 
             if match_stem and not _strict_dedup:
@@ -94,7 +94,9 @@ def load_sources(
 def _find_by_stem(by_hash: dict, stem: str, incoming_source: str | None) -> str | None:
     """Return the hash of an existing record whose filename stem matches."""
     for h, rec in by_hash.items():
-        existing_stem = (Path(rec.get("path", "")).stem if rec.get("path") else None) or rec.get("lightroom_filename_stem", "")
+        existing_stem = (Path(rec.get("path", "")).stem if rec.get("path") else None) or (
+            Path(rec.get("lightroom_filename", "")).stem if rec.get("lightroom_filename") else ""
+        )
         if existing_stem and existing_stem == stem:
             return h
     return None

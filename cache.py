@@ -2,7 +2,7 @@ import json
 import sqlite3
 from pathlib import Path
 
-CACHE_DIR = Path("cache")
+CACHE_DIR = Path("artifacts/cache")
 DB_PATH = CACHE_DIR / "cache.db"
 
 _conn: sqlite3.Connection | None = None
@@ -11,7 +11,7 @@ _conn: sqlite3.Connection | None = None
 def _db() -> sqlite3.Connection:
     global _conn
     if _conn is None:
-        CACHE_DIR.mkdir(exist_ok=True)
+        CACHE_DIR.mkdir(parents=True, exist_ok=True)
         _conn = sqlite3.connect(DB_PATH, check_same_thread=False)
         _conn.execute("PRAGMA journal_mode=WAL")
         _conn.execute("PRAGMA synchronous=NORMAL")

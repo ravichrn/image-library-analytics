@@ -99,8 +99,8 @@ def _exif(r, k):
     return r.get("exif", {}).get(k)
 
 
-def _scene(r):
-    return r.get("scene", {}).get("scene_type", "unknown")
+def _scene(r) -> list[str]:
+    return (r.get("scene") or {}).get("scene_types") or []
 
 
 def _sal(r, k):
@@ -166,7 +166,7 @@ RULES = [
     (
         "deep_dof_portrait",
         "Portrait with deep depth-of-field",
-        lambda r: 1.0 if _exif(r, "dof_category") == "deep" and _scene(r) == "people and portraits" else None,
+        lambda r: 1.0 if _exif(r, "dof_category") == "deep" and "people and portraits" in _scene(r) else None,
         "EXIF data shows a small aperture (f/8+) on a portrait, meaning the background is in sharp focus and competes with the subject. "
         "For environmental portraits this can work, but for headshots/closeups, f/1.4–f/2.8 will separate the subject more cleanly.",
     ),
@@ -245,12 +245,13 @@ def aggregate_flags(records: list[dict]) -> dict:
     scene_totals: Counter = Counter()
 
     for r in records:
-        scene = r.get("scene", {}).get("scene_type", "unknown")
-        scene_totals[scene] += 1
+        for sc in _scene(r):
+            scene_totals[sc] += 1
         for key, sev in flag_record(r).items():
             flag_counts[key] += 1
             flag_severity[key].append(sev)
-            flag_by_scene[key][scene] += 1
+            for sc in _scene(r):
+                flag_by_scene[key][sc] += 1
 
     flags_out = {}
     for key, _label, _, _desc in RULES:
@@ -258,14 +259,14 @@ def aggregate_flags(records: list[dict]) -> dict:
         if count == 0:
             continue
         sevs = flag_severity[key]
-        top_scene = flag_by_scene[key].most_common(1)[0][0]
+        top_scenes = [sc for sc, _ in flag_by_scene[key].most_common(3)]
         flags_out[key] = {
             "label": _label,
             "description": _desc,
             "count": count,
             "pct": round(count / n * 100, 1),
             "avg_severity": round(sum(sevs) / len(sevs), 3),
-            "top_scene": top_scene,
+            "top_scenes": top_scenes,
             "by_scene": dict(flag_by_scene[key]),
         }
 

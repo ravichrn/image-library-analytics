@@ -8,6 +8,8 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime
 from pathlib import Path
 
+import numpy as np
+import psutil
 import torch
 from dotenv import load_dotenv
 from rich.console import Console
@@ -18,9 +20,13 @@ from analysis import aggregate
 from cache import load_cache, save_cache
 from coach_client import aggregate_flags, calibrate_thresholds
 from extractors import (
+    _seed_count,
+    aesthetic_regressor_available,
+    auto_train_aesthetic_regressor,
+    check_ood,
     classify_scene_batch,
-    encode_scene_labels_siglip,
-    encode_vqa_labels_siglip,
+    compute_coverage_threshold,
+    encode_text_features_siglip,
     extract_aesthetic_batch,
     extract_color,
     extract_composition,
@@ -32,15 +38,20 @@ from extractors import (
     extract_saliency_batch,
     extract_vqa_batch,
     load_aesthetic_model,
+    load_aesthetic_regressor,
     load_clipiqa_metric,
     load_dino_model,
     load_pose_model,
     load_saliency_model,
     load_siglip_model,
+    predict_aesthetic_scores,
+    select_aesthetic_seed,
+    train_and_save_aesthetic_regressor,
     unload_model,
     unload_pose_model,
 )
 from report import generate_html, generate_json
+from scheduler import pick_batch_size, record_outcome
 from sources import load_sources
 
 console = Console()
@@ -138,7 +149,7 @@ def _peak_mb() -> float | None:
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Image Library Analytics")
     parser.add_argument("--sample", type=int, default=None, help="Analyze a random sample of N photos")
-    parser.add_argument("--batch-size", type=int, default=16, help="Batch size for ML passes (default 16)")
+    parser.add_argument("--batch-size", type=int, default=None, help="Batch size for YOLO pose pass (default: scheduler)")
     parser.add_argument("--prune", action="store_true", help="Remove cache entries for photos no longer in your library")
     parser.add_argument("--dry-run", action="store_true", help="With --prune: preview what would be removed without deleting.")
     parser.add_argument(
@@ -161,12 +172,19 @@ def parse_args() -> argparse.Namespace:
         help="Run only these passes (comma-separated, same names as --skip)",
     )
     parser.add_argument(
+        "--teacher",
+        action="store_true",
+        help=(
+            "Force full aesthetic-predictor-v2-5 on all photos instead of warm-start regressor (generates fresh ground-truth labels for regressor retraining)."
+        ),
+    )
+    parser.add_argument(
         "--clear-key",
         type=str,
         default=None,
         metavar="KEY(S)",
         help="Delete cached values for KEY (or comma-separated keys) from all records, then exit. "
-        "Use 'ml' as a shorthand for all ML keys: scene,caption,aesthetic_score,iq_score,dinov2,saliency,pose_data",
+        "Use 'ml' as a shorthand for all ML keys: scene,caption,aesthetic_score,iq_score,dinov3,saliency,pose_data",
     )
     parser.add_argument(
         "--lightroom-album",
@@ -282,7 +300,7 @@ def _prune_stale(sources_str: str, raw: list[dict], dry_run: bool = False) -> No
         from cache import load_all_cached
 
         stale_count = sum(1 for r in load_all_cached() if r.get("hash") not in keep)
-        renditions_dir = Path("cache/renditions")
+        renditions_dir = Path("artifacts/cache/renditions")
         stale_renditions = sum(1 for f in renditions_dir.iterdir() if f.stem not in keep) if renditions_dir.exists() else 0
         console.print(
             f"  [dim]Would prune[/dim] [yellow]{stale_count}[/yellow] cache entr{'y' if stale_count == 1 else 'ies'}"
@@ -294,7 +312,7 @@ def _prune_stale(sources_str: str, raw: list[dict], dry_run: bool = False) -> No
     removed = prune_cache(keep)
 
     # Clean up orphaned rendition files for pruned hashes
-    renditions_dir = Path("cache/renditions")
+    renditions_dir = Path("artifacts/cache/renditions")
     removed_renditions = 0
     if renditions_dir.exists():
         for f in renditions_dir.iterdir():
@@ -318,7 +336,7 @@ def _prune_stale(sources_str: str, raw: list[dict], dry_run: bool = False) -> No
 def main() -> None:
     load_dotenv()
     args = parse_args()
-    batch_size = args.batch_size
+    batch_size = args.batch_size if args.batch_size is not None else pick_batch_size("yolo26n-pose")
 
     sources = os.environ.get("SOURCES", "local")
     console.print(f"\n[bold]Loading sources:[/bold] [cyan]{sources}[/cyan]")
@@ -366,14 +384,12 @@ def main() -> None:
             save_cache(r["hash"], r)
 
     # ── --clear-key: wipe one or more cache keys from all records, then exit ────
-    _ML_KEYS = {"scene", "caption", "aesthetic_score", "iq_score", "dinov2", "saliency", "pose_data"}
+    _ML_KEYS = {"scene", "caption", "aesthetic_score", "iq_score", "dinov3", "saliency", "pose_data"}
     if args.clear_key:
-        from cache import load_all_cached
-
-        raw_keys = "scene,caption,aesthetic_score,iq_score,dinov2,saliency,pose_data" if args.clear_key == "ml" else args.clear_key
+        raw_keys = "scene,caption,aesthetic_score,iq_score,dinov3,saliency,pose_data" if args.clear_key == "ml" else args.clear_key
         keys = {k.strip() for k in raw_keys.split(",") if k.strip()}
         cleared = 0
-        for r in load_all_cached():
+        for r in records.values():
             changed = False
             for key in keys:
                 if key in r:
@@ -382,6 +398,15 @@ def main() -> None:
             if changed:
                 save_cache(r["hash"], r)
                 cleared += 1
+        # If aesthetic_score is cleared, delete the regressor so the next run
+        # does a fresh warm-start instead of an incremental OOD pass against stale seeds.
+        if "aesthetic_score" in keys:
+            from extractors.heads import _AESTHETIC_REG_PATH
+
+            if _AESTHETIC_REG_PATH.exists():
+                _AESTHETIC_REG_PATH.unlink()
+                console.print("  Deleted [yellow]aesthetic_regressor.joblib[/yellow] — will warm-start on next run.\n")
+
         label = "ml" if args.clear_key == "ml" else ", ".join(sorted(keys))
         console.print(f"Cleared [yellow]{label}[/yellow] from [green]{cleared}[/green] cache entr{'y' if cleared == 1 else 'ies'}.\n")
         return
@@ -490,59 +515,122 @@ def main() -> None:
         _flush_pass_profile()
         console.print()
 
-    # ── Pass 2 — SigLIP 2: scene classification + zero-shot VQA ─────────────────
-    # Image features computed once per batch, reused for both scene and VQA.
-    # SO400M is large — cap batch at 4 to avoid MPS memory pressure.
-    siglip_batch = _auto_batch(4)
+    # ── Pass 2 — DINOv3-B embeddings (backbone for heads + clustering) ────────
+    # Runs first so trained heads can be used immediately on new photos.
+    dino_batch = pick_batch_size("dinov3-b")
+    _dino_todo = needs_path("dinov3")
+    if "dino" in _skip_passes:
+        console.print("[bold]Pass 2/7:[/bold] skipped (--skip dino)\n")
+        _pass_stats.append({"name": "Pass 2: DINOv3-B", "skipped": True})
+    elif _dino_todo:
+        console.print(f"[bold]Pass 2/7:[/bold] DINOv3-B embeddings ({len(_dino_todo)} photos, batch={dino_batch})")
+        _reset_peak()
+        _p2_dino_t0 = time.perf_counter()
+        with console.status("Loading DINOv3-B..."):
+            dino_model, dino_processor, device = load_dino_model()
+        _p2_dino_load_s = time.perf_counter() - _p2_dino_t0
+        _p2_dino_model_mb = _peak_mb()
+
+        _dino_failed = 0
+        with _progress(SpinnerColumn(), BarColumn(), TextColumn("{task.description}"), MofNCompleteColumn(), TaskProgressColumn()) as p:
+            task = p.add_task("Extracting embeddings...", total=len(_dino_todo))
+            all_dino_paths = [_ensure_path(r) for r in _dino_todo]
+            embeddings = extract_embedding_batch(
+                all_dino_paths,
+                dino_model,
+                dino_processor,
+                device,
+                batch_size=dino_batch,
+                on_batch=lambda n: p.advance(task, n),
+            )
+            for r, emb in zip(_dino_todo, embeddings, strict=False):
+                if emb is not None:
+                    r["dinov3"] = emb
+            _dino_failed = embeddings.count(None)
+
+        if _dino_failed:
+            console.print(f"  [yellow]⚠ {_dino_failed} image(s) failed DINOv3-B embedding[/yellow]")
+        _save_batch(_dino_todo)
+        unload_model(dino_model)
+        gc.collect()
+        _p2_dino_elapsed = time.perf_counter() - _p2_dino_t0
+        _pass_stats.append(
+            {
+                "name": "Pass 2: DINOv3-B",
+                "photos": len(_dino_todo),
+                "elapsed_s": round(_p2_dino_elapsed, 2),
+                "throughput_img_s": round(len(_dino_todo) / _p2_dino_elapsed, 1) if _p2_dino_elapsed > 0 else None,
+                "load_s": round(_p2_dino_load_s, 2),
+                "model_memory_mb": round(_p2_dino_model_mb, 1) if _p2_dino_model_mb else None,
+            }
+        )
+        _n2_dino = max(1, len(_dino_todo) // dino_batch)
+        record_outcome(
+            "dinov3-b",
+            dino_batch,
+            imgs_per_s=len(_dino_todo) / _p2_dino_elapsed if _p2_dino_elapsed > 0 else 0.0,
+            system_available_mb=psutil.virtual_memory().available / 1e6,
+            p95_ms=_p2_dino_elapsed / _n2_dino * 1000,
+            failure_rate=_dino_failed / len(_dino_todo) if _dino_todo else 0.0,
+        )
+        _flush_pass_profile()
+        console.print()
+
+    # ── Pass 3 — Scene classification + VQA ─────────────────────────────────
     todo = [r for r in records.values() if "scene" not in r or "caption" not in r]
     todo = [r for r in todo if r.get("path") or (r.get("source") in ("lightroom", "both") and _download_renditions())]
     if "scene" in _skip_passes:
-        console.print("[bold]Pass 2/6:[/bold] skipped (--skip scene)\n")
-        _pass_stats.append({"name": "Pass 2: SigLIP 2 SO400M", "skipped": True})
+        console.print("[bold]Pass 3/7:[/bold] skipped (--skip scene)\n")
+        _pass_stats.append({"name": "Pass 3: scene + VQA", "skipped": True})
     elif todo:
-        console.print(f"[bold]Pass 2/6:[/bold] SigLIP 2 scene + VQA ({len(todo)} photos, batch={siglip_batch})")
+        siglip_batch = pick_batch_size("siglip2-base")
+        console.print(f"[bold]Pass 3/7:[/bold] SigLIP2-base scene + VQA ({len(todo)} photos, batch={siglip_batch})")
         device = _device()
         _reset_peak()
         _p2_t0 = time.perf_counter()
-        with console.status("Loading SigLIP 2 SO400M..."):
+        _siglip_failed = 0
+        with console.status("Loading SigLIP2-base..."):
             siglip_model, siglip_processor = load_siglip_model(device)
-            scene_feats = encode_scene_labels_siglip(siglip_model, siglip_processor, device)
-            vqa_feats = encode_vqa_labels_siglip(siglip_model, siglip_processor, device)
+            scene_feats, vqa_feats = encode_text_features_siglip(siglip_model, siglip_processor, device)
         _p2_load_s = time.perf_counter() - _p2_t0
         _p2_model_mb = _peak_mb()
 
+        from extractors.heads import _exif_season, _exif_time_of_day
         from extractors.prefetch import iter_prefetched
 
-        _siglip_failed = 0
         _all_siglip_paths = [_ensure_path(r) for r in todo]
         _siglip_start = 0
         with _progress(SpinnerColumn(), BarColumn(), TextColumn("{task.description}"), MofNCompleteColumn(), TaskProgressColumn()) as p:
             task = p.add_task("Classifying scenes + VQA...", total=len(todo))
             for batch_paths, imgs, valid_idx in iter_prefetched(_all_siglip_paths, siglip_batch):
                 batch = todo[_siglip_start : _siglip_start + len(batch_paths)]
-                scene_results, img_feats = classify_scene_batch(batch_paths, siglip_model, siglip_processor, device, scene_feats, _preloaded=(imgs, valid_idx))
+                scene_results, img_feats, _ = classify_scene_batch(
+                    batch_paths, siglip_model, siglip_processor, device, scene_feats, _preloaded=(imgs, valid_idx)
+                )
                 vqa_results = extract_vqa_batch(img_feats, vqa_feats) if img_feats is not None else [{} for _ in batch]
                 for r, scene_res, vqa_res in zip(batch, scene_results, vqa_results, strict=False):
                     if scene_res["scene"].get("scene_scores"):
-                        if "scene" not in r:
-                            r["scene"] = scene_res["scene"]
-                        if "caption" not in r and vqa_res:
-                            r["caption"] = vqa_res
+                        r["scene"] = scene_res["scene"]
+                        r["caption"] = vqa_res
+                        cap = r["caption"]
+                        cap["time_of_day"] = _exif_time_of_day(r) or "afternoon"
+                        cap["season"] = _exif_season(r) or "summer"
                     else:
                         _siglip_failed += 1
                 p.advance(task, len(batch))
                 _siglip_start += len(batch_paths)
 
         if _siglip_failed:
-            console.print(f"  [yellow]⚠ {_siglip_failed} image(s) failed SigLIP (no file or load error)[/yellow]")
+            console.print(f"  [yellow]⚠ {_siglip_failed} image(s) failed SigLIP[/yellow]")
         _save_batch(todo)
-        del scene_feats, vqa_feats  # free before unload so empty_cache() inside sees clean state
+        del scene_feats, vqa_feats
         unload_model(siglip_model)
         gc.collect()
+
         _p2_elapsed = time.perf_counter() - _p2_t0
         _pass_stats.append(
             {
-                "name": "Pass 2: SigLIP 2 SO400M",
+                "name": "Pass 3: SigLIP2-base",
                 "photos": len(todo),
                 "elapsed_s": round(_p2_elapsed, 2),
                 "throughput_img_s": round(len(todo) / _p2_elapsed, 1) if _p2_elapsed > 0 else None,
@@ -550,67 +638,253 @@ def main() -> None:
                 "model_memory_mb": round(_p2_model_mb, 1) if _p2_model_mb else None,
             }
         )
-        _flush_pass_profile()
-        console.print()
-
-    # ── Pass 3a — aesthetic-predictor-v2-5: aesthetic score ──────────────────
-    # SigLIP-based MLP — run after SigLIP is unloaded to avoid holding two encoders at once
-    aes_batch = _auto_batch(4)
-    aes_todo = needs_path("aesthetic_score")
-    if "aesthetic" in _skip_passes:
-        console.print("[bold]Pass 3a/6:[/bold] skipped (--skip aesthetic)\n")
-        _pass_stats.append({"name": "Pass 3a: aesthetic-predictor-v2-5", "skipped": True})
-    elif aes_todo:
-        console.print(f"[bold]Pass 3a/6:[/bold] Aesthetic scoring ({len(aes_todo)} photos, batch={aes_batch})")
-        _reset_peak()
-        _p3a_t0 = time.perf_counter()
-        with console.status("Loading aesthetic-predictor-v2-5..."):
-            aesthetic = load_aesthetic_model(_device())
-        _p3a_load_s = time.perf_counter() - _p3a_t0
-        _p3a_model_mb = _peak_mb()
-
-        _aes_failed = 0
-        with _progress(SpinnerColumn(), BarColumn(), TextColumn("{task.description}"), MofNCompleteColumn(), TaskProgressColumn()) as p:
-            task = p.add_task("Scoring aesthetics...", total=len(aes_todo))
-            for start in range(0, len(aes_todo), aes_batch):
-                batch = aes_todo[start : start + aes_batch]
-                paths = [_ensure_path(r) for r in batch]
-                scores = extract_aesthetic_batch(paths, aesthetic, aes_batch)
-                for r, score in zip(batch, scores, strict=False):
-                    r["aesthetic_score"] = score
-                _aes_failed += scores.count(None)
-                p.advance(task, len(batch))
-
-        if _aes_failed:
-            console.print(f"  [yellow]⚠ {_aes_failed} image(s) failed aesthetic scoring[/yellow]")
-        _save_batch(aes_todo)
-        del aesthetic
-        gc.collect()
-        if torch.backends.mps.is_available():
-            torch.mps.empty_cache()
-        _p3a_elapsed = time.perf_counter() - _p3a_t0
-        _pass_stats.append(
-            {
-                "name": "Pass 3a: aesthetic-predictor-v2-5",
-                "photos": len(aes_todo),
-                "elapsed_s": round(_p3a_elapsed, 2),
-                "throughput_img_s": round(len(aes_todo) / _p3a_elapsed, 1) if _p3a_elapsed > 0 else None,
-                "load_s": round(_p3a_load_s, 2),
-                "model_memory_mb": round(_p3a_model_mb, 1) if _p3a_model_mb else None,
-            }
+        _n2 = max(1, len(todo) // siglip_batch)
+        record_outcome(
+            "siglip2-base",
+            siglip_batch,
+            imgs_per_s=len(todo) / _p2_elapsed if _p2_elapsed > 0 else 0.0,
+            system_available_mb=psutil.virtual_memory().available / 1e6,
+            p95_ms=_p2_elapsed / _n2 * 1000,
+            failure_rate=_siglip_failed / len(todo) if todo else 0.0,
         )
         _flush_pass_profile()
         console.print()
 
-    # ── Pass 3b — CLIP-IQA+: technical IQ score (MPS/CUDA/CPU) ──────────────
-    iq_batch = _auto_batch(8)
+    # ── Pass 4a — aesthetic score (warm-start regressor or full SigLIP) ────────
+    aes_batch = pick_batch_size("aesthetic-predictor-v2-5")
+    aes_todo_all = needs_path("aesthetic_score")
+    # Only photos with a dinov3 embedding can use the regressor / warm-start.
+    aes_todo = [r for r in aes_todo_all if r.get("dinov3")]
+
+    if "aesthetic" in _skip_passes:
+        console.print("[bold]Pass 4a/7:[/bold] skipped (--skip aesthetic)\n")
+        _pass_stats.append({"name": "Pass 4a: aesthetic", "skipped": True})
+
+    elif aes_todo_all:
+        _p3a_t0 = time.perf_counter()
+        _p3a_load_s: float = 0.0
+        _p3a_model_mb: float | None = None
+        _p3a_n_siglip: int = 0
+        _p3a_n_regressor: int = 0
+        _p3a_pass_name = "Pass 4a: aesthetic"
+        _aes_ran_siglip = False
+
+        # ── Inline helper: run aesthetic-predictor-v2-5 on a list of records ──
+        def _run_siglip_aesthetic(todo: list[dict], label: str) -> int:
+            """Score `todo` via the aesthetic predictor. Returns failure count."""
+            nonlocal _p3a_load_s, _p3a_model_mb
+            _reset_peak()
+            _t_load = time.perf_counter()
+            with console.status("Loading aesthetic-predictor-v2-5..."):
+                aesthetic = load_aesthetic_model(_device())
+            _p3a_load_s += time.perf_counter() - _t_load
+            _p3a_model_mb = _peak_mb()
+            failed = 0
+            with _progress(SpinnerColumn(), BarColumn(), TextColumn("{task.description}"), MofNCompleteColumn(), TaskProgressColumn()) as p:
+                task = p.add_task(label, total=len(todo))
+                for start in range(0, len(todo), aes_batch):
+                    chunk = todo[start : start + aes_batch]
+                    paths = [_ensure_path(r) for r in chunk]
+                    scores = extract_aesthetic_batch(paths, aesthetic, aes_batch)
+                    for r, score in zip(chunk, scores, strict=False):
+                        if score is not None:
+                            r["aesthetic_score"] = score
+                            r["aesthetic_score_source"] = "siglip"
+                    failed += scores.count(None)
+                    p.advance(task, len(chunk))
+            if failed:
+                console.print(f"  [yellow]⚠ {failed} image(s) failed aesthetic scoring[/yellow]")
+            del aesthetic
+            gc.collect()
+            if torch.backends.mps.is_available():
+                torch.mps.empty_cache()
+            return failed
+
+        _use_teacher = getattr(args, "teacher", False)
+        _reg_exists = aesthetic_regressor_available()
+        _reg = load_aesthetic_regressor() if _reg_exists else None
+        _reg_has_seed = _reg is not None and "X_seed" in _reg
+
+        # ── Case 0: --teacher → full SigLIP on everything, no regressor ──────
+        if _use_teacher:
+            console.print(f"[bold]Pass 4a/7:[/bold] Aesthetic (teacher/full SigLIP) — {len(aes_todo_all)} photos")
+            _failed = _run_siglip_aesthetic(aes_todo_all, "Scoring aesthetics (teacher)...")
+            _save_batch(aes_todo_all)
+            _p3a_n_siglip = len(aes_todo_all)
+            _p3a_pass_name = "Pass 4a: aesthetic-predictor-v2-5 (teacher)"
+            _aes_ran_siglip = True
+
+        # ── Case 1: no regressor on disk → warm-start ─────────────────────────
+        elif not _reg_exists and len(aes_todo) >= 2:
+            K = _seed_count(len(aes_todo))
+            console.print(
+                f"[bold]Pass 4a/7:[/bold] Aesthetic warm-start — {len(aes_todo)} photos  [dim](no regressor — selecting {K} seed photos via k-means)[/dim]"
+            )
+
+            with console.status(f"Clustering {len(aes_todo)} embeddings → {K} seeds..."):
+                seed_records, X_seed = select_aesthetic_seed(aes_todo)
+            console.print(f"  Seed: [cyan]{len(seed_records)}[/cyan] photos (k-means K={K})")
+
+            _failed = _run_siglip_aesthetic(seed_records, f"Scoring {len(seed_records)} seed photos (SigLIP)...")
+            _p3a_n_siglip = len(seed_records)
+
+            with console.status(f"Training regressor on {len(seed_records)} seed labels..."):
+                X_all = np.array([r["dinov3"] for r in aes_todo], dtype=np.float32)
+                threshold = compute_coverage_threshold(X_all, X_seed)
+                seed_records_ok = [r for r in seed_records if r.get("aesthetic_score") is not None]
+                X_seed_ok = np.array([r["dinov3"] for r in seed_records_ok], dtype=np.float32)
+                y_seed_ok = np.array([r["aesthetic_score"] for r in seed_records_ok], dtype=np.float32)
+                train_and_save_aesthetic_regressor(X_seed_ok, y_seed_ok, threshold)
+
+            _reg_new = load_aesthetic_regressor()
+            non_seed = [r for r in aes_todo if r.get("aesthetic_score") is None]
+            if non_seed:
+                console.print(f"  Predicting [cyan]{len(non_seed)}[/cyan] remaining photos via regressor...")
+                preds = predict_aesthetic_scores(non_seed, _reg_new)
+                for r, s in zip(non_seed, preds, strict=False):
+                    r["aesthetic_score"] = s
+                    r["aesthetic_score_source"] = "regressor"
+            _p3a_n_regressor = len(non_seed)
+            _save_batch(aes_todo)
+            saved_pct = 100 * _p3a_n_regressor / len(aes_todo) if aes_todo else 0
+            console.print(f"  [green]✓[/green] {_p3a_n_siglip} SigLIP + {_p3a_n_regressor} regressor ([green]{saved_pct:.0f}%[/green] of SigLIP calls saved)")
+            _p3a_pass_name = f"Pass 4a: aesthetic warm-start (K={len(seed_records)})"
+            _aes_ran_siglip = True
+
+        # ── Case 2: regressor exists with X_seed → OOD-based incremental ──────
+        elif _reg_has_seed and aes_todo:
+            console.print(f"[bold]Pass 4a/7:[/bold] Aesthetic incremental — {len(aes_todo)} new photos")
+
+            with console.status("Checking coverage (OOD detection)..."):
+                X_query = np.array([r["dinov3"] for r in aes_todo], dtype=np.float32)
+                ood_mask = check_ood(X_query, _reg["X_seed"], _reg["coverage_threshold"])
+            n_ind = int((~ood_mask).sum())
+            n_ood = int(ood_mask.sum())
+            console.print(f"  In-distribution: [green]{n_ind}[/green] → regressor (0 SigLIP)  |  OOD: [yellow]{n_ood}[/yellow] → new seeds")
+
+            # In-distribution: predict with existing regressor
+            ind_records = [r for r, o in zip(aes_todo, ood_mask, strict=False) if not o]
+            if ind_records:
+                preds = predict_aesthetic_scores(ind_records, _reg)
+                for r, s in zip(ind_records, preds, strict=False):
+                    r["aesthetic_score"] = s
+                    r["aesthetic_score_source"] = "regressor"
+            _p3a_n_regressor += len(ind_records)
+
+            if n_ood > 0:
+                ood_records = [r for r, o in zip(aes_todo, ood_mask, strict=False) if o]
+                K_new = _seed_count(n_ood)
+                with console.status(f"Clustering {n_ood} OOD embeddings → {K_new} seeds..."):
+                    seed_ood, X_seed_new = select_aesthetic_seed(ood_records)
+                console.print(f"  OOD seed: [cyan]{len(seed_ood)}[/cyan] photos (k-means K={K_new})")
+
+                _failed = _run_siglip_aesthetic(seed_ood, f"Scoring {len(seed_ood)} OOD seeds (SigLIP)...")
+                _p3a_n_siglip = len(seed_ood)
+                _aes_ran_siglip = True
+
+                seed_ood_ok = [r for r in seed_ood if r.get("aesthetic_score") is not None]
+                X_seed_new_ok = np.array([r["dinov3"] for r in seed_ood_ok], dtype=np.float32)
+                y_seed_new = np.array([r["aesthetic_score"] for r in seed_ood_ok], dtype=np.float32)
+
+                X_seed_combined = np.vstack([_reg["X_seed"], X_seed_new_ok])
+                y_seed_combined = np.concatenate([_reg["y_seed"], y_seed_new])
+
+                with console.status(f"Retraining on {len(y_seed_combined)} seeds (old + new)..."):
+                    X_full = np.array(
+                        [r["dinov3"] for r in records.values() if r.get("dinov3")],
+                        dtype=np.float32,
+                    )
+                    new_threshold = compute_coverage_threshold(X_full, X_seed_combined)
+                    train_and_save_aesthetic_regressor(X_seed_combined, y_seed_combined, new_threshold)
+
+                _reg_new = load_aesthetic_regressor()
+
+                # Re-predict all previously regressor-scored photos with improved model
+                old_reg_records = [r for r in records.values() if r.get("aesthetic_score_source") == "regressor"]
+                if old_reg_records:
+                    console.print(f"  Re-predicting [cyan]{len(old_reg_records)}[/cyan] existing regressor-scored photos with improved model...")
+                    old_preds = predict_aesthetic_scores(old_reg_records, _reg_new)
+                    for r, s in zip(old_reg_records, old_preds, strict=False):
+                        r["aesthetic_score"] = s
+                    _save_batch(old_reg_records)
+
+                # Predict remaining OOD non-seed photos
+                ood_non_seed = [r for r in ood_records if r.get("aesthetic_score") is None]
+                if ood_non_seed:
+                    preds_ood = predict_aesthetic_scores(ood_non_seed, _reg_new)
+                    for r, s in zip(ood_non_seed, preds_ood, strict=False):
+                        r["aesthetic_score"] = s
+                        r["aesthetic_score_source"] = "regressor"
+                _p3a_n_regressor += len(ood_non_seed)
+
+            _save_batch(aes_todo)
+            console.print(f"  [green]✓[/green] {n_ind} in-dist regressor + {_p3a_n_siglip} OOD SigLIP seeds + {_p3a_n_regressor - n_ind} OOD regressor")
+            _p3a_pass_name = "Pass 4a: aesthetic incremental (OOD)"
+
+        # ── Case 3: regressor exists but old format (no X_seed) → full SigLIP ─
+        elif _reg_exists and not _reg_has_seed and aes_todo_all:
+            console.print(f"[bold]Pass 4a/7:[/bold] Aesthetic — {len(aes_todo_all)} photos [dim](regressor has no seed index — running full SigLIP)[/dim]")
+            _failed = _run_siglip_aesthetic(aes_todo_all, "Scoring aesthetics...")
+            _save_batch(aes_todo_all)
+            _p3a_n_siglip = len(aes_todo_all)
+            _p3a_pass_name = "Pass 4a: aesthetic-predictor-v2-5"
+            _aes_ran_siglip = True
+
+        # ── Case 4: no regressor and too few photos for warm-start → full SigLIP
+        elif not _reg_exists:
+            console.print(f"[bold]Pass 4a/7:[/bold] Aesthetic — {len(aes_todo_all)} photos [dim](too few for warm-start — running full SigLIP)[/dim]")
+            _failed = _run_siglip_aesthetic(aes_todo_all, "Scoring aesthetics...")
+            _save_batch(aes_todo_all)
+            _p3a_n_siglip = len(aes_todo_all)
+            _p3a_pass_name = "Pass 4a: aesthetic-predictor-v2-5"
+            _aes_ran_siglip = True
+
+        _p3a_elapsed = time.perf_counter() - _p3a_t0
+        _p3a_total = _p3a_n_siglip + _p3a_n_regressor
+        _pass_stats.append(
+            {
+                "name": _p3a_pass_name,
+                "photos": _p3a_total or len(aes_todo_all),
+                "elapsed_s": round(_p3a_elapsed, 2),
+                "throughput_img_s": round(_p3a_total / _p3a_elapsed, 1) if _p3a_elapsed > 0 and _p3a_total else None,
+                "load_s": round(_p3a_load_s, 2) if _p3a_load_s else None,
+                "model_memory_mb": round(_p3a_model_mb, 1) if _p3a_model_mb else None,
+            }
+        )
+        if _p3a_n_siglip > 0:
+            _n3a = max(1, _p3a_n_siglip // aes_batch)
+            record_outcome(
+                "aesthetic-predictor-v2-5",
+                aes_batch,
+                imgs_per_s=_p3a_n_siglip / _p3a_elapsed if _p3a_elapsed > 0 else 0.0,
+                system_available_mb=psutil.virtual_memory().available / 1e6,
+                p95_ms=_p3a_elapsed / _n3a * 1000,
+                failure_rate=0.0,
+            )
+        _flush_pass_profile()
+
+        # Retrain on all accumulated SigLIP-labelled records to improve future runs
+        if _aes_ran_siglip:
+            with console.status("Retraining regressor on all accumulated SigLIP labels..."):
+                _reg_trained = auto_train_aesthetic_regressor(list(records.values()))
+            if _reg_trained:
+                import json as _json
+
+                from extractors.heads import _AESTHETIC_REG_PATH
+
+                _reg_meta = _json.loads((_AESTHETIC_REG_PATH.parent / "aesthetic_regressor_meta.json").read_text())
+                console.print(f"  [green]✓ Regressor updated[/green]  n={_reg_meta['n_samples']}  R²={_reg_meta['cv_r2']}  MAE={_reg_meta['cv_mae']}")
+        console.print()
+
+    # ── Pass 4b — CLIP-IQA+: technical IQ score (MPS/CUDA/CPU) ──────────────
+    iq_batch = pick_batch_size("clipiqa+")
     iq_todo = needs_path("iq_score")
     if "iq" in _skip_passes or os.environ.get("SKIP_IQ", "false").lower() == "true":
-        console.print("[bold]Pass 3b/6:[/bold] CLIP-IQA+ skipped\n")
-        _pass_stats.append({"name": "Pass 3b: CLIP-IQA+", "skipped": True})
+        console.print("[bold]Pass 4b/7:[/bold] CLIP-IQA+ skipped\n")
+        _pass_stats.append({"name": "Pass 4b: CLIP-IQA+", "skipped": True})
     elif iq_todo:
         device = _device()
-        console.print(f"[bold]Pass 3b/6:[/bold] CLIP-IQA+ technical quality ({len(iq_todo)} photos, batch={iq_batch}, {device})")
+        console.print(f"[bold]Pass 4b/7:[/bold] CLIP-IQA+ technical quality ({len(iq_todo)} photos, batch={iq_batch}, {device})")
         _reset_peak()
         _p3b_t0 = time.perf_counter()
         with console.status("Loading CLIP-IQA+ (pyiqa)..."):
@@ -622,20 +896,19 @@ def main() -> None:
             console.print(f"  [yellow]CLIP-IQA+ failed to load: {iq_metric}. Skipping.[/yellow]\n")
             iq_metric = None
         if iq_metric is not None:
-            save_every = 200
             _iq_failed = 0
             with _progress(SpinnerColumn(), BarColumn(), TextColumn("{task.description}"), MofNCompleteColumn(), TaskProgressColumn()) as p:
                 task = p.add_task("Scoring technical quality...", total=len(iq_todo))
-                for start in range(0, len(iq_todo), iq_batch):
-                    batch = iq_todo[start : start + iq_batch]
-                    paths = [_ensure_path(r) for r in batch]
-                    iq_scores = extract_iq_batch(paths, iq_metric, batch_size=iq_batch)
-                    for r, iq in zip(batch, iq_scores, strict=False):
-                        r["iq_score"] = iq
-                    _iq_failed += iq_scores.count(None)
-                    p.advance(task, len(batch))
-                    if (start + iq_batch) % save_every == 0:
-                        _save_batch(iq_todo[max(0, start + iq_batch - save_every) : start + iq_batch])
+                all_iq_paths = [_ensure_path(r) for r in iq_todo]
+                iq_scores = extract_iq_batch(
+                    all_iq_paths,
+                    iq_metric,
+                    batch_size=iq_batch,
+                    on_batch=lambda n: p.advance(task, n),
+                )
+                for r, iq in zip(iq_todo, iq_scores, strict=False):
+                    r["iq_score"] = iq
+                _iq_failed = iq_scores.count(None)
             if _iq_failed:
                 console.print(f"  [yellow]⚠ {_iq_failed} image(s) failed IQ scoring[/yellow]")
             _save_batch(iq_todo)
@@ -646,7 +919,7 @@ def main() -> None:
             _p3b_elapsed = time.perf_counter() - _p3b_t0
             _pass_stats.append(
                 {
-                    "name": "Pass 3b: CLIP-IQA+",
+                    "name": "Pass 4b: CLIP-IQA+",
                     "photos": len(iq_todo),
                     "elapsed_s": round(_p3b_elapsed, 2),
                     "throughput_img_s": round(len(iq_todo) / _p3b_elapsed, 1) if _p3b_elapsed > 0 else None,
@@ -654,64 +927,41 @@ def main() -> None:
                     "model_memory_mb": round(_p3b_model_mb, 1) if _p3b_model_mb else None,
                 }
             )
+            _n3b = max(1, len(iq_todo) // iq_batch)
+            record_outcome(
+                "clipiqa+",
+                iq_batch,
+                imgs_per_s=len(iq_todo) / _p3b_elapsed if _p3b_elapsed > 0 else 0.0,
+                system_available_mb=psutil.virtual_memory().available / 1e6,
+                p95_ms=_p3b_elapsed / _n3b * 1000,
+                failure_rate=_iq_failed / len(iq_todo) if iq_todo else 0.0,
+            )
             _flush_pass_profile()
         console.print()
 
-    # ── Pass 4 — DINOv2 embeddings (batched) ─────────────────────────────────
-    dino_batch = _auto_batch(8)
-    todo = needs_path("dinov2")
-    if "dino" in _skip_passes:
-        console.print("[bold]Pass 4/6:[/bold] skipped (--skip dino)\n")
-        _pass_stats.append({"name": "Pass 4: DINOv2-base", "skipped": True})
-    elif todo:
-        console.print(f"[bold]Pass 4/6:[/bold] DINOv2 embeddings ({len(todo)} photos, batch={dino_batch})")
-        _reset_peak()
-        _p4_t0 = time.perf_counter()
-        with console.status("Loading DINOv2 (base)..."):
-            dino_model, dino_processor, device = load_dino_model()
-        _p4_load_s = time.perf_counter() - _p4_t0
-        _p4_model_mb = _peak_mb()
-
-        _dino_failed = 0
-        with _progress(SpinnerColumn(), BarColumn(), TextColumn("{task.description}"), MofNCompleteColumn(), TaskProgressColumn()) as p:
-            task = p.add_task("Extracting embeddings...", total=len(todo))
-            for start in range(0, len(todo), dino_batch):
-                batch = todo[start : start + dino_batch]
-                paths = [_ensure_path(r) for r in batch]
-                embeddings = extract_embedding_batch(paths, dino_model, dino_processor, device)
-                for r, emb in zip(batch, embeddings, strict=False):
-                    if emb is not None:
-                        r["dinov2"] = emb
-                _dino_failed += embeddings.count(None)
-                p.advance(task, len(batch))
-
-        if _dino_failed:
-            console.print(f"  [yellow]⚠ {_dino_failed} image(s) failed DINOv2 embedding[/yellow]")
-        _save_batch(todo)
-        unload_model(dino_model)
-        gc.collect()
-        _p4_elapsed = time.perf_counter() - _p4_t0
-        _pass_stats.append(
-            {
-                "name": "Pass 4: DINOv2-base",
-                "photos": len(todo),
-                "elapsed_s": round(_p4_elapsed, 2),
-                "throughput_img_s": round(len(todo) / _p4_elapsed, 1) if _p4_elapsed > 0 else None,
-                "load_s": round(_p4_load_s, 2),
-                "model_memory_mb": round(_p4_model_mb, 1) if _p4_model_mb else None,
-            }
-        )
-        _flush_pass_profile()
-        console.print()
-
     # ── Pass 5 — RMBG 2.0 saliency (batched) ──────────────────────────────────
-    sal_batch = _auto_batch(8)
-    todo = needs_path("saliency")
+    # Only run on photos likely to have an isolatable subject.
+    # has_person VQA catches portraits regardless of scene label (minimalist,
+    # outdoor, studio). scene_types covers non-person subjects: animals, food,
+    # interior. scene_types comes from heads or SigLIP and is already filtered
+    # (>0.5 sigmoid or top head class), so it's reliable across both paths.
+    _RMBG_SUBJECT_SCENES = {"people and portraits", "animals", "food", "interior"}
+    _RMBG_SCORE_THRESHOLD = 0.35  # raw cosine similarity; clear matches score 0.4–0.7
+
+    def _needs_saliency(r: dict) -> bool:
+        scores = (r.get("scene") or {}).get("scene_scores") or {}
+        if any(scores.get(lbl, 0) >= _RMBG_SCORE_THRESHOLD for lbl in _RMBG_SUBJECT_SCENES):
+            return True
+        return (r.get("caption") or {}).get("has_person") == "yes"
+
+    sal_batch = pick_batch_size("RMBG-2.0")
+    _saliency_candidates = needs_path("saliency")
+    todo = [r for r in _saliency_candidates if _needs_saliency(r)]
     if "saliency" in _skip_passes:
-        console.print("[bold]Pass 5/6:[/bold] skipped (--skip saliency)\n")
+        console.print("[bold]Pass 5/7:[/bold] skipped (--skip saliency)\n")
         _pass_stats.append({"name": "Pass 5: RMBG-2.0", "skipped": True})
     elif todo:
-        console.print(f"[bold]Pass 5/6:[/bold] Saliency ({len(todo)} photos, batch={sal_batch})")
+        console.print(f"[bold]Pass 5/7:[/bold] Saliency ({len(todo)}/{len(_saliency_candidates)} photos with subject signal, batch={sal_batch})")
         _reset_peak()
         _p5_t0 = time.perf_counter()
         with console.status("Loading RMBG-2.0 (briaai/RMBG-2.0)..."):
@@ -751,6 +1001,15 @@ def main() -> None:
                 "model_memory_mb": round(_p5_model_mb, 1) if _p5_model_mb else None,
             }
         )
+        _n5 = max(1, len(todo) // sal_batch)
+        record_outcome(
+            "RMBG-2.0",
+            sal_batch,
+            imgs_per_s=len(todo) / _p5_elapsed if _p5_elapsed > 0 else 0.0,
+            system_available_mb=psutil.virtual_memory().available / 1e6,
+            p95_ms=_p5_elapsed / _n5 * 1000,
+            failure_rate=_sal_failed / len(todo) if todo else 0.0,
+        )
         _flush_pass_profile()
         console.print()
 
@@ -763,10 +1022,10 @@ def main() -> None:
         and (r.get("path") or (r.get("source") in ("lightroom", "both") and _download_renditions()))
     ]
     if "pose" in _skip_passes:
-        console.print("[bold]Pass 6/6:[/bold] skipped (--skip pose)\n")
-        _pass_stats.append({"name": "Pass 6: YOLO11n-pose", "skipped": True})
+        console.print("[bold]Pass 6/7:[/bold] skipped (--skip pose)\n")
+        _pass_stats.append({"name": "Pass 6: YOLO26n-pose", "skipped": True})
     elif todo:
-        console.print(f"[bold]Pass 6/6:[/bold] YOLO11-Pose object detection ({len(todo)} portrait photos)")
+        console.print(f"[bold]Pass 6/7:[/bold] YOLO11-Pose object detection ({len(todo)} portrait photos)")
         device = _device()
         _reset_peak()
         _p6_t0 = time.perf_counter()
@@ -778,20 +1037,28 @@ def main() -> None:
         _pose_failed = 0
         with _progress(SpinnerColumn(), BarColumn(), TextColumn("{task.description}"), MofNCompleteColumn(), TaskProgressColumn()) as p:
             task = p.add_task("Detecting objects + pose...", total=len(todo))
-            for start in range(0, len(todo), batch_size):
-                batch = todo[start : start + batch_size]
-                paths = [_ensure_path(r) for r in batch]
-                pose_results = extract_pose_batch(paths, pose_model, device)
-                for r, pr in zip(batch, pose_results, strict=False):
-                    if pr:
-                        r["pose_data"] = pr
-                    else:
-                        _pose_failed += 1
+            all_pose_paths = [_ensure_path(r) for r in todo]
+
+            def _pose_on_batch(n: int) -> None:
+                nonlocal _p6_model_mb
                 # YOLO loads on CPU at model-load time; weights move to device on first inference.
-                # Re-sample here so the profile captures the actual on-device footprint.
-                if start == 0 and not _p6_model_mb:
+                # Capture the actual on-device footprint after the first batch completes.
+                if not _p6_model_mb:
                     _p6_model_mb = _memory_mb()
-                p.advance(task, len(batch))
+                p.advance(task, n)
+
+            pose_results = extract_pose_batch(
+                all_pose_paths,
+                pose_model,
+                device,
+                batch_size=batch_size,
+                on_batch=_pose_on_batch,
+            )
+            for r, pr in zip(todo, pose_results, strict=False):
+                if pr:
+                    r["pose_data"] = pr
+                else:
+                    _pose_failed += 1
 
         if _pose_failed:
             console.print(f"  [yellow]⚠ {_pose_failed} image(s) failed pose extraction[/yellow]")
@@ -801,13 +1068,22 @@ def main() -> None:
         _p6_elapsed = time.perf_counter() - _p6_t0
         _pass_stats.append(
             {
-                "name": "Pass 6: YOLO11n-pose",
+                "name": "Pass 6: YOLO26n-pose",
                 "photos": len(todo),
                 "elapsed_s": round(_p6_elapsed, 2),
                 "throughput_img_s": round(len(todo) / _p6_elapsed, 1) if _p6_elapsed > 0 else None,
                 "load_s": round(_p6_load_s, 2),
                 "model_memory_mb": round(_p6_model_mb, 1) if _p6_model_mb else None,
             }
+        )
+        _n6 = max(1, len(todo) // batch_size)
+        record_outcome(
+            "yolo26n-pose",
+            batch_size,
+            imgs_per_s=len(todo) / _p6_elapsed if _p6_elapsed > 0 else 0.0,
+            system_available_mb=psutil.virtual_memory().available / 1e6,
+            p95_ms=_p6_elapsed / _n6 * 1000,
+            failure_rate=_pose_failed / len(todo) if todo else 0.0,
         )
         _flush_pass_profile()
         console.print()
@@ -820,11 +1096,11 @@ def main() -> None:
         _summary += f" · No local file/rendition: [yellow]{_no_file}[/yellow]"
     console.print(_summary + "\n")
 
-    console.print("[bold]Computing aggregated statistics...[/bold]")
-    aggregated = aggregate(all_records)
-
     console.print("[bold]Running quality issue detection...[/bold]")
     calibrate_thresholds(all_records)
+
+    console.print("[bold]Computing aggregated statistics...[/bold]")
+    aggregated = aggregate(all_records)
     coach_data = aggregate_flags(all_records)
     console.print()
 

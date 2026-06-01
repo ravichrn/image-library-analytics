@@ -4,6 +4,8 @@ import numpy as np
 
 from extractors.exif import camera_device_category
 
+from ._helpers import _scene_types_list
+
 
 def analyze(records: list[dict]) -> dict:
     # ── Device breakdown ─────────────────────────────────────────────────────
@@ -39,8 +41,7 @@ def analyze(records: list[dict]) -> dict:
     flash_fired = sum(1 for r in flash_records if r.get("exif", {}).get("flash_fired"))
     flash_by_scene: dict[str, dict] = defaultdict(lambda: {"fired": 0, "total": 0})
     for r in flash_records:
-        sc = r.get("scene", {}).get("scene_type")
-        if sc:
+        for sc in _scene_types_list(r):
             flash_by_scene[sc]["total"] += 1
             if r.get("exif", {}).get("flash_fired"):
                 flash_by_scene[sc]["fired"] += 1
@@ -55,10 +56,10 @@ def analyze(records: list[dict]) -> dict:
 
     shutter_by_scene: dict[str, Counter] = defaultdict(Counter)
     for r in records:
-        sc = r.get("scene", {}).get("scene_type")
         sh = r.get("exif", {}).get("shutter_category")
-        if sc and sh:
-            shutter_by_scene[sc][sh] += 1
+        if sh:
+            for sc in _scene_types_list(r):
+                shutter_by_scene[sc][sh] += 1
 
     # ── GPS bounds & samples ──────────────────────────────────────────────────
     gps_records = [(r.get("exif", {}).get("gps_lat"), r.get("exif", {}).get("gps_lon"), r) for r in records if r.get("exif", {}).get("gps_lat") is not None]
@@ -70,7 +71,7 @@ def analyze(records: list[dict]) -> dict:
             {
                 "lat": lat,
                 "lon": lon,
-                "scene": r.get("scene", {}).get("scene_type"),
+                "scenes": _scene_types_list(r),
                 "aesthetic_score": r.get("aesthetic_score"),
             }
             for lat, lon, r in gps_records
@@ -114,13 +115,13 @@ def analyze(records: list[dict]) -> dict:
     # ── Settings sweet spots per scene ───────────────────────────────────────
     scene_combos: dict[str, dict] = defaultdict(lambda: defaultdict(list))
     for r in records:
-        sc = r.get("scene", {}).get("scene_type")
         exif = r.get("exif", {})
         fc = exif.get("focal_category")
         dof = exif.get("dof_category")
         a = r.get("aesthetic_score")
-        if sc and fc and dof and a is not None:
-            scene_combos[sc][f"{fc}+{dof}"].append(a)
+        if fc and dof and a is not None:
+            for sc in _scene_types_list(r):
+                scene_combos[sc][f"{fc}+{dof}"].append(a)
 
     sweet_spots: dict[str, list] = {}
     for sc, combos in scene_combos.items():
@@ -138,10 +139,8 @@ def analyze(records: list[dict]) -> dict:
     for r in records:
         exif = r.get("exif", {})
         tod = exif.get("time_of_day")
-        sc = r.get("scene", {}).get("scene_type")
-        if not tod or not sc:
+        if not tod:
             continue
-        key = (tod, sc)
         fl = exif.get("focal_length_mm")
         sh = exif.get("shutter_speed")
         ap = exif.get("aperture_f")
@@ -150,20 +149,22 @@ def analyze(records: list[dict]) -> dict:
         a = r.get("aesthetic_score")
         fc = exif.get("focal_category")
         dof = exif.get("dof_category")
-        if fl is not None:
-            ctx_data[key]["focal"].append(fl)
-        if sh is not None:
-            ctx_data[key]["shutter"].append(sh)
-        if ap is not None:
-            ctx_data[key]["aperture"].append(ap)
-        if iso is not None:
-            ctx_data[key]["iso"].append(iso)
-        if flash is not None:
-            ctx_data[key]["flash"].append(int(flash))
-        if a is not None:
-            ctx_data[key]["aesthetics"].append(a)
-        if fc and dof:
-            ctx_data[key]["combos"][f"{fc}+{dof}"] += 1
+        for sc in _scene_types_list(r):
+            key = (tod, sc)
+            if fl is not None:
+                ctx_data[key]["focal"].append(fl)
+            if sh is not None:
+                ctx_data[key]["shutter"].append(sh)
+            if ap is not None:
+                ctx_data[key]["aperture"].append(ap)
+            if iso is not None:
+                ctx_data[key]["iso"].append(iso)
+            if flash is not None:
+                ctx_data[key]["flash"].append(int(flash))
+            if a is not None:
+                ctx_data[key]["aesthetics"].append(a)
+            if fc and dof:
+                ctx_data[key]["combos"][f"{fc}+{dof}"] += 1
 
     shooting_profile_by_context = []
     for (tod, sc), d in sorted(ctx_data.items()):

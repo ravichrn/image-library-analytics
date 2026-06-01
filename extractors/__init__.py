@@ -7,6 +7,15 @@ from .embedding import unload_model as unload_model
 from .exif import camera_device_category as camera_device_category
 from .exif import extract_exif as extract_exif
 from .exif import hour_to_time_of_day as hour_to_time_of_day
+from .heads import _seed_count as _seed_count
+from .heads import aesthetic_regressor_available as aesthetic_regressor_available
+from .heads import auto_train_aesthetic_regressor as auto_train_aesthetic_regressor
+from .heads import check_ood as check_ood
+from .heads import compute_coverage_threshold as compute_coverage_threshold
+from .heads import load_aesthetic_regressor as load_aesthetic_regressor
+from .heads import predict_aesthetic_scores as predict_aesthetic_scores
+from .heads import select_aesthetic_seed as select_aesthetic_seed
+from .heads import train_and_save_aesthetic_regressor as train_and_save_aesthetic_regressor
 from .pose import extract_pose_batch as extract_pose_batch
 from .pose import load_pose_model as load_pose_model
 from .pose import unload_pose_model as unload_pose_model
@@ -14,8 +23,7 @@ from .saliency import extract_saliency_batch as extract_saliency_batch
 from .saliency import load_saliency_model as load_saliency_model
 from .scene import SCENE_LABELS as SCENE_LABELS
 from .scene import classify_scene_batch as classify_scene_batch
-from .scene import encode_scene_labels_siglip as encode_scene_labels_siglip
-from .scene import encode_vqa_labels_siglip as encode_vqa_labels_siglip
+from .scene import encode_text_features_siglip as encode_text_features_siglip
 from .scene import extract_aesthetic_batch as extract_aesthetic_batch
 from .scene import extract_iq_batch as extract_iq_batch
 from .scene import extract_vqa_batch as extract_vqa_batch

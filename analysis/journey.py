@@ -8,7 +8,19 @@ from ._helpers import _compute_edit_intensity
 
 def analyze(records: list[dict]) -> dict:
     # ── Monthly editing parameter trends ─────────────────────────────────────
-    CORE_SLIDERS = ["Exposure2012", "Clarity2012", "Saturation", "Vibrance", "Highlights2012", "Shadows2012", "Texture", "Dehaze"]
+    CORE_SLIDERS = [
+        "Exposure2012",
+        "Highlights2012",
+        "Shadows2012",
+        "Whites2012",
+        "Blacks2012",
+        "Contrast2012",
+        "Clarity2012",
+        "Texture",
+        "Dehaze",
+        "Saturation",
+        "Vibrance",
+    ]
     CREATIVE_SLIDERS = ["GrainAmount", "PostCropVignetteAmount"]
     WORKFLOW_SLIDERS = ["Sharpness", "LuminanceSmoothing", "ColorNoiseReduction"]
     HSL_CHANNELS = ["Red", "Orange", "Yellow", "Green", "Aqua", "Blue", "Purple", "Magenta"]

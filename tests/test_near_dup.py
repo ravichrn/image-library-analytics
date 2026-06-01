@@ -7,7 +7,7 @@ unjustified magic numbers:
 These tests build labeled inputs with known ground truth and report precision /
 recall, turning "it detects near-duplicates" into a measured number.
 
-Synthetic fixture uses 768-d vectors (matching real DINOv2-base output) with three
+Synthetic fixture uses 768-d vectors (matching real DINOv3-B output) with three
 difficulty tiers:
   - Near-duplicates: same burst frame, tiny perturbation (cosine dist < 0.001)
   - Hard negatives:  related scene, same base + 0.6x noise (cosine dist ~0.15) -
@@ -22,7 +22,7 @@ import numpy as np
 from analysis.embeddings import NEAR_DUP_EPS, near_duplicate_labels
 from extractors.pose import _classify_pose
 
-DIM = 768  # matches DINOv2-base embedding dimension
+DIM = 768  # matches DINOv3-B embedding dimension
 
 
 def _make_embeddings(seed: int = 0):

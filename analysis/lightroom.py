@@ -3,7 +3,7 @@ from collections import Counter, defaultdict
 
 import numpy as np
 
-from ._helpers import _INTENSITY_DEFAULTS, _TONING_KEYS, _hsl_to_hex, _mean
+from ._helpers import _INTENSITY_DEFAULTS, _TONING_KEYS, _hsl_to_hex, _mean, _scene_types_list
 
 
 def analyze(records: list[dict]) -> dict:
@@ -52,13 +52,12 @@ def analyze(records: list[dict]) -> dict:
         if not dev:
             continue
         lr_count += 1
-        scene = r.get("scene", {}).get("scene_type")
         for k in DEVELOP_KEYS:
             v = dev.get(k)
             if v is not None:
                 develop_accum[k].append(float(v))
-                if scene:
-                    develop_by_scene[scene][k].append(float(v))
+                for sc in _scene_types_list(r):
+                    develop_by_scene[sc][k].append(float(v))
 
     develop_stats = {
         "total_with_develop": lr_count,
@@ -228,9 +227,8 @@ def analyze(records: list[dict]) -> dict:
             continue
         score_i = sum(abs(float(dev[k]) - default) for k, default in _INTENSITY_DEFAULTS.items() if k in dev)
         intensity_vals.append(score_i)
-        scene = r.get("scene", {}).get("scene_type")
-        if scene:
-            intensity_by_scene[scene].append(score_i)
+        for sc in _scene_types_list(r):
+            intensity_by_scene[sc].append(score_i)
     intensity_hist = [0] * 10
     for v in intensity_vals:
         intensity_hist[min(9, int(v / 50))] += 1
@@ -294,12 +292,12 @@ def analyze(records: list[dict]) -> dict:
             continue
         a = r.get("aesthetic_score")
         sh = r.get("composition", {}).get("sharpness_score")
-        sc = r.get("scene", {}).get("scene_type")
+        scene_labels = (r.get("scene") or {}).get("scene_types") or []
         if a is not None:
             pick_buckets[pk]["aesthetics"].append(a)
         if sh is not None:
             pick_buckets[pk]["sharpness"].append(sh)
-        if sc:
+        for sc in scene_labels:
             pick_buckets[pk]["scenes"].append(sc)
             pick_by_scene[sc]["total"] += 1
             if pk == 1:
@@ -309,11 +307,12 @@ def analyze(records: list[dict]) -> dict:
         aes = data["aesthetics"]
         sh = data["sharpness"]
         scenes = data["scenes"]
+        top_scenes = [sc for sc, _ in Counter(scenes).most_common(3)] if scenes else []
         return {
             "count": len(aes) or len(sh) or len(scenes),
             "avg_aesthetic": round(float(np.mean(aes)), 2) if aes else None,
             "avg_sharpness": round(float(np.mean(sh)), 2) if sh else None,
-            "top_scene": Counter(scenes).most_common(1)[0][0] if scenes else None,
+            "top_scenes": top_scenes,
         }
 
     pick_stats = {
@@ -326,10 +325,11 @@ def analyze(records: list[dict]) -> dict:
     # ── Keyword topic map ────────────────────────────────────────────────────
     kw_by_scene: dict[str, Counter] = defaultdict(Counter)
     for r in records:
-        sc = r.get("scene", {}).get("scene_type")
+        scene_labels = (r.get("scene") or {}).get("scene_types") or []
         for kw in r.get("lightroom_keywords", []):
-            if kw and sc:
-                kw_by_scene[sc][str(kw).lower()] += 1
+            if kw:
+                for sc in scene_labels:
+                    kw_by_scene[sc][str(kw).lower()] += 1
     keyword_map = {
         "top_keywords": [{"word": k, "count": c} for k, c in keyword_counter.most_common(30)],
         "by_scene": {sc: [{"word": k, "count": c} for k, c in ctr.most_common(5)] for sc, ctr in kw_by_scene.items() if sum(ctr.values()) > 0},
@@ -412,8 +412,7 @@ def analyze(records: list[dict]) -> dict:
     scene_in_ctr: Counter = Counter()
     scene_total_ctr: Counter = Counter()
     for r in album_records:
-        sc = r.get("scene", {}).get("scene_type")
-        if sc:
+        for sc in _scene_types_list(r):
             scene_total_ctr[sc] += 1
             if r.get("lightroom_album_names"):
                 scene_in_ctr[sc] += 1

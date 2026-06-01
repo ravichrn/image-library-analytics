@@ -12,7 +12,7 @@ def aggregate(records: list[dict]) -> dict:
     result.update(forensics.analyze(records))
     result.update(gear.analyze(records))
 
-    has_embeddings = any(r.get("dinov2") for r in records)
+    has_embeddings = any(r.get("dinov3") for r in records)
     if has_embeddings:
         from analysis import embeddings
 

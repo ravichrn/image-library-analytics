@@ -379,14 +379,15 @@ canvas { max-height: 300px; }
 <!-- ══════════════════════════════════════ HERO ══════════════════ -->
 <div class="hero" id="s-overview">
   <h1 class="hero-title" style="font-size:1.9rem;letter-spacing:0.04em;font-weight:800;text-transform:uppercase;color:#c8c8de;">On-Device Image Analytics</h1>
-  <p class="hero-sub">{{ photo_count }} images · SigLIP 2 · aesthetic-predictor-v2-5 · CLIP-IQA+ · DINOv2 · RMBG-2.0</p>
+  <p class="hero-sub">{{ photo_count }} images · SigLIP2-base · aesthetic-predictor-v2-5 · CLIP-IQA+ · DINOv3-B · RMBG-2.0</p>
   <p style="font-size:0.82rem;color:#8080aa;line-height:1.7;margin-bottom:1rem;">This report analyzes your photo library using on-device AI models — covering shooting habits, composition patterns, editing style, color grading, and technical quality.</p>
   <div style="font-size:0.68rem;font-weight:700;color:#7878a0;text-transform:uppercase;letter-spacing:0.12em;margin-bottom:0.6rem;">Highlights</div>
   <div class="stat-grid">
     <div class="stat" style="cursor:pointer;" onclick="document.getElementById('s-semantic').scrollIntoView({behavior:'smooth'})">
       <div class="stat-l">Dominant Scene</div>
-      {% set dom_pct = (scene_dist.get(agg.scene_stats.dominant_scene, 0) / (scene_dist.values()|sum) * 100)|round|int if scene_dist.values()|sum > 0 else 0 %}
-      <div class="stat-v" style="font-size:1.1rem;text-transform:capitalize;">{{ agg.scene_stats.dominant_scene or "—" }}</div>
+      {% set dom_scenes = agg.scene_stats.dominant_scenes or [] %}
+      {% set dom_pct = (scene_dist.get(dom_scenes[0], 0) / photo_count * 100)|round|int if dom_scenes and photo_count > 0 else 0 %}
+      <div class="stat-v" style="font-size:1.1rem;text-transform:capitalize;">{{ dom_scenes | join(" · ") if dom_scenes else "—" }}</div>
       <div class="stat-s">{{ dom_pct }}% of library</div>
     </div>
     <div class="stat" style="cursor:pointer;" onclick="document.getElementById('s-aesthetics').scrollIntoView({behavior:'smooth'})">
@@ -397,7 +398,7 @@ canvas { max-height: 300px; }
     <div class="stat" style="cursor:pointer;" onclick="document.getElementById('s-semantic').scrollIntoView({behavior:'smooth'})">
       <div class="stat-l">Visual Clusters</div>
       <div class="stat-v">{{ clusters.n_clusters or "—" }}</div>
-      <div class="stat-s">DINOv2 + KMeans</div>
+      <div class="stat-s">DINOv3-B + KMeans</div>
     </div>
     <div class="stat" style="cursor:pointer;" onclick="document.getElementById('s-technical').scrollIntoView({behavior:'smooth'})">
       <div class="stat-l">Avg Resolution</div>
@@ -495,26 +496,26 @@ canvas { max-height: 300px; }
 <!-- Scene Preferences (doughnut + sorted bar) + Visual Attributes -->
 <div class="row c4-8 mb">
   <div class="card">
-    <div class="card-title">Scene Preferences</div>
-    {% set sd_sorted = scene_dist.items() | sort(attribute='1', reverse=True) | list %}
-    {% set sd_total = scene_dist.values() | sum or 1 %}
-    {% set sc_colors = ["#f87171","#fb923c","#fbbf24","#a3e635","#4ade80","#34d399","#22d3ee","#60a5fa","#818cf8","#e879f9"] %}
-    <div style="height:240px;margin-bottom:0.75rem;"><canvas id="sceneChart" style="max-height:240px;"></canvas></div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:3px 0.75rem;">
-      {% for scene, cnt in sd_sorted %}
-      {% set pct = (cnt / sd_total * 100)|round|int %}{% if pct > 0 %}
-      <div style="display:flex;align-items:center;gap:0.4rem;">
-        <div style="width:8px;height:8px;border-radius:2px;flex-shrink:0;background:{{ sc_colors[loop.index0 % sc_colors|length] }};"></div>
-        <span style="font-size:0.72rem;color:#8080aa;flex:1;text-transform:capitalize;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ scene }}</span>
-        <span style="font-size:0.72rem;color:#c0c0d8;font-weight:600;min-width:28px;text-align:right;">{{ pct }}%</span>
+    <div class="card-title">Scene Preferences <span style="color:#8080aa;font-size:0.6rem;font-weight:400;">% of library · multi-label</span></div>
+    {% set sc_colors = ["#7c6af7","#10b981","#f59e0b","#3b82f6","#ec4899","#f97316","#06b6d4","#8b5cf6","#22c55e","#ef4444"] %}
+    {% for label, count in scene_dist.items()|sort(attribute=1,reverse=True) %}{% if count > 0 %}
+    {% set pct = [(count / photo_count * 100)|round(1), 100]|min %}
+    {% set col = sc_colors[loop.index0 % sc_colors|length] %}
+    <div style="margin-bottom:7px;">
+      <div style="display:flex;justify-content:space-between;margin-bottom:2px;">
+        <span style="font-size:0.78rem;color:#c0c0d8;text-transform:capitalize;">{{ label }}</span>
+        <span style="font-size:0.72rem;color:#7878a0;">{{ pct }}% · {{ count }}</span>
       </div>
-      {% endif %}{% endfor %}
+      <div style="background:#16161f;border-radius:3px;height:5px;">
+        <div style="width:{{ pct }}%;background:{{ col }};border-radius:3px;height:5px;opacity:0.8;"></div>
+      </div>
     </div>
+    {% endif %}{% endfor %}
   </div>
   {% set va = visual_attributes %}
   {% if va and va.total_analyzed %}
   <div class="card">
-    <div class="card-title">Visual Attributes &amp; Aesthetic <span style="color:#8080aa;font-size:0.6rem;font-weight:400;">Florence-2 VQA · % share · avg aesthetic score</span></div>
+    <div class="card-title">Visual Attributes &amp; Aesthetic <span style="color:#8080aa;font-size:0.6rem;font-weight:400;">SigLIP2-base VQA · % share · avg aesthetic score</span></div>
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1rem;">
       {% set attr_meta = [("season","Season","#ec4899"),("has_person","People Present","#7c6af7"),("setting","Setting","#10b981"),("time_of_day","Time of Day","#f59e0b"),("weather","Weather","#3b82f6")] %}
       {% for key, label, color in attr_meta %}
@@ -545,7 +546,7 @@ canvas { max-height: 300px; }
 <!-- UMAP — compact -->
 <div class="card mb" style="padding: 1.2rem 1.6rem;">
   <div class="card-title" style="margin-bottom:0.4rem;">Visual Similarity Map <span style="color:#8080aa;font-weight:400;font-size:0.6rem;">{{ umap_points|length }} of {{ umap_total }} images · hover for details</span></div>
-  <div class="card-desc" style="margin-bottom:0.8rem;">Each dot is one photo. Nearby dots look visually similar. <strong style="color:#9090b8;">Clusters</strong> reveal shooting tendencies — tight groups mean a consistent style, isolated dots are unique shots. Colored by scene type; hover for details.</div>
+  <div class="card-desc" style="margin-bottom:0.8rem;">Each dot is one photo. Nearby dots look visually similar. <strong style="color:#9090b8;">Clusters</strong> reveal shooting tendencies — tight groups mean a consistent style, isolated dots are unique shots. Colored by visual similarity cluster (DINOv3 groups); hover for details.</div>
   <div class="chart-h" style="height:280px;"><canvas id="umapChart" style="max-height:280px;"></canvas></div>
 </div>
 
@@ -556,24 +557,41 @@ canvas { max-height: 300px; }
 <summary style="cursor:pointer;list-style:none;display:flex;align-items:center;gap:0.5rem;padding:0.6rem 0 0.5rem;font-size:0.68rem;font-weight:700;color:#7878a0;text-transform:uppercase;letter-spacing:0.12em;border-bottom:1px solid #1a1a2e;margin-bottom:1rem;" class="section-summary">How You Shoot</summary>
 
 <!-- Focal / Aperture / ISO -->
-{% if focal_length_histogram or aperture_histogram or iso_histogram %}
-<div class="row {% if (focal_length_histogram and aperture_histogram and iso_histogram) %}three{% elif focal_length_histogram and aperture_histogram %}two{% else %}two{% endif %} mb">
-  {% if focal_length_histogram %}
+{% if focal_length_bars or aperture_bars or iso_bars %}
+<div class="row {% if focal_length_bars and aperture_bars and iso_bars %}three{% elif focal_length_bars and aperture_bars %}two{% else %}two{% endif %} mb">
+  {% macro gear_bars(items, color) %}
+    {% set max_pct = items|map(attribute='pct')|max %}
+    <div class="collapsible-gear" style="max-height:200px;overflow:hidden;">
+    {% for item in items %}
+    <div style="margin-bottom:6px;">
+      <div style="display:flex;justify-content:space-between;margin-bottom:2px;">
+        <span style="font-size:0.78rem;color:#c0c0d8;">{{ item.label }}</span>
+        <span style="font-size:0.72rem;color:#7878a0;">{{ item.pct }}% · {{ item.count }}</span>
+      </div>
+      <div style="background:#16161f;border-radius:3px;height:5px;">
+        <div style="width:{{ [(item.pct / max_pct * 100)|round|int, 100]|min }}%;background:{{ color }};border-radius:3px;height:5px;opacity:0.75;"></div>
+      </div>
+    </div>
+    {% endfor %}
+    </div>
+    <button class="expand-btn" onclick="_gearToggle(this)" style="margin-top:4px;background:none;border:none;color:#5a5a78;font-size:0.68rem;cursor:pointer;padding:0;">Show all ↓</button>
+  {% endmacro %}
+  {% if focal_length_bars %}
   <div class="card">
     <div class="card-title">Focal Length</div>
-    <div class="chart-h" style="height:240px;"><canvas id="focalChart" style="max-height:240px;"></canvas></div>
+    {{ gear_bars(focal_length_bars, "#f97316") }}
   </div>
   {% endif %}
-  {% if aperture_histogram %}
+  {% if aperture_bars %}
   <div class="card">
     <div class="card-title">Aperture</div>
-    <div class="chart-h" style="height:240px;"><canvas id="apertureChart" style="max-height:240px;"></canvas></div>
+    {{ gear_bars(aperture_bars, "#10b981") }}
   </div>
   {% endif %}
-  {% if iso_histogram %}
+  {% if iso_bars %}
   <div class="card">
     <div class="card-title">ISO Sensitivity</div>
-    <div class="chart-h" style="height:240px;"><canvas id="isoChart" style="max-height:240px;"></canvas></div>
+    {{ gear_bars(iso_bars, "#f59e0b") }}
   </div>
   {% endif %}
 </div>
@@ -777,23 +795,28 @@ canvas { max-height: 300px; }
     {% endfor %}
   </div>
   {% endif %}
-  <div class="row two" style="margin-top:1rem;gap:1rem;align-items:flex-start;">
+  <div class="row two" style="margin-top:1rem;gap:1rem;align-items:start;">
     {% if tsa.top_lenses %}
     <div>
       <div style="margin-bottom:0.5rem;font-size:0.75rem;color:#9090b8;text-transform:uppercase;letter-spacing:0.05em;">Top Lenses</div>
       {% set lens_max = tsa.top_lenses.values() | max %}
-      {% for lens, cnt in (tsa.top_lenses.items() | list | sort(attribute=1, reverse=true))[:6] %}
+      {% set sorted_lenses = tsa.top_lenses.items() | list | sort(attribute=1, reverse=true) %}
+      <div id="lens-collapsible" class="collapsible-gear" style="max-height:130px;overflow:hidden;">
+      {% for lens, cnt in sorted_lenses %}
+      {% set lens_pct = (cnt / photo_count * 100)|round(1) %}
       <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.25rem;">
         <div style="font-size:0.75rem;min-width:130px;color:#c8c8e8;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="{{ lens }}">{{ lens }}</div>
         <div style="flex:1;background:#1c1c2e;border-radius:3px;height:6px;"><div style="width:{{ (cnt/lens_max*100)|round(1) }}%;background:#7c6af7;height:100%;border-radius:3px;"></div></div>
-        <div style="font-size:0.72rem;color:#9090b8;min-width:30px;text-align:right;">{{ cnt }}</div>
+        <div style="font-size:0.72rem;color:#9090b8;min-width:60px;text-align:right;">{{ lens_pct }}% · {{ cnt }}</div>
       </div>
       {% endfor %}
+      </div>
+      <button class="expand-btn" onclick="_gearToggle(this)" style="margin-top:4px;background:none;border:none;color:#5a5a78;font-size:0.68rem;cursor:pointer;padding:0;">Show all ↓</button>
     </div>
     {% endif %}
     {% if tsa.shutter_category_distribution %}
     {% set shutter_labels = {"freeze": "Fast Shutter (≤1/500s)", "hand": "Handheld (1/500–1/60s)", "slow": "Slow (1/60–1/15s)", "bulb": "Bulb (>1/15s)"} %}
-    <div>
+    <div id="motion-style-col">
       <div style="font-size:0.72rem;color:#9090b8;margin-bottom:0.5rem;text-transform:uppercase;letter-spacing:0.05em;">Motion Style</div>
       {% set sh_total = tsa.shutter_category_distribution.values() | sum or 1 %}
       {% for cat, cnt in tsa.shutter_category_distribution.items() | sort(attribute='1', reverse=true) %}
@@ -958,6 +981,7 @@ canvas { max-height: 300px; }
       </div>
     {% endfor %}
     {% endif %}
+    <div id="hue-collapsible" class="collapsible-gear" style="max-height:0;overflow:hidden;">
     <div style="display:flex;justify-content:space-between;align-items:baseline;margin:0.9rem 0 0.4rem;">
       <div style="font-size:0.68rem;color:#7878a0;text-transform:uppercase;letter-spacing:0.07em;">Hue Distribution</div>
       <div style="font-size:0.65rem;color:#606080;">dominant color ranges across your library (chromatic images, sat &gt; 15%)</div>
@@ -966,7 +990,6 @@ canvas { max-height: 300px; }
     <div style="font-size:0.68rem;color:#7878a0;text-transform:uppercase;letter-spacing:0.07em;margin:0.8rem 0 0.4rem;">Saturation Distribution</div>
     {% set sh = saturation_histogram %}
     {% if sh and sh.buckets %}
-    {% set max_b = sh.buckets | max or 1 %}
     {% set sh_total = sh.buckets | sum or 1 %}
     <div style="height:18px;border-radius:4px;background:linear-gradient(to right,#2a2a3e 0%,rgba(236,72,153,0.25) 35%,rgba(236,72,153,0.65) 70%,#ec4899 100%);margin-bottom:6px;" title="Saturation from muted (left) to vivid (right)"></div>
     <div style="display:flex;gap:1px;margin-bottom:3px;">
@@ -979,6 +1002,8 @@ canvas { max-height: 300px; }
       <span>Muted</span><span>Vivid</span>
     </div>
     {% endif %}
+    </div>
+    <button onclick="_hueToggle(this)" style="margin-top:0.5rem;background:none;border:none;color:#5a5a78;font-size:0.68rem;cursor:pointer;padding:0;">Hue &amp; Saturation ↓</button>
   </div>
 </div>
 
@@ -1281,12 +1306,28 @@ canvas { max-height: 300px; }
 {% if editing_journey and editing_journey|length > 1 %}
 <div class="card mb">
   <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.5rem;margin-bottom:0.5rem;">
-    <div class="card-title" style="margin:0;">Editing Journey Over Time</div>
+    <div style="display:flex;align-items:center;gap:0.75rem;">
+      <div class="card-title" style="margin:0;">Editing Journey Over Time</div>
+      <div style="display:flex;gap:0;border:1px solid #2a2a3e;border-radius:8px;overflow:hidden;">
+        <button id="ejModeZ"   onclick="ejSetMode('z')"   style="padding:2px 10px;font-size:0.62rem;font-weight:600;background:#7c6af722;color:#7c6af7;border:none;cursor:pointer;">σ Normalized</button>
+        <button id="ejModeRaw" onclick="ejSetMode('raw')" style="padding:2px 10px;font-size:0.62rem;font-weight:400;background:transparent;color:#5a5a78;border:none;cursor:pointer;">Raw values</button>
+      </div>
+    </div>
     <div style="display:flex;flex-wrap:wrap;gap:0.3rem;" id="ejParamPicker">
-      {% for key, label, col in [("Exposure2012","Exposure","#f59e0b"),("Clarity2012","Clarity","#7c6af7"),("Saturation","Saturation","#f97316"),("Vibrance","Vibrance","#10b981"),("Highlights2012","Highlights","#34d399"),("Shadows2012","Shadows","#818cf8"),("Texture","Texture","#60a5fa"),("Dehaze","Dehaze","#a78bfa"),("GrainAmount","Grain","#9090b8")] %}
-      <button data-ej-key="{{ key }}" data-ej-col="{{ col }}" data-ej-axis="{% if key == 'Exposure2012' %}y1{% else %}y2{% endif %}" onclick="ejToggle(this)" style="padding:2px 8px;font-size:0.65rem;border-radius:12px;border:1px solid {{ col }};background:{% if key in ['Exposure2012','Clarity2012','Saturation','Vibrance'] %}{{ col }}22{% else %}transparent{% endif %};color:{{ col }};cursor:pointer;opacity:{% if key in ['Exposure2012','Clarity2012','Saturation','Vibrance'] %}1{% else %}0.45{% endif %};">{{ label }}</button>
+      {% set _ej_active_default = ["Exposure2012","Highlights2012","Whites2012","Blacks2012","Contrast2012"] %}
+      {% for key, label, col in [
+        ("Exposure2012","Exposure","#f59e0b"),("Highlights2012","Highlights","#34d399"),
+        ("Shadows2012","Shadows","#818cf8"),("Whites2012","Whites","#e2e8f0"),
+        ("Blacks2012","Blacks","#64748b"),("Contrast2012","Contrast","#fb923c"),
+        ("Clarity2012","Clarity","#7c6af7"),("Texture","Texture","#60a5fa"),
+        ("Dehaze","Dehaze","#a78bfa"),("Saturation","Saturation","#f97316"),
+        ("Vibrance","Vibrance","#10b981"),("GrainAmount","Grain","#9090b8")] %}
+      <button data-ej-key="{{ key }}" data-ej-col="{{ col }}" onclick="ejToggle(this)" style="padding:2px 8px;font-size:0.65rem;border-radius:12px;border:1px solid {{ col }};background:{% if key in _ej_active_default %}{{ col }}22{% else %}transparent{% endif %};color:{{ col }};cursor:pointer;opacity:{% if key in _ej_active_default %}1{% else %}0.45{% endif %};">{{ label }}</button>
       {% endfor %}
     </div>
+  </div>
+  <div style="font-size:0.68rem;color:#5a5a78;margin-bottom:0.4rem;line-height:1.5;">
+    <span style="color:#7c6af7;font-weight:600;">σ Normalized</span> — each slider is centred on its own library average and scaled by its std deviation. <span style="color:#c0c0d8;">0σ = your typical use</span> · <span style="color:#c0c0d8;">+1σ = heavier than usual</span> · <span style="color:#c0c0d8;">−1σ = lighter than usual</span>. All sliders are directly comparable regardless of absolute scale. &nbsp;<span style="color:#5a5a78;">|</span>&nbsp; <span style="color:#9090b8;font-weight:500;">Raw values</span> — actual slider units; useful when studying a single slider in detail.
   </div>
   <div class="chart-h" style="height:240px;"><canvas id="editingJourneyChart" style="max-height:240px;"></canvas></div>
 </div>
@@ -1416,8 +1457,8 @@ canvas { max-height: 300px; }
       {% if bucket.avg_sharpness is not none %}
       <div style="font-size:0.72rem;color:#9090b8;">Sharpness <strong style="color:#c0c0d8;">{{ bucket.avg_sharpness }}</strong></div>
       {% endif %}
-      {% if bucket.top_scene %}
-      <div style="font-size:0.68rem;color:#7878a0;margin-top:4px;">top scene: {{ bucket.top_scene }}</div>
+      {% if bucket.top_scenes %}
+      <div style="font-size:0.68rem;color:#7878a0;margin-top:4px;">top scenes: {{ bucket.top_scenes | join(", ") }}</div>
       {% endif %}
     </div>
     {% endfor %}
@@ -1471,7 +1512,7 @@ canvas { max-height: 300px; }
     {% for ev in events.events %}
     <tr data-ev-date="{{ ev.date[:4] if ev.date else '' }}">
       <td style="white-space:nowrap;font-weight:600;color:#c0c0d8;">{{ ev.date }}</td>
-      <td>{% if ev.top_scene %}<span style="font-size:0.68rem;background:rgba(124,106,247,0.15);color:#a090e0;border-radius:4px;padding:2px 7px;">{{ ev.top_scene }}</span>{% else %}<span style="color:#3a3a5a;">—</span>{% endif %}</td>
+      <td>{% if ev.top_scenes %}<span style="font-size:0.68rem;background:rgba(124,106,247,0.15);color:#a090e0;border-radius:4px;padding:2px 7px;">{{ ev.top_scenes | join(", ") }}</span>{% else %}<span style="color:#3a3a5a;">—</span>{% endif %}</td>
       <td style="text-align:right;color:#9090b8;">{{ ev.photo_count }}</td>
       <td style="text-align:right;color:#9090b8;white-space:nowrap;">{% if ev.duration_mins >= 60 %}{{ (ev.duration_mins / 60)|round(1) }}h{% else %}{{ ev.duration_mins|int }}m{% endif %}</td>
     </tr>
@@ -1505,11 +1546,10 @@ canvas { max-height: 300px; }
 {% set has_cull = storage_tiers and storage_tiers.cluster_count > 0 %}
 {% set has_burst = burst_groups and burst_groups.total_bursts %}
 {% if has_cull or has_burst %}
-<div style="display:grid;grid-template-columns:{% if has_cull and has_burst %}1fr 1fr{% else %}1fr{% endif %};gap:1rem;align-items:start;margin-bottom:1rem;">
+<div style="display:grid;grid-template-columns:{% if has_cull and has_burst %}1fr 1fr{% else %}1fr{% endif %};gap:1rem;align-items:stretch;margin-bottom:1rem;">
 {% if has_cull %}
 <div class="card">
-  <div class="card-title">Similar Image Groups <span style="color:#8080aa;font-weight:400;">DINOv2 · DBSCAN ε=0.05</span></div>
-  <div class="card-desc">Images grouped by visual similarity using DINOv2 embeddings and DBSCAN clustering — the best-scoring image in each group is the keep candidate; the rest are safe to cull. Top 10 largest groups shown.</div>
+  <div class="card-title">Similar Image Groups <span style="color:#8080aa;font-weight:400;">DINOv3-B · DBSCAN ε=0.05</span></div>
   <div class="strip mb">
     <div class="strip-item">
       <div class="strip-v">{{ storage_tiers.cluster_count }}</div>
@@ -1669,7 +1709,7 @@ canvas { max-height: 300px; }
     <div style="display:flex;align-items:center;gap:0.6rem;margin-bottom:0.25rem;">
       <span style="font-size:0.85rem;font-weight:700;color:{{ sev_col }};min-width:38px;flex-shrink:0;">{{ info.pct }}%</span>
       <span style="font-size:0.82rem;color:#c0c0d8;flex:1;">{{ info.label }}</span>
-      <span style="font-size:0.68rem;color:#7878a0;white-space:nowrap;">{{ info.count }} images · {{ info.top_scene }}</span>
+      <span style="font-size:0.68rem;color:#7878a0;white-space:nowrap;">{{ info.count }} images{% if info.top_scenes %} · {{ info.top_scenes | join(", ") }}{% endif %}</span>
     </div>
     {% if info.description %}<div style="font-size:0.72rem;color:#7878a0;margin-bottom:0.35rem;line-height:1.5;padding-left:0;">{{ info.description }}</div>{% endif %}
     <div class="dbar-bg"><div class="dbar-fill" style="width:{{ [info.pct,100]|min|int }}%;background:{{ sev_col }};"></div></div>
@@ -1682,30 +1722,52 @@ canvas { max-height: 300px; }
 </div><!-- /page -->
 
 <script>
+function _hueToggle(btn) {
+  const wrap = document.getElementById('hue-collapsible');
+  const expanded = wrap.style.maxHeight !== '0px' && wrap.style.maxHeight !== '0';
+  wrap.style.maxHeight = expanded ? '0' : 'none';
+  btn.textContent = expanded ? 'Hue & Saturation ↓' : 'Hue & Saturation ↑';
+  // Trigger Chart.js resize so hueChart renders correctly after expand
+  if (!expanded) setTimeout(function() { window.dispatchEvent(new Event('resize')); }, 50);
+}
+
+function _gearToggle(btn) {
+  const wrap = btn.previousElementSibling;
+  const collapsed = wrap.style.maxHeight !== 'none';
+  if (collapsed) {
+    wrap.dataset.collapsedH = wrap.style.maxHeight;
+    wrap.style.maxHeight = 'none';
+    btn.textContent = 'Show less ↑';
+  } else {
+    wrap.style.maxHeight = wrap.dataset.collapsedH || '200px';
+    btn.textContent = 'Show all ↓';
+  }
+}
+document.addEventListener('DOMContentLoaded', function() {
+  // Sync lens collapsible height to motion style column height
+  const lensWrap = document.getElementById('lens-collapsible');
+  const motionCol = document.getElementById('motion-style-col');
+  if (lensWrap && motionCol) {
+    const h = motionCol.scrollHeight;
+    lensWrap.style.maxHeight = h + 'px';
+  }
+  // Hide expand button when content already fits
+  document.querySelectorAll('.expand-btn').forEach(function(btn) {
+    const wrap = btn.previousElementSibling;
+    if (!wrap) return;
+    const cap = parseInt(wrap.style.maxHeight) || 200;
+    if (wrap.scrollHeight <= cap + 4) btn.style.display = 'none';
+  });
+});
+
 const SC = ["#f87171","#fb923c","#fbbf24","#a3e635","#4ade80","#34d399","#22d3ee","#60a5fa","#818cf8","#e879f9","#f472b6","#38bdf8"];
 const GD = { responsive: true, plugins: { legend: { display: false } }, scales: {
   x: { grid: { color: "#14142a" }, ticks: { color: "#8080aa", font: { size: 13 } } },
   y: { grid: { color: "#14142a" }, ticks: { color: "#8080aa", font: { size: 13 } } },
 }};
 
-// Scene doughnut (compact)
-(function() {
-  const sd = {{ scene_dist | tojson }};
-  const labels = Object.keys(sd).filter(k => sd[k] > 0).sort((a,b) => sd[b]-sd[a]);
-  const data = labels.map(k => sd[k]);
-  const total = data.reduce((a,b) => a+b, 0);
-  new Chart(document.getElementById("sceneChart"), {
-    type: "doughnut",
-    data: { labels, datasets: [{ data, backgroundColor: SC, borderWidth: 0 }] },
-    options: { responsive: true, maintainAspectRatio: false, cutout: "60%",
-      plugins: { legend: { display: false },
-        tooltip: { callbacks: { label: ctx => ` ${ctx.label}: ${Math.round(ctx.raw/total*100)}%` }}
-      }
-    }
-  });
-})();
 
-// UMAP with color-by selector
+// UMAP — colored by DINOv3 cluster (visual similarity groups, no scene labels)
 (function() {
   const pts = {{ umap_points | tojson }};
   if (!pts.length) return;
@@ -1716,47 +1778,19 @@ const GD = { responsive: true, plugins: { legend: { display: false } }, scales: 
   tip.style.cssText = "position:absolute;pointer-events:none;display:none;background:#10101a;border:1px solid #2a2a3a;border-radius:8px;padding:8px;z-index:10;box-shadow:0 4px 16px #00000088;min-width:100px;text-align:center;";
   umapWrap.appendChild(tip);
 
-  const allScenes = [...new Set(pts.map(p => p.scene_type))].sort();
-  const scenePalette = {}; allScenes.forEach((s,i) => scenePalette[s] = SC[i % SC.length]);
-
   const ds = {};
   pts.forEach(p => {
-    const key = p.scene_type || "unknown";
-    const col = scenePalette[key] || "#5a5a78";
-    if (!ds[key]) ds[key] = { label: key, data: [], backgroundColor: col + "88", pointRadius: 3, pointHoverRadius: 6 };
-    ds[key].data.push({ x: p.x, y: p.y, score: p.aesthetic_score, thumb: p.thumb, scene_type: p.scene_type, exif: p.exif || {} });
+    const k = p.cluster ?? 0;
+    if (!ds[k]) ds[k] = { label: "cluster " + (k + 1), data: [], backgroundColor: SC[k % SC.length] + "99", pointRadius: 3, pointHoverRadius: 6 };
+    ds[k].data.push({ x: p.x, y: p.y, score: p.aesthetic_score, thumb: p.thumb, exif: p.exif || {} });
   });
 
-  const sceneLabelsPlugin = {
-    id: "sceneLabels",
-    afterDraw(ch) {
-      const ctx2 = ch.ctx, xSc = ch.scales.x, ySc = ch.scales.y;
-      const centroids = {};
-      pts.forEach(p => {
-        if (!p.scene_type) return;
-        if (!centroids[p.scene_type]) centroids[p.scene_type] = { sx: 0, sy: 0, n: 0 };
-        centroids[p.scene_type].sx += p.x; centroids[p.scene_type].sy += p.y; centroids[p.scene_type].n++;
-      });
-      ctx2.save();
-      ctx2.font = "bold 10px sans-serif";
-      ctx2.textAlign = "center";
-      ctx2.lineWidth = 2;
-      Object.entries(centroids).forEach(([scene, c]) => {
-        const px = xSc.getPixelForValue(c.sx / c.n), py = ySc.getPixelForValue(c.sy / c.n);
-        ctx2.strokeStyle = "#0d0d1a"; ctx2.strokeText(scene, px, py);
-        ctx2.fillStyle = "#e0e0f0"; ctx2.fillText(scene, px, py);
-      });
-      ctx2.restore();
-    }
-  };
-
-  const chart = new Chart(document.getElementById("umapChart"), {
+  new Chart(document.getElementById("umapChart"), {
     type: "scatter",
-    data: { datasets: Object.values(ds).sort((a,b) => a.label.localeCompare(b.label)) },
-    plugins: [],
+    data: { datasets: Object.values(ds).sort((a, b) => a.label.localeCompare(b.label)) },
     options: { responsive: true, maintainAspectRatio: false,
       plugins: {
-        legend: { display: true, labels: { color: "#9090b8", boxWidth: 9, font: { size: 11 } }},
+        legend: { display: false },
         tooltip: { enabled: false, external: (ctx) => {
           const el = ctx.chart.canvas;
           if (!ctx.tooltip.dataPoints || !ctx.tooltip.dataPoints.length) { tip.style.display = "none"; return; }
@@ -1769,10 +1803,6 @@ const GD = { responsive: true, plugins: { legend: { display: false } }, scales: 
             img.style.cssText = "width:72px;height:72px;object-fit:cover;border-radius:5px;display:block;margin:0 auto 5px;";
             tip.appendChild(img);
           }
-          const scene = document.createElement("div");
-          scene.textContent = d.scene_type || "";
-          scene.style.cssText = "font-size:10px;color:#9090b8;text-transform:capitalize;margin-bottom:3px;";
-          tip.appendChild(scene);
           if (d.score != null) {
             const sc = document.createElement("div");
             sc.textContent = "Aesthetic " + d.score.toFixed(1);
@@ -1790,7 +1820,7 @@ const GD = { responsive: true, plugins: { legend: { display: false } }, scales: 
             tip.appendChild(exd);
           }
           tip.style.display = "block";
-          const tipW = 110, tipH = d.thumb ? 150 : 80;
+          const tipW = 110, tipH = d.thumb ? 140 : 70;
           let left = ctx.tooltip.caretX + 10, top = ctx.tooltip.caretY - tipH / 2;
           if (left + tipW > el.offsetWidth) left = ctx.tooltip.caretX - tipW - 10;
           top = Math.max(0, Math.min(top, el.offsetHeight - tipH));
@@ -1803,26 +1833,6 @@ const GD = { responsive: true, plugins: { legend: { display: false } }, scales: 
   document.getElementById("umapChart").addEventListener("mouseleave", () => { tip.style.display = "none"; });
 })();
 
-// Shared bar-label plugin — draws count to right of each horizontal bar
-const _hBarLabels = {
-  id: 'hBarLabels',
-  afterDatasetsDraw(chart) {
-    const ctx = chart.ctx;
-    chart.data.datasets.forEach((ds, i) => {
-      chart.getDatasetMeta(i).data.forEach((bar, idx) => {
-        const val = ds.data[idx];
-        if (!val) return;
-        ctx.save();
-        ctx.fillStyle = '#9090b8';
-        ctx.font = '10px sans-serif';
-        ctx.textAlign = 'left';
-        ctx.textBaseline = 'middle';
-        ctx.fillText(val, bar.x + 5, bar.y);
-        ctx.restore();
-      });
-    });
-  }
-};
 // Shared bar-label plugin — draws count above each vertical bar
 const _vBarLabels = {
   id: 'vBarLabels',
@@ -1844,55 +1854,6 @@ const _vBarLabels = {
   }
 };
 
-// HOW YOU SHOOT — all three as horizontal bars, shared x-axis max
-(function() {
-  const _fExact = {{ focal_length_exact | tojson }};
-  const _apVals = {{ aperture_histogram | tojson }};
-  const _isoVals = {{ iso_histogram | tojson }};
-
-  const focalSorted = [..._fExact].sort((a,b) => b[1]-a[1]).slice(0,12);
-  const focalData   = focalSorted.map(([,c]) => c);
-
-  const apStops = [1.4,1.8,2,2.8,4,5.6,8,11,16,22];
-  const apData  = apStops.map((s,i) => { const lo = i===0?0:apStops[i-1]; return _apVals.filter(v=>v>lo&&v<=s).length; });
-
-  const isoBuckets = [["≤100",0,100],["101–400",100,400],["401–800",400,800],["801–1600",800,1600],["1601–3200",1600,3200],["3201+",3200,1e9]];
-  const isoData    = isoBuckets.map(x => _isoVals.filter(v=>v>x[1]&&v<=x[2]).length);
-
-  const _xMax = Math.ceil(Math.max(...focalData, ...apData, ...isoData) * 1.1);
-
-  const _opts = () => ({
-    indexAxis: "y",
-    responsive: true, maintainAspectRatio: false,
-    layout: { padding: { right: 44 } },
-    plugins: { legend: { display: false }, tooltip: { callbacks: { title: ctx => ctx[0].label, label: ctx => ` ${ctx.raw} images` } } },
-    scales: {
-      x: { min: 0, max: _xMax, grid: { color: "#1a1a28" }, ticks: { color: "#7878a0", maxTicksLimit: 5 } },
-      y: { grid: { color: "#1a1a28" }, ticks: { color: "#c0c0d8", font: { size: 11 } } },
-    },
-  });
-
-  if (_fExact.length)
-    new Chart(document.getElementById("focalChart"), {
-      type: "bar",
-      data: { labels: focalSorted.map(([fl]) => fl+"mm"), datasets: [{ data: focalData, backgroundColor: "#f97316cc", borderRadius: 3, borderSkipped: false, barPercentage: 0.8 }] },
-      options: _opts(), plugins: [_hBarLabels],
-    });
-
-  if (_apVals.length)
-    new Chart(document.getElementById("apertureChart"), {
-      type: "bar",
-      data: { labels: apStops.map((s,i) => i===0?"≤f/"+s:"f/"+s), datasets: [{ data: apData, backgroundColor: "#10b981cc", borderRadius: 3, borderSkipped: false, barPercentage: 0.8 }] },
-      options: _opts(), plugins: [_hBarLabels],
-    });
-
-  if (_isoVals.length)
-    new Chart(document.getElementById("isoChart"), {
-      type: "bar",
-      data: { labels: isoBuckets.map(x=>x[0]), datasets: [{ data: isoData, backgroundColor: "#f59e0bcc", borderRadius: 3, borderSkipped: false, barPercentage: 0.8 }] },
-      options: _opts(), plugins: [_hBarLabels],
-    });
-})();
 
 
 // Hue
@@ -1974,38 +1935,62 @@ const _vBarLabels = {
 })();
 {% endif %}
 
-// Editing trends — Aesthetic + IQ Score + Edit Intensity over time
+// Editing trends — % change over time (single y-axis, all metrics comparable)
 (function() {
   const trends = {{ editing_trends | tojson }};
   const months = Object.keys(trends).sort();
   if (months.length < 2) return;
-  const hasIQ = months.some(m => trends[m].avg_iq != null);
-  const hasIntensity = months.some(m => trends[m].avg_edit_intensity != null);
+
+  // Compute % change relative to the first non-null value for a given key.
+  // Returns null for months with no data or for the baseline month (shown as 0).
+  function pctChange(key) {
+    const raw = months.map(m => trends[m][key] ?? null);
+    const firstIdx = raw.findIndex(v => v !== null && v !== 0);
+    if (firstIdx < 0) return raw.map(() => null);
+    const base = raw[firstIdx];
+    return raw.map((v, i) => {
+      if (v === null || v === 0) return null;
+      if (i < firstIdx) return null;
+      return Math.round((v - base) / base * 1000) / 10; // 1 decimal place
+    });
+  }
+
+  const aesData = pctChange("avg_aesthetic");
+  const iqData  = pctChange("avg_iq");
+  const intData = pctChange("avg_edit_intensity");
+
+  const hasIQ  = iqData.some(v => v !== null);
+  const hasInt = intData.some(v => v !== null);
+
   const datasets = [
-    { label: "Aesthetic Score", data: months.map(m => trends[m].avg_aesthetic ?? null), borderColor: "#7c6af7", backgroundColor: "#7c6af715", tension: 0.3, fill: true, pointRadius: 3, spanGaps: true, yAxisID: "y" },
+    { label: "Aesthetic %Δ", data: aesData, borderColor: "#7c6af7", backgroundColor: "#7c6af715",
+      tension: 0.3, fill: true, pointRadius: 3, spanGaps: true },
   ];
-  if (hasIQ) {
-    datasets.push({ label: "IQ Score", data: months.map(m => trends[m].avg_iq ?? null), borderColor: "#10b981", tension: 0.3, pointRadius: 2, borderDash: [4,3], spanGaps: true, yAxisID: "y" });
-  }
-  if (hasIntensity) {
-    datasets.push({ label: "Edit Intensity", data: months.map(m => trends[m].avg_edit_intensity ?? null), borderColor: "#f97316", tension: 0.3, pointRadius: 2, borderDash: [6,3], spanGaps: true, yAxisID: "y2" });
-  }
+  if (hasIQ)  datasets.push({ label: "IQ %Δ",        data: iqData,  borderColor: "#10b981", tension: 0.3, pointRadius: 2, borderDash: [4,3], spanGaps: true });
+  if (hasInt) datasets.push({ label: "Intensity %Δ", data: intData, borderColor: "#f97316", tension: 0.3, pointRadius: 2, borderDash: [6,3], spanGaps: true });
+
   new Chart(document.getElementById("trendsChart"), {
     type: "line",
     data: { labels: months, datasets },
-    options: { responsive: true, maintainAspectRatio: false, interaction: { mode: "index", intersect: false },
-      plugins: { legend: { display: true, labels: { color: "#5a5a78", boxWidth: 12, font: { size: 11 } }}},
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      interaction: { mode: "index", intersect: false },
+      plugins: {
+        legend: { display: true, labels: { color: "#5a5a78", boxWidth: 12, font: { size: 11 } }},
+        tooltip: { callbacks: { label: ctx => ` ${ctx.dataset.label}: ${ctx.parsed.y != null ? (ctx.parsed.y > 0 ? "+" : "") + ctx.parsed.y.toFixed(1) + "%" : "—"}` }},
+      },
       scales: {
         x: { grid: { color: "#14142a" }, ticks: { color: "#7878a0", maxRotation: 45 }},
-        y: { min: 0, max: 100, grid: { color: "#14142a" }, ticks: { color: "#7878a0" }, title: { display: true, text: "Score (0–100)", color: "#7878a0", font: { size: 10 }}},
-        y2: { position: "right", grid: { drawOnChartArea: false }, ticks: { color: "#f97316" }, title: { display: hasIntensity, text: "Intensity", color: "#f97316", font: { size: 10 }}},
+        y: { grid: { color: "#14142a" },
+             ticks: { color: "#7878a0", callback: v => (v > 0 ? "+" : "") + v + "%" },
+             title: { display: true, text: "% change from baseline", color: "#7878a0", font: { size: 10 }}},
       }
     }
   });
 })();
 
 
-// Editing Journey multi-line chart with toggleable params
+// Editing Journey multi-line chart — % change from each slider's first non-zero value
 {% if _sources.has_lightroom and editing_journey and editing_journey|length > 1 %}
 (function() {
   const ej = {{ editing_journey | tojson }};
@@ -2014,45 +1999,112 @@ const _vBarLabels = {
   if (!elJ) return;
 
   const _ejAllParams = {
-    Exposure2012: { label: "Exposure", color: "#f59e0b", axis: "y1" },
-    Clarity2012:  { label: "Clarity",  color: "#7c6af7", axis: "y2" },
-    Saturation:   { label: "Saturation", color: "#f97316", axis: "y2" },
-    Vibrance:     { label: "Vibrance", color: "#10b981", axis: "y2" },
-    Highlights2012: { label: "Highlights", color: "#34d399", axis: "y2" },
-    Shadows2012:  { label: "Shadows",  color: "#818cf8", axis: "y2" },
-    Texture:      { label: "Texture",  color: "#60a5fa", axis: "y2" },
-    Dehaze:       { label: "Dehaze",   color: "#a78bfa", axis: "y2" },
-    GrainAmount:  { label: "Grain",    color: "#9090b8", axis: "y2" },
+    Exposure2012:   { label: "Exposure",   color: "#f59e0b" },
+    Highlights2012: { label: "Highlights", color: "#34d399" },
+    Shadows2012:    { label: "Shadows",    color: "#818cf8" },
+    Whites2012:     { label: "Whites",     color: "#e2e8f0" },
+    Blacks2012:     { label: "Blacks",     color: "#64748b" },
+    Contrast2012:   { label: "Contrast",   color: "#fb923c" },
+    Clarity2012:    { label: "Clarity",    color: "#7c6af7" },
+    Texture:        { label: "Texture",    color: "#60a5fa" },
+    Dehaze:         { label: "Dehaze",     color: "#a78bfa" },
+    Saturation:     { label: "Saturation", color: "#f97316" },
+    Vibrance:       { label: "Vibrance",   color: "#10b981" },
+    GrainAmount:    { label: "Grain",      color: "#9090b8" },
   };
-  const _ejActive = new Set(["Exposure2012", "Clarity2012", "Saturation", "Vibrance"]);
+  const _ejActive = new Set(["Exposure2012", "Highlights2012", "Whites2012", "Blacks2012", "Contrast2012"]);
+
+  let _ejMode = "z"; // "z" = z-score (normalized), "raw" = actual slider values
+
+  // ── Z-score: centers each slider on its own mean, scales by its own std ──
+  // All sliders land on the same σ axis — directly comparable regardless of
+  // absolute magnitude. 0 = your average for that slider, ±1 = 1 std dev.
+  // Handles near-constant sliders (std ≈ 0) by returning all-zero.
+  function ejZScore(key) {
+    const raw = months.map(m => (ej[m] != null && ej[m][key] != null) ? ej[m][key] : null);
+    const valid = raw.filter(v => v !== null);
+    if (valid.length < 2) return raw.map(() => null);
+    const mean = valid.reduce((a, b) => a + b, 0) / valid.length;
+    const variance = valid.reduce((s, v) => s + (v - mean) ** 2, 0) / valid.length;
+    const std = Math.sqrt(variance);
+    if (std < 0.01) return raw.map(v => v !== null ? 0 : null); // constant slider
+    return raw.map(v => v !== null ? Math.round((v - mean) / std * 100) / 100 : null);
+  }
+
+  // ── Raw: actual slider values (useful for studying a single slider) ───────
+  function ejRaw(key) {
+    return months.map(m => (ej[m] != null && ej[m][key] != null) ? ej[m][key] : null);
+  }
 
   function _ejBuildDatasets() {
+    const useFn = _ejMode === "z" ? ejZScore : ejRaw;
+    const suffix = _ejMode === "z" ? " σ" : "";
     return Object.entries(_ejAllParams)
       .filter(([k]) => _ejActive.has(k))
       .map(([k, cfg]) => ({
-        label: cfg.label,
-        data: months.map(m => ej[m][k] ?? null),
+        label: cfg.label + suffix,
+        data: useFn(k),
         borderColor: cfg.color,
         tension: 0.3,
-        yAxisID: cfg.axis,
+        yAxisID: "y",
         pointRadius: 2,
-        spanGaps: true,
-        ...(cfg.axis === "y2" && k === "GrainAmount" ? { borderDash: [4, 3] } : {}),
+        spanGaps: false,
       }));
+  }
+
+  function _ejScaleConfig() {
+    if (_ejMode === "z") {
+      return {
+        grid: { color: "#14142a" },
+        ticks: { color: "#7878a0", callback: v => (v > 0 ? "+" : "") + v + "σ" },
+        title: { display: true, text: "std deviations from your avg (σ)", color: "#7878a0", font: { size: 9 }},
+      };
+    }
+    return {
+      grid: { color: "#14142a" },
+      ticks: { color: "#7878a0", callback: v => (v > 0 ? "+" : "") + v },
+      title: { display: true, text: "Slider value", color: "#7878a0", font: { size: 9 }},
+    };
+  }
+
+  function _ejTooltipLabel(ctx) {
+    if (ctx.parsed.y == null) return ` ${ctx.dataset.label}: —`;
+    const val = ctx.parsed.y;
+    const suffix = _ejMode === "z"
+      ? (val > 0 ? "+" : "") + val.toFixed(2) + "σ"
+      : (val > 0 ? "+" : "") + val.toFixed(1);
+    return ` ${ctx.dataset.label}: ${suffix}`;
   }
 
   const _ejChart = new Chart(elJ, {
     type: "line",
     data: { labels: months, datasets: _ejBuildDatasets() },
-    options: { responsive: true, interaction: { mode: "index", intersect: false },
-      plugins: { legend: { display: true, labels: { color: "#5a5a78", boxWidth: 10, font: { size: 10 } }}},
-      scales: {
-        x: { grid: { color: "#14142a" }, ticks: { color: "#7878a0", maxRotation: 45, font: { size: 9 }}},
-        y1: { position: "left", grid: { color: "#14142a" }, ticks: { color: "#f59e0b" }, title: { display: true, text: "Exposure (EV)", color: "#f59e0b", font: { size: 9 }}},
-        y2: { position: "right", grid: { drawOnChartArea: false }, ticks: { color: "#7878a0" }},
-      }
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      interaction: { mode: "index", intersect: false },
+      plugins: {
+        legend: { display: true, labels: { color: "#5a5a78", boxWidth: 10, font: { size: 10 } }},
+        tooltip: { callbacks: { label: _ejTooltipLabel }},
+      },
+      scales: { x: { grid: { color: "#14142a" }, ticks: { color: "#7878a0", maxRotation: 45, font: { size: 9 }}}, y: _ejScaleConfig() }
     }
   });
+
+  window.ejSetMode = function(mode) {
+    _ejMode = mode;
+    const btnZ   = document.getElementById("ejModeZ");
+    const btnRaw = document.getElementById("ejModeRaw");
+    if (mode === "z") {
+      btnZ.style.background   = "#7c6af722"; btnZ.style.color   = "#7c6af7"; btnZ.style.fontWeight = "600";
+      btnRaw.style.background = "transparent"; btnRaw.style.color = "#5a5a78"; btnRaw.style.fontWeight = "400";
+    } else {
+      btnRaw.style.background = "#7c6af722"; btnRaw.style.color  = "#7c6af7"; btnRaw.style.fontWeight = "600";
+      btnZ.style.background   = "transparent"; btnZ.style.color  = "#5a5a78"; btnZ.style.fontWeight  = "400";
+    }
+    _ejChart.data.datasets = _ejBuildDatasets();
+    _ejChart.options.scales.y = _ejScaleConfig();
+    _ejChart.update();
+  };
 
   window.ejToggle = function(btn) {
     const key = btn.dataset.ejKey;
@@ -2103,6 +2155,7 @@ const _vBarLabels = {
   });
 })();
 </script>
+
 
 
 </div><!-- /.page -->
