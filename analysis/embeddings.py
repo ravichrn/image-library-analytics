@@ -48,7 +48,8 @@ def near_duplicate_labels(vectors, eps: float = NEAR_DUP_EPS, min_samples: int =
     with warnings.catch_warnings():
         warnings.simplefilter("ignore", EfficiencyWarning)
         sparse_dist = nn.radius_neighbors_graph(mode="distance")
-        sparse_dist = sort_graph_by_row_values(sparse_dist, warn_when_not_sorted=False)
+        if sparse_dist.nnz > 0:
+            sparse_dist = sort_graph_by_row_values(sparse_dist, warn_when_not_sorted=False)
         return DBSCAN(eps=eps, min_samples=min_samples, metric="precomputed").fit_predict(sparse_dist)
 
 

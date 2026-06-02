@@ -106,21 +106,18 @@ class TestRuntimeHelpers:
 
 
 class TestAdapt:
-    def test_rule1_very_low_memory_halves(self, profile):
-        # below min_system_available_mb → halve
-        threshold = (profile.min_system_available_mb or 3000) - 500
-        ctx = SchedulerContext(available_mb=threshold)
+    def test_rule1_memory_alone_does_not_downgrade(self, profile):
+        # available_mb is not used by adapt() — only latency spikes trigger downgrades.
+        ctx = SchedulerContext(available_mb=500)
         result = adapt(16, profile, ctx)
-        assert result <= 8
+        assert result == 16
         assert result in profile.valid_arms
 
-    def test_rule2_moderate_memory_uses_safe(self, profile):
-        # below profiled_system_available_mb but above min → safe_batch
-        safe_thresh = profile.profiled_system_available_mb or 5000
-        min_thresh = profile.min_system_available_mb or 3000
-        ctx = SchedulerContext(available_mb=(safe_thresh + min_thresh) / 2)
+    def test_rule2_no_latency_data_clamps_to_max(self, profile):
+        # Without p95/throughput observations adapt clamps proposed to max_batch.
+        ctx = SchedulerContext(available_mb=4000)
         result = adapt(16, profile, ctx)
-        assert result == profile.safe_batch
+        assert result == 16
 
     def test_rule3_latency_spike_halves(self, profile):
         ctx = SchedulerContext(
@@ -140,10 +137,12 @@ class TestAdapt:
         result = adapt(16, profile, ctx)
         assert result == 16
 
-    def test_rule4_step_up(self, profile):
-        ctx = SchedulerContext(available_mb=12000)
-        result = adapt(8, profile, ctx)
-        assert result > 8
+    def test_rule4_never_exceeds_max_batch(self, profile):
+        # adapt() clamps to max_batch; no step-up logic beyond the bandit.
+        ctx = SchedulerContext(available_mb=32000)
+        result = adapt(20, profile, ctx)
+        assert result == profile.max_batch
+        assert result in profile.valid_arms
 
     def test_rule5_default_clamp(self, profile):
         ctx = SchedulerContext(available_mb=7500)
@@ -156,13 +155,12 @@ class TestAdapt:
             result = adapt(16, profile, ctx)
             assert result in profile.valid_arms, f"avail={avail} result={result}"
 
-    def test_siglip_safe_batch_on_pressure(self, siglip_profile):
-        # between min and profiled → safe_batch
-        safe_thresh = siglip_profile.profiled_system_available_mb or 5000
-        min_thresh = siglip_profile.min_system_available_mb or 4000
-        ctx = SchedulerContext(available_mb=(safe_thresh + min_thresh) / 2)
+    def test_siglip_memory_pressure_ignored(self, siglip_profile):
+        # Memory pressure alone does not downgrade; only a latency spike does.
+        ctx = SchedulerContext(available_mb=5000)
         result = adapt(4, siglip_profile, ctx)
-        assert result == siglip_profile.safe_batch
+        assert result == siglip_profile.max_batch
+        assert result in siglip_profile.valid_arms
 
 
 # ---------------------------------------------------------------------------
