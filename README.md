@@ -2,7 +2,7 @@
 
 On-device multi-model image analytics pipeline for Apple Silicon. Runs 7 models locally — no cloud, no API calls. Outputs an interactive dashboard covering composition, color, aesthetics, editing style, shooting patterns, and near-duplicate detection. Supports local folders and [Adobe Lightroom](https://lightroom.adobe.com) cloud with per-asset delta sync.
 
-**[Live report](https://ravichrn.github.io/image-library-analytics/report.html)**
+**[Live report](https://ravichrn.github.io/on-device-image-analytics/report.html)**
 
 ---
 
