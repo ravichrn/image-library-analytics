@@ -51,6 +51,8 @@ body {
   .row.two { grid-template-columns: 1fr !important; }
   #sidebar-overlay { display: none; position: fixed; inset: 0; z-index: 199; background: rgba(0,0,0,0.5); }
   #sidebar-overlay.open { display: block; }
+  /* Push content below the fixed hamburger button (top: 0.75rem + height: 2.2rem + gap) */
+  #main-content { padding-top: 3.2rem; }
 }
 @media (min-width: 901px) { #hamburger { display: none; } #sidebar-overlay { display: none !important; } }
 
@@ -297,7 +299,8 @@ canvas { max-height: 300px; }
   body { font-size: 14px; }
   .page { padding: 0 0.85rem 4rem; }
   .card { padding: 1rem 1rem; }
-  .hero { padding: 1.2rem 0 1rem; margin-bottom: 1rem; }
+  .hero { padding: 0.6rem 0 1rem; margin-bottom: 1rem; }
+  .hero-title { font-size: 2rem; letter-spacing: -0.02em; }
   .hero-digest { grid-template-columns: 1fr 1fr; }
   .hero-digest-item { border-right: none; border-bottom: 1px solid #17172a; }
   .hero-digest-item:nth-child(odd) { border-right: 1px solid #17172a; }
@@ -1286,7 +1289,7 @@ canvas { max-height: 300px; }
 
 
     <!-- Edge activity + Subject placement: equal 1fr 1fr columns so grids are same size -->
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.25rem;margin-bottom:1.25rem;align-items:start;">
+    <div class="row two" style="align-items:start;">
       <div>
         <div style="font-size:0.68rem;color:#7878a0;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:0.5rem;">Detail Density by Zone</div>
         <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:3px;">
