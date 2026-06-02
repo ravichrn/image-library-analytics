@@ -205,7 +205,7 @@ def train_and_save_aesthetic_regressor(
         "trained_at": datetime.now().isoformat(),
         "backbone": "facebook/dinov3-vitb16-pretrain-lvd1689m",
         "teacher": "aesthetic-predictor-v2-5 (SigLIP SO400M)",
-        "n_seed": int(len(y_seed)),
+        "n_seed": len(y_seed),
         "feature_dim": int(X_seed.shape[1]),
         "alpha": best_alpha,
         "coverage_threshold": round(coverage_threshold, 4),

@@ -775,7 +775,7 @@ def main() -> None:
                 ood_records = [r for r, o in zip(aes_todo, ood_mask, strict=False) if o]
                 K_new = _seed_count(n_ood)
                 with console.status(f"Clustering {n_ood} OOD embeddings → {K_new} seeds..."):
-                    seed_ood, X_seed_new = select_aesthetic_seed(ood_records)
+                    seed_ood, _X_seed_new = select_aesthetic_seed(ood_records)
                 console.print(f"  OOD seed: [cyan]{len(seed_ood)}[/cyan] photos (k-means K={K_new})")
 
                 _failed = _run_siglip_aesthetic(seed_ood, f"Scoring {len(seed_ood)} OOD seeds (SigLIP)...")
