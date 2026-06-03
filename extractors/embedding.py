@@ -3,11 +3,13 @@ import os
 import torch
 from transformers import AutoImageProcessor, AutoModel
 
+from .device import empty_cache, get_device
+
 _MODEL_ID = "facebook/dinov3-vitb16-pretrain-lvd1689m"
 
 
 def load_dino_model() -> tuple:
-    device = "cuda" if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else "cpu"
+    device = get_device()
     token = os.environ.get("HF_TOKEN") or None
     processor = AutoImageProcessor.from_pretrained(_MODEL_ID, token=token)
     model = AutoModel.from_pretrained(
@@ -30,10 +32,7 @@ def unload_model(model) -> None:
 
     del model
     gc.collect()
-    if torch.cuda.is_available():
-        torch.cuda.empty_cache()
-    elif torch.backends.mps.is_available():
-        torch.mps.empty_cache()
+    empty_cache()
 
 
 def extract_embedding_batch(

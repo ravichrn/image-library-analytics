@@ -2,6 +2,8 @@ from pathlib import Path
 
 import numpy as np
 
+from .device import empty_cache
+
 _MODEL_NAME = "yolo26n-pose.pt"
 _CACHE_PATH = Path("artifacts") / _MODEL_NAME
 
@@ -30,14 +32,9 @@ def load_pose_model(device: str):
 def unload_pose_model(model) -> None:
     import gc
 
-    import torch
-
     del model
     gc.collect()
-    if torch.backends.mps.is_available():
-        torch.mps.empty_cache()
-    elif torch.cuda.is_available():
-        torch.cuda.empty_cache()
+    empty_cache()
 
 
 def _classify_pose(kpts_xy: np.ndarray) -> str | None:

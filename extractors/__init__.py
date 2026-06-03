@@ -1,5 +1,7 @@
 from .color import extract_color as extract_color
 from .composition import extract_composition as extract_composition
+from .device import empty_cache as empty_cache
+from .device import get_device as get_device
 from .ela import extract_ela as extract_ela
 from .embedding import extract_embedding_batch as extract_embedding_batch
 from .embedding import load_dino_model as load_dino_model

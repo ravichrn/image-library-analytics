@@ -26,6 +26,7 @@ from extractors import (
     check_ood,
     classify_scene_batch,
     compute_coverage_threshold,
+    empty_cache,
     encode_text_features_siglip,
     extract_aesthetic_batch,
     extract_color,
@@ -37,6 +38,7 @@ from extractors import (
     extract_pose_batch,
     extract_saliency_batch,
     extract_vqa_batch,
+    get_device,
     load_aesthetic_model,
     load_aesthetic_regressor,
     load_clipiqa_metric,
@@ -65,11 +67,12 @@ def _auto_batch(default: int) -> int:
     try:
         import psutil
 
-        if torch.backends.mps.is_available():
-            free_gb = psutil.virtual_memory().available / 1e9
-        elif torch.cuda.is_available():
+        dev = get_device()
+        if dev == "cuda":
             free, _total = torch.cuda.mem_get_info()
             free_gb = free / 1e9
+        elif dev == "mps":
+            free_gb = psutil.virtual_memory().available / 1e9
         else:
             return default
         if free_gb >= 12:
@@ -109,14 +112,6 @@ def _flush_pass_profile() -> None:
     existing["run_date"] = datetime.now().strftime("%Y-%m-%d")
     _PROFILE_PATH.parent.mkdir(exist_ok=True)
     _PROFILE_PATH.write_text(json.dumps(existing, indent=2))
-
-
-def _device() -> str:
-    if torch.backends.mps.is_available():
-        return "mps"
-    if torch.cuda.is_available():
-        return "cuda"
-    return "cpu"
 
 
 def _memory_mb() -> float | None:
@@ -585,7 +580,7 @@ def main() -> None:
     elif todo:
         siglip_batch = pick_batch_size("siglip2-base")
         console.print(f"[bold]Pass 3/7:[/bold] SigLIP2-base scene + VQA ({len(todo)} photos, batch={siglip_batch})")
-        device = _device()
+        device = get_device()
         _reset_peak()
         _p2_t0 = time.perf_counter()
         _siglip_failed = 0
@@ -676,7 +671,7 @@ def main() -> None:
             _reset_peak()
             _t_load = time.perf_counter()
             with console.status("Loading aesthetic-predictor-v2-5..."):
-                aesthetic = load_aesthetic_model(_device())
+                aesthetic = load_aesthetic_model(get_device())
             _p3a_load_s += time.perf_counter() - _t_load
             _p3a_model_mb = _peak_mb()
             failed = 0
@@ -696,8 +691,7 @@ def main() -> None:
                 console.print(f"  [yellow]⚠ {failed} image(s) failed aesthetic scoring[/yellow]")
             del aesthetic
             gc.collect()
-            if torch.backends.mps.is_available():
-                torch.mps.empty_cache()
+            empty_cache()
             return failed
 
         _use_teacher = getattr(args, "teacher", False)
@@ -883,7 +877,7 @@ def main() -> None:
         console.print("[bold]Pass 4b/7:[/bold] CLIP-IQA+ skipped\n")
         _pass_stats.append({"name": "Pass 4b: CLIP-IQA+", "skipped": True})
     elif iq_todo:
-        device = _device()
+        device = get_device()
         console.print(f"[bold]Pass 4b/7:[/bold] CLIP-IQA+ technical quality ({len(iq_todo)} photos, batch={iq_batch}, {device})")
         _reset_peak()
         _p3b_t0 = time.perf_counter()
@@ -914,8 +908,7 @@ def main() -> None:
             _save_batch(iq_todo)
             del iq_metric
             gc.collect()
-            if torch.backends.mps.is_available():
-                torch.mps.empty_cache()
+            empty_cache()
             _p3b_elapsed = time.perf_counter() - _p3b_t0
             _pass_stats.append(
                 {
@@ -965,7 +958,7 @@ def main() -> None:
         _reset_peak()
         _p5_t0 = time.perf_counter()
         with console.status("Loading RMBG-2.0 (briaai/RMBG-2.0)..."):
-            saliency_pipe = load_saliency_model(_device())
+            saliency_pipe = load_saliency_model(get_device())
         _p5_load_s = time.perf_counter() - _p5_t0
         _p5_model_mb = _peak_mb()
 
@@ -988,8 +981,7 @@ def main() -> None:
         _save_batch(todo)
         del saliency_pipe
         gc.collect()
-        if torch.backends.mps.is_available():
-            torch.mps.empty_cache()
+        empty_cache()
         _p5_elapsed = time.perf_counter() - _p5_t0
         _pass_stats.append(
             {
@@ -1026,7 +1018,7 @@ def main() -> None:
         _pass_stats.append({"name": "Pass 6: YOLO26n-pose", "skipped": True})
     elif todo:
         console.print(f"[bold]Pass 6/7:[/bold] YOLO11-Pose object detection ({len(todo)} portrait photos)")
-        device = _device()
+        device = get_device()
         _reset_peak()
         _p6_t0 = time.perf_counter()
         with console.status("Loading YOLO11n-pose..."):
