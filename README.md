@@ -1,6 +1,8 @@
 # On-Device Image Analytics
 
-On-device multi-model image analytics pipeline for Apple Silicon. Runs 7 models locally — no cloud, no API calls. Outputs an interactive dashboard covering composition, color, aesthetics, editing style, shooting patterns, and near-duplicate detection. Supports local folders and [Adobe Lightroom](https://lightroom.adobe.com) cloud with per-asset delta sync.
+An on-device inference pipeline that runs seven vision models within a fixed memory budget on Apple Silicon through sequential model loading and unloading. Performs scene classification, aesthetic and quality scoring, pose detection, background removal, and near-duplicate clustering. Built around a profiling-driven optimization approach that identified image decode rather than model compute as the primary bottleneck, with a benchmark-driven batch scheduler, content-addressed caching for incremental runs, and a lightweight regressor that reduces the cost of the most expensive model. 
+
+Supports local folders and [Adobe Lightroom](https://lightroom.adobe.com) cloud with per-asset delta sync.
 
 **[Live report](https://ravichrn.github.io/on-device-image-analytics/report.html)**
 
