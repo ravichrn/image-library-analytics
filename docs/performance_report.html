@@ -1,0 +1,1433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pipeline Performance Report</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+<style>
+:root {
+  --bg:      #09090e;
+  --bg2:     #0c0c14;
+  --bg3:     #11111c;
+  --border:  #1e1e30;
+  --accent:  #7c6af7;
+  --text:    #d8d8e4;
+  --muted:   #6b6b90;
+  --green:   #4ade80;
+  --yellow:  #fde68a;
+  --red:     #f87171;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background: var(--bg); color: var(--text);
+  line-height: 1.65; font-size: 14px;
+}
+.page { max-width: 1100px; margin: 0 auto; padding: 2rem 1.5rem 6rem; }
+h1 { font-size: 1.8rem; font-weight: 700; margin-bottom: 0.25rem; }
+h2 {
+  font-size: 0.88rem; font-weight: 700; color: var(--text);
+  margin: 2.5rem 0 0.9rem; text-transform: uppercase; letter-spacing: 0.1em;
+  padding-bottom: 0.45rem; border-bottom: 1px solid var(--border);
+}
+h3 { font-size: 0.8rem; font-weight: 600; color: var(--muted); margin-bottom: 0.6rem; text-transform: uppercase; letter-spacing: 0.07em; }
+.subtitle { color: var(--muted); font-size: 0.85rem; margin-bottom: 2rem; }
+.badge { display: inline-block; font-size: 0.63rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.08em; padding: 0.12rem 0.45rem; border-radius: 3px; vertical-align: middle; }
+.badge-full        { background: #18113a; color: var(--accent); }
+.badge-incremental { background: #0e2a14; color: var(--green); }
+
+/* ── Stat strip ──────────────────────────────────────────────── */
+.stats { display: grid; grid-template-columns: repeat(auto-fill, minmax(155px, 1fr)); gap: 0.9rem; margin-bottom: 2rem; }
+.stat-card { background: var(--bg2); border: 1px solid var(--border); border-radius: 6px; padding: 1rem 1.2rem; }
+.stat-card .label { font-size: 0.68rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.09em; margin-bottom: 0.3rem; }
+.stat-card .value { font-size: 1.55rem; font-weight: 700; line-height: 1.1; }
+.stat-card .sub   { font-size: 0.7rem; color: var(--muted); margin-top: 0.25rem; }
+.orange { color: var(--accent); }
+.green  { color: var(--green); }
+.yellow { color: var(--yellow); }
+
+/* ── Note card ───────────────────────────────────────────────── */
+.note-card {
+  background: var(--bg3); border-left: 3px solid var(--accent); border-radius: 5px;
+  padding: 0.75rem 1rem; font-size: 0.79rem; color: var(--muted);
+  margin-bottom: 0.8rem; line-height: 1.55;
+}
+.note-card strong { color: var(--text); }
+
+/* ── Tables ──────────────────────────────────────────────────── */
+.card { background: var(--bg2); border: 1px solid var(--border); border-radius: 6px; padding: 1.2rem 1.4rem; margin-bottom: 1rem; }
+table { width: 100%; border-collapse: collapse; font-size: 0.81rem; }
+th {
+  text-align: left; color: var(--muted); font-size: 0.69rem; text-transform: uppercase;
+  letter-spacing: 0.07em; padding: 0.35rem 0.6rem; border-bottom: 1px solid var(--border);
+  position: relative; white-space: nowrap;
+}
+td { padding: 0.42rem 0.6rem; border-bottom: 1px solid rgba(255,255,255,0.03); }
+tr:last-child td { border-bottom: none; }
+.right { text-align: right; }
+.hl  { color: var(--accent); font-weight: 600; }
+.dim { color: var(--muted); }
+
+/* ── Tooltip ─────────────────────────────────────────────────── */
+.tip {
+  cursor: help; color: var(--muted); margin-left: 3px;
+  font-size: 0.66rem; font-weight: 400; text-transform: none; letter-spacing: 0;
+  display: inline-block;
+}
+#tip-float {
+  position: fixed; display: none; pointer-events: none; z-index: 9999;
+  background: #1c1c30; color: var(--text); border: 1px solid var(--border); border-radius: 5px;
+  padding: 0.55rem 0.8rem; font-size: 0.75rem; line-height: 1.6;
+  width: 260px; white-space: normal; word-wrap: break-word;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.5);
+}
+
+/* ── Bar rows (shared across all horizontal bar sections) ────── */
+.bar-row { display: flex; align-items: center; gap: 0.55rem; font-size: 0.78rem; margin: 0.22rem 0; }
+.bar-lbl-sm  { width: 2.4rem;  text-align: right; color: var(--muted); flex-shrink: 0; }
+.bar-lbl-lg  { width: 9.5rem; text-align: right; color: var(--muted); white-space: nowrap;
+               overflow: hidden; text-overflow: ellipsis; flex-shrink: 0; }
+.bar-track   { flex: 1; background: var(--bg3); border-radius: 3px; height: 8px; overflow: hidden; }
+.bar-fill    { height: 100%; border-radius: 3px; }
+.bar-accent  { background: var(--accent); }
+.bar-green   { background: var(--green); }
+.bar-dominant { background: var(--green); }
+.bar-pulls   { width: 3rem; text-align: right; color: var(--muted); flex-shrink: 0; }
+.bar-val     { width: 5.5rem; text-align: right; flex-shrink: 0; }
+.bar-pct     { width: 3rem; text-align: right; color: var(--muted); font-size: 0.73rem; flex-shrink: 0; }
+.bar-val-s   { width: 3.5rem; text-align: right; color: var(--muted); flex-shrink: 0; }
+.bar-val-m   { width: 4rem; text-align: right; color: var(--text); flex-shrink: 0; }
+.bar-val-tip { display: flex; align-items: center; justify-content: flex-end; gap: 0.3rem; width: 5.5rem; flex-shrink: 0; }
+
+/* ── Charts ──────────────────────────────────────────────────── */
+.charts     { display: grid; grid-template-columns: 1fr 2fr; gap: 1rem; margin-bottom: 1rem; }
+.chart-card { background: var(--bg2); border: 1px solid var(--border); border-radius: 6px; padding: 1.1rem; }
+.chart-card canvas { max-height: 220px; }
+.chart-full { grid-column: 1 / -1; }
+
+/* ── Two-column grids inside cards ───────────────────────────── */
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 2.5rem; }
+
+/* ── Mobile ──────────────────────────────────────────────────── */
+@media (max-width: 640px) {
+  .stats  { grid-template-columns: 1fr 1fr; }
+  .charts { grid-template-columns: 1fr !important; }
+  .chart-full { grid-column: 1 !important; }
+  .two-col { grid-template-columns: 1fr !important; }
+  .bar-lbl-lg { width: 6rem; }
+  h1 { font-size: 1.4rem; }
+  h2 { font-size: 0.82rem; }
+}
+</style>
+</head>
+<body>
+<div class="page">
+
+  <h1>Pipeline Performance Report</h1>
+
+
+  <p class="subtitle">
+    2026-06-04
+    &nbsp;·&nbsp;
+      <span class="badge badge-full">full run</span>
+
+    &nbsp;·&nbsp; 5107 photos &nbsp;·&nbsp;
+    Cache hit rate: 100.0%
+  </p>
+
+  <!-- ── Summary stats ── -->
+  <div class="stats">
+    <div class="stat-card">
+      <div class="label">Total elapsed</div>
+      <div class="value orange">8.5 min</div>
+      <div class="sub">508s total</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">Total photos</div>
+      <div class="value">5107</div>
+      <div class="sub">5107 cached &nbsp;·&nbsp; 0 new</div>
+    </div>
+    <div class="stat-card">
+
+      <div class="label">EXIF &amp; analysis cached</div>
+      <div class="value yellow">2.0 min</div>
+      <div class="sub">EXIF, color, ELA, composition — not re-run</div>
+
+    </div>
+    <div class="stat-card">
+      <div class="label">Sequential peak memory</div>
+      <div class="value green">1.74 GB</div>
+      <div class="sub">vs 5.94 GB if all models loaded at once</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">Memory saved</div>
+      <div class="value green">71.0%</div>
+      <div class="sub">from sequential load/unload vs loading all at once</div>
+    </div>
+  </div>
+
+  <!-- ── Pass time breakdown ── -->
+  <h2>Pass Time Breakdown</h2>
+  <div class="card">
+    <h3>Share of total pipeline time &nbsp;·&nbsp; 8.5 min total</h3>
+
+    <div class="bar-row">
+      <span class="bar-lbl-lg">DINOv3-B</span>
+      <div class="bar-track"><div class="bar-fill bar-accent" style="width: 17.9%"></div></div>
+      <span class="bar-val-s">91s</span>
+      <span class="bar-val-m">1.5 min</span>
+      <span class="bar-pct">17.9%</span>
+    </div>
+
+    <div class="bar-row">
+      <span class="bar-lbl-lg">SigLIP2-base</span>
+      <div class="bar-track"><div class="bar-fill bar-accent" style="width: 15.2%"></div></div>
+      <span class="bar-val-s">77s</span>
+      <span class="bar-val-m">1.3 min</span>
+      <span class="bar-pct">15.2%</span>
+    </div>
+
+    <div class="bar-row">
+      <span class="bar-lbl-lg">aesthetic-predictor-v2-5 (K=357)</span>
+      <div class="bar-track"><div class="bar-fill bar-accent" style="width: 19.5%"></div></div>
+      <span class="bar-val-s">99s</span>
+      <span class="bar-val-m">1.6 min</span>
+      <span class="bar-pct">19.5%</span>
+    </div>
+
+    <div class="bar-row">
+      <span class="bar-lbl-lg">CLIP-IQA+</span>
+      <div class="bar-track"><div class="bar-fill bar-accent" style="width: 30.7%"></div></div>
+      <span class="bar-val-s">156s</span>
+      <span class="bar-val-m">2.6 min</span>
+      <span class="bar-pct">30.7%</span>
+    </div>
+
+    <div class="bar-row">
+      <span class="bar-lbl-lg">RMBG-2.0</span>
+      <div class="bar-track"><div class="bar-fill bar-accent" style="width: 15.0%"></div></div>
+      <span class="bar-val-s">76s</span>
+      <span class="bar-val-m">1.3 min</span>
+      <span class="bar-pct">15.0%</span>
+    </div>
+
+    <div class="bar-row">
+      <span class="bar-lbl-lg">YOLO26n-pose</span>
+      <div class="bar-track"><div class="bar-fill bar-accent" style="width: 1.7%"></div></div>
+      <span class="bar-val-s">9s</span>
+      <span class="bar-val-m">0.1 min</span>
+      <span class="bar-pct">1.7%</span>
+    </div>
+
+  </div>
+
+  <!-- ── Throughput & Memory ── -->
+  <h2>Throughput &amp; Memory</h2>
+  <div class="card">
+    <div class="two-col">
+      <div>
+        <h3>Throughput (img/s)</h3>
+
+        <div class="bar-row">
+          <span class="bar-lbl-lg">DINOv3-B</span>
+          <div class="bar-track"><div class="bar-fill bar-accent" style="width: 74.3%"></div></div>
+          <span class="bar-val hl">56.1</span>
+        </div>
+
+        <div class="bar-row">
+          <span class="bar-lbl-lg">SigLIP2-base</span>
+          <div class="bar-track"><div class="bar-fill bar-accent" style="width: 87.7%"></div></div>
+          <span class="bar-val hl">66.2</span>
+        </div>
+
+        <div class="bar-row">
+          <span class="bar-lbl-lg">aesthetic-predictor-v2-5 (K=357)</span>
+          <div class="bar-track"><div class="bar-fill bar-accent" style="width: 68.5%"></div></div>
+          <span class="bar-val hl">51.7</span>
+        </div>
+
+        <div class="bar-row">
+          <span class="bar-lbl-lg">CLIP-IQA+</span>
+          <div class="bar-track"><div class="bar-fill bar-accent" style="width: 43.4%"></div></div>
+          <span class="bar-val hl">32.8</span>
+        </div>
+
+        <div class="bar-row">
+          <span class="bar-lbl-lg">RMBG-2.0</span>
+          <div class="bar-track"><div class="bar-fill bar-accent" style="width: 11.4%"></div></div>
+          <span class="bar-val hl">8.6</span>
+        </div>
+
+        <div class="bar-row">
+          <span class="bar-lbl-lg">YOLO26n-pose</span>
+          <div class="bar-track"><div class="bar-fill bar-accent" style="width: 100.0%"></div></div>
+          <span class="bar-val hl">75.5</span>
+        </div>
+
+      </div>
+      <div>
+        <h3>Peak memory per model</h3>
+
+        <div class="bar-row">
+          <span class="bar-lbl-lg">DINOv3-B</span>
+          <div class="bar-track"><div class="bar-fill bar-green" style="width: 9.6%"></div></div>
+          <span class="bar-val green">0.17 GB</span>
+        </div>
+
+        <div class="bar-row">
+          <span class="bar-lbl-lg">SigLIP2-base</span>
+          <div class="bar-track"><div class="bar-fill bar-green" style="width: 51.8%"></div></div>
+          <span class="bar-val green">0.9 GB</span>
+        </div>
+
+        <div class="bar-row">
+          <span class="bar-lbl-lg">aesthetic-predictor-v2-5 (K=357)</span>
+          <div class="bar-track"><div class="bar-fill bar-green" style="width: 100.0%"></div></div>
+          <span class="bar-val green">1.74 GB</span>
+        </div>
+
+        <div class="bar-row">
+          <span class="bar-lbl-lg">CLIP-IQA+</span>
+          <div class="bar-track"><div class="bar-fill bar-green" style="width: 51.8%"></div></div>
+          <span class="bar-val green">0.9 GB</span>
+        </div>
+
+        <div class="bar-row">
+          <span class="bar-lbl-lg">RMBG-2.0</span>
+          <div class="bar-track"><div class="bar-fill bar-green" style="width: 76.7%"></div></div>
+          <span class="bar-val green">1.33 GB</span>
+        </div>
+
+        <div class="bar-row">
+          <span class="bar-lbl-lg">YOLO26n-pose</span>
+          <div class="bar-track"><div class="bar-fill bar-green" style="width: 51.8%"></div></div>
+          <span class="bar-val green">0.9 GB</span>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Cascade + Memory timeline side by side ── -->
+  <div class="charts">
+
+    <div class="chart-card" style="display:flex;flex-direction:column;">
+      <h3>Cascade filtering — processed vs gated</h3>
+      <div style="flex:1;min-height:160px;position:relative;">
+        <canvas id="chartCascade" style="position:absolute;inset:0;width:100%!important;height:100%!important;"></canvas>
+      </div>
+    </div>
+    <div class="chart-card">
+      <h3>Memory timeline — load / unload sequence (GB)</h3>
+      <p style="font-size:0.72rem;color:var(--muted);margin-bottom:0.6rem;line-height:1.5;">Unlike the peak memory bars above (which show each model's size), this shows the time-ordered sequence: each bar is one pass, and it drops to zero when the model is unloaded before the next one starts.</p>
+
+      <canvas id="chartMemoryTimeline"></canvas>
+    </div>
+  </div>
+
+  <!-- ── Pass breakdown ── -->
+  <h2>Pass Breakdown</h2>
+  <div class="note-card">
+    <strong>Eligible &amp; Gated %</strong> are only shown for passes with a cascade pre-filter — a step that runs before the model to skip photos where the model adds no value. RMBG-2.0 and YOLO are pre-filtered by subject/portrait signal, so only a fraction of photos reach those models. All other passes run on every photo. The aesthetic pass routes computation internally (seeds go through the SigLIP model, the rest go through the fast regressor) — that split appears in the sub-row below, not as a photo-count gate here.
+  </div>
+  <div class="card">
+    <table>
+      <thead>
+        <tr>
+          <th>Pass</th>
+          <th class="right">Processed <span class="tip" data-tip="Number of photos that ran through this pass's ML model during this run.">ⓘ</span></th>
+          <th class="right">Eligible <span class="tip" data-tip="Photos considered before the cascade pre-filter ran. Blank means no pre-filter — this pass processed every photo.">ⓘ</span></th>
+          <th class="right">Gated % <span class="tip" data-tip="Share of eligible photos skipped before reaching the model. Only RMBG-2.0 and YOLO have this pre-model filter.">ⓘ</span></th>
+          <th class="right">Time <span class="tip" data-tip="Wall-clock time for all batches in this pass, including image I/O and batching overhead.">ⓘ</span></th>
+          <th class="right">img/s <span class="tip" data-tip="End-to-end throughput: photos processed divided by elapsed time, including prefetch, batching, and the GPU forward pass.">ⓘ</span></th>
+          <th class="right">Load time <span class="tip" data-tip="Time to load model weights from disk into device memory (MPS or CUDA) before the first batch starts.">ⓘ</span></th>
+          <th class="right">Peak memory <span class="tip" data-tip="Maximum device memory allocated during this pass. Sequential loading keeps most models below 2 GB, since each is unloaded before the next starts.">ⓘ</span></th>
+        </tr>
+      </thead>
+      <tbody>
+
+
+
+
+        <tr>
+          <td>Pass 2: DINOv3-B</td>
+          <td class="right hl">5107</td>
+          <td class="right dim">
+            <span class="tip" data-tip="No cascade pre-filter — this pass ran on every photo.">–</span>
+          </td>
+          <td class="right">
+            <span class="dim">–</span>
+          </td>
+          <td class="right">91.0s</td>
+          <td class="right">56.1</td>
+          <td class="right dim">1.01s</td>
+          <td class="right">
+
+              171 MB
+
+          </td>
+        </tr>
+
+
+
+
+
+        <tr>
+          <td>Pass 3: SigLIP2-base</td>
+          <td class="right hl">5107</td>
+          <td class="right dim">
+            <span class="tip" data-tip="No cascade pre-filter — this pass ran on every photo.">–</span>
+          </td>
+          <td class="right">
+            <span class="dim">–</span>
+          </td>
+          <td class="right">77.1s</td>
+          <td class="right">66.2</td>
+          <td class="right dim">4.42s</td>
+          <td class="right">
+
+              922 MB
+
+          </td>
+        </tr>
+
+
+
+
+
+        <tr>
+          <td>Pass 4a: aesthetic-predictor-v2-5 (K=357)</td>
+          <td class="right hl">5107</td>
+          <td class="right dim">
+            5107
+
+          </td>
+          <td class="right">
+            <span class="dim">–</span>
+          </td>
+          <td class="right">98.8s</td>
+          <td class="right">51.7</td>
+          <td class="right dim">3.09s</td>
+          <td class="right">
+
+              1.74 GB
+
+
+          </td>
+        </tr>
+
+        <tr>
+          <td colspan="8" class="dim" style="font-size:0.74rem;padding-left:1.4rem;">
+            ↳ 357 via SigLIP seed &nbsp;·&nbsp; 4750 via regressor
+
+              &nbsp;·&nbsp; <span class="green">93% regressor coverage</span>
+
+          </td>
+        </tr>
+
+
+
+
+
+        <tr>
+          <td>Pass 4b: CLIP-IQA+</td>
+          <td class="right hl">5107</td>
+          <td class="right dim">
+            <span class="tip" data-tip="No cascade pre-filter — this pass ran on every photo.">–</span>
+          </td>
+          <td class="right">
+            <span class="dim">–</span>
+          </td>
+          <td class="right">155.9s</td>
+          <td class="right">32.8</td>
+          <td class="right dim">1.65s</td>
+          <td class="right">
+
+              922 MB
+
+          </td>
+        </tr>
+
+
+
+
+
+        <tr>
+          <td>Pass 5: RMBG-2.0</td>
+          <td class="right hl">659</td>
+          <td class="right dim">
+            5107
+
+          </td>
+          <td class="right">
+            <span class="green">87%</span>
+          </td>
+          <td class="right">76.2s</td>
+          <td class="right">8.6</td>
+          <td class="right dim">1.77s</td>
+          <td class="right">
+
+              1.33 GB
+
+
+          </td>
+        </tr>
+
+
+
+
+
+        <tr>
+          <td>Pass 6: YOLO26n-pose</td>
+          <td class="right hl">659</td>
+          <td class="right dim">
+            5107
+
+          </td>
+          <td class="right">
+            <span class="green">87%</span>
+          </td>
+          <td class="right">8.7s</td>
+          <td class="right">75.5</td>
+          <td class="right dim">0.16s</td>
+          <td class="right">
+
+              922 MB
+
+          </td>
+        </tr>
+
+
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ── Microbenchmark batch-scaling curves ── -->
+
+  <h2>Microbenchmark — Batch Scaling (Apple arm, 2026-06-01)</h2>
+  <div class="charts">
+    <div class="chart-card chart-full">
+      <h3>Throughput (img/s) vs batch size</h3>
+      <canvas id="chartThroughputCurves" style="max-height: 260px;"></canvas>
+    </div>
+    <div class="chart-card chart-full">
+      <div class="note-card">
+        <strong>Why latency curves matter:</strong> p50 per-image latency at each batch size reveals whether a model is compute-bound or memory-bound. A compute-bound model (YOLO, DINOv3) shows latency flat or slowly rising with batch — the GPU stays fully utilised at all sizes. A memory-bound model (RMBG, aesthetic predictor) plateaus quickly and latency rises sharply past the saturation point. The safe batch is chosen just before that inflection, and the bandit confirms it at runtime.
+      </div>
+      <h3>Per-image latency p50 (ms) vs batch size</h3>
+      <canvas id="chartLatencyCurves" style="max-height: 260px;"></canvas>
+    </div>
+  </div>
+
+
+  <!-- ── Scheduler static profiles ── -->
+
+  <h2>Scheduler — Static Profiles</h2>
+  <div class="card">
+    <table>
+      <thead>
+        <tr>
+          <th>Model</th>
+          <th class="right">Safe batch <span class="tip" data-tip="Smallest batch size reaching at least 99% of peak throughput in the microbenchmark. Used as a conservative starting point before the bandit explores larger batches.">ⓘ</span></th>
+          <th class="right">Best batch <span class="tip" data-tip="Batch size with the highest measured throughput in the static microbenchmark. Pre-seeds the bandit's dominant arm so it starts near the optimal.">ⓘ</span></th>
+          <th class="right">Max batch <span class="tip" data-tip="Largest batch size that completed without running out of memory during the microbenchmark sweep.">ⓘ</span></th>
+          <th class="right">Profiled img/s <span class="tip" data-tip="Throughput at best_batch from the static microbenchmark. The bandit uses this as the reward baseline — a reward of 1.0 means the live run exactly matched this figure.">ⓘ</span></th>
+          <th class="right">Profiled p95 (ms) <span class="tip" data-tip="95th-percentile per-batch latency at best_batch from the microbenchmark. The bandit downgrades the batch size if live p95 exceeds twice this value and throughput falls below 90% of the profiled rate simultaneously.">ⓘ</span></th>
+        </tr>
+      </thead>
+      <tbody>
+
+        <tr>
+          <td>RMBG-2.0</td>
+          <td class="right dim">2</td>
+          <td class="right hl">4</td>
+          <td class="right dim">4</td>
+          <td class="right">10.3</td>
+          <td class="right">388.98</td>
+        </tr>
+
+        <tr>
+          <td>aesthetic-predictor-v2-5</td>
+          <td class="right dim">4</td>
+          <td class="right hl">8</td>
+          <td class="right dim">8</td>
+          <td class="right">4.1</td>
+          <td class="right">2011.8</td>
+        </tr>
+
+        <tr>
+          <td>clipiqa+</td>
+          <td class="right dim">8</td>
+          <td class="right hl">16</td>
+          <td class="right dim">16</td>
+          <td class="right">37.8</td>
+          <td class="right">437.68</td>
+        </tr>
+
+        <tr>
+          <td>dinov3-b</td>
+          <td class="right dim">8</td>
+          <td class="right hl">16</td>
+          <td class="right dim">16</td>
+          <td class="right">68.6</td>
+          <td class="right">235.04</td>
+        </tr>
+
+        <tr>
+          <td>siglip2-base</td>
+          <td class="right dim">8</td>
+          <td class="right hl">16</td>
+          <td class="right dim">16</td>
+          <td class="right">87.7</td>
+          <td class="right">182.99</td>
+        </tr>
+
+        <tr>
+          <td>yolo26n-pose</td>
+          <td class="right dim">8</td>
+          <td class="right hl">16</td>
+          <td class="right dim">16</td>
+          <td class="right">146.3</td>
+          <td class="right">111.71</td>
+        </tr>
+
+      </tbody>
+    </table>
+  </div>
+
+
+  <!-- ── Bandit state ── -->
+
+  <h2>Scheduler — UCB Bandit Convergence</h2>
+  <div class="note-card">
+    <strong>How the bandit works:</strong> Each model has several batch-size <strong>arms</strong> (e.g. batch=1, 4, 8, 16). On each pass the UCB (Upper Confidence Bound) algorithm picks an arm, balancing exploitation (use the highest-reward arm) with exploration (occasionally try others to confirm they're still worse). After each run it records a <strong>reward</strong> equal to achieved img/s divided by the profiled img/s baseline. The bar length shows mean reward per pull. The <strong style="color:var(--green)">green bar</strong> is the dominant arm — the batch size with the highest mean reward. A reward of 1.0 means the live run matched the benchmark; above 1.0 means this machine outperformed it at that batch size.
+  </div>
+  <div class="card">
+
+    <div style="margin-bottom: 0.5rem;">
+      <h3>RMBG-2.0
+        <span class="dim" style="font-size:0.69rem;text-transform:none;letter-spacing:0">
+          best batch: 4 &nbsp;·&nbsp; 13 pulls
+        </span>
+      </h3>
+
+
+      <div class="bar-row">
+        <span class="bar-lbl-sm">1</span>
+        <div class="bar-track">
+          <div class="bar-fill bar-accent"
+               style="width: 20.9%"></div>
+        </div>
+        <span class="bar-pulls">1×</span>
+        <div class="bar-val-tip">
+          <span class="dim">1.55</span>
+          <span class="tip" data-tip="Mean reward across 1 pull(s) with batch size 1. Reward equals achieved img/s divided by the profiled baseline. Above 1.0 means this batch outperformed the benchmark.">ⓘ</span>
+        </div>
+      </div>
+
+      <div class="bar-row">
+        <span class="bar-lbl-sm">2</span>
+        <div class="bar-track">
+          <div class="bar-fill bar-accent"
+               style="width: 34.1%"></div>
+        </div>
+        <span class="bar-pulls">1×</span>
+        <div class="bar-val-tip">
+          <span class="dim">2.52</span>
+          <span class="tip" data-tip="Mean reward across 1 pull(s) with batch size 2. Reward equals achieved img/s divided by the profiled baseline. Above 1.0 means this batch outperformed the benchmark.">ⓘ</span>
+        </div>
+      </div>
+
+      <div class="bar-row">
+        <span class="bar-lbl-sm">4</span>
+        <div class="bar-track">
+          <div class="bar-fill bar-dominant"
+               style="width: 100.0%"></div>
+        </div>
+        <span class="bar-pulls">4×</span>
+        <div class="bar-val-tip">
+          <span class="green">7.4</span>
+          <span class="tip" data-tip="Mean reward across 4 pull(s) with batch size 4. Reward equals achieved img/s divided by the profiled baseline. Above 1.0 means this batch outperformed the benchmark.">ⓘ</span>
+        </div>
+      </div>
+
+      <div class="bar-row">
+        <span class="bar-lbl-sm">8</span>
+        <div class="bar-track">
+          <div class="bar-fill bar-accent"
+               style="width: 83.8%"></div>
+        </div>
+        <span class="bar-pulls">7×</span>
+        <div class="bar-val-tip">
+          <span class="dim">6.2</span>
+          <span class="tip" data-tip="Mean reward across 7 pull(s) with batch size 8. Reward equals achieved img/s divided by the profiled baseline. Above 1.0 means this batch outperformed the benchmark.">ⓘ</span>
+        </div>
+      </div>
+
+    </div>
+    <hr style="border:none;border-top:1px solid var(--border);margin:0.7rem 0">
+
+    <div style="margin-bottom: 0.5rem;">
+      <h3>aesthetic-predictor-v2-5
+        <span class="dim" style="font-size:0.69rem;text-transform:none;letter-spacing:0">
+          best batch: 8 &nbsp;·&nbsp; 14 pulls
+        </span>
+      </h3>
+
+
+      <div class="bar-row">
+        <span class="bar-lbl-sm">1</span>
+        <div class="bar-track">
+          <div class="bar-fill bar-accent"
+               style="width: 24.9%"></div>
+        </div>
+        <span class="bar-pulls">1×</span>
+        <div class="bar-val-tip">
+          <span class="dim">0.92</span>
+          <span class="tip" data-tip="Mean reward across 1 pull(s) with batch size 1. Reward equals achieved img/s divided by the profiled baseline. Above 1.0 means this batch outperformed the benchmark.">ⓘ</span>
+        </div>
+      </div>
+
+      <div class="bar-row">
+        <span class="bar-lbl-sm">2</span>
+        <div class="bar-track">
+          <div class="bar-fill bar-accent"
+               style="width: 40.7%"></div>
+        </div>
+        <span class="bar-pulls">1×</span>
+        <div class="bar-val-tip">
+          <span class="dim">1.5</span>
+          <span class="tip" data-tip="Mean reward across 1 pull(s) with batch size 2. Reward equals achieved img/s divided by the profiled baseline. Above 1.0 means this batch outperformed the benchmark.">ⓘ</span>
+        </div>
+      </div>
+
+      <div class="bar-row">
+        <span class="bar-lbl-sm">4</span>
+        <div class="bar-track">
+          <div class="bar-fill bar-accent"
+               style="width: 86.7%"></div>
+        </div>
+        <span class="bar-pulls">3×</span>
+        <div class="bar-val-tip">
+          <span class="dim">3.2</span>
+          <span class="tip" data-tip="Mean reward across 3 pull(s) with batch size 4. Reward equals achieved img/s divided by the profiled baseline. Above 1.0 means this batch outperformed the benchmark.">ⓘ</span>
+        </div>
+      </div>
+
+      <div class="bar-row">
+        <span class="bar-lbl-sm">8</span>
+        <div class="bar-track">
+          <div class="bar-fill bar-dominant"
+               style="width: 100.0%"></div>
+        </div>
+        <span class="bar-pulls">9×</span>
+        <div class="bar-val-tip">
+          <span class="green">3.69</span>
+          <span class="tip" data-tip="Mean reward across 9 pull(s) with batch size 8. Reward equals achieved img/s divided by the profiled baseline. Above 1.0 means this batch outperformed the benchmark.">ⓘ</span>
+        </div>
+      </div>
+
+    </div>
+    <hr style="border:none;border-top:1px solid var(--border);margin:0.7rem 0">
+
+    <div style="margin-bottom: 0.5rem;">
+      <h3>clipiqa+
+        <span class="dim" style="font-size:0.69rem;text-transform:none;letter-spacing:0">
+          best batch: 16 &nbsp;·&nbsp; 16 pulls
+        </span>
+      </h3>
+
+
+      <div class="bar-row">
+        <span class="bar-lbl-sm">1</span>
+        <div class="bar-track">
+          <div class="bar-fill bar-accent"
+               style="width: 15.9%"></div>
+        </div>
+        <span class="bar-pulls">1×</span>
+        <div class="bar-val-tip">
+          <span class="dim">5.41</span>
+          <span class="tip" data-tip="Mean reward across 1 pull(s) with batch size 1. Reward equals achieved img/s divided by the profiled baseline. Above 1.0 means this batch outperformed the benchmark.">ⓘ</span>
+        </div>
+      </div>
+
+      <div class="bar-row">
+        <span class="bar-lbl-sm">2</span>
+        <div class="bar-track">
+          <div class="bar-fill bar-accent"
+               style="width: 25.8%"></div>
+        </div>
+        <span class="bar-pulls">1×</span>
+        <div class="bar-val-tip">
+          <span class="dim">8.78</span>
+          <span class="tip" data-tip="Mean reward across 1 pull(s) with batch size 2. Reward equals achieved img/s divided by the profiled baseline. Above 1.0 means this batch outperformed the benchmark.">ⓘ</span>
+        </div>
+      </div>
+
+      <div class="bar-row">
+        <span class="bar-lbl-sm">4</span>
+        <div class="bar-track">
+          <div class="bar-fill bar-accent"
+               style="width: 41.9%"></div>
+        </div>
+        <span class="bar-pulls">1×</span>
+        <div class="bar-val-tip">
+          <span class="dim">14.27</span>
+          <span class="tip" data-tip="Mean reward across 1 pull(s) with batch size 4. Reward equals achieved img/s divided by the profiled baseline. Above 1.0 means this batch outperformed the benchmark.">ⓘ</span>
+        </div>
+      </div>
+
+      <div class="bar-row">
+        <span class="bar-lbl-sm">8</span>
+        <div class="bar-track">
+          <div class="bar-fill bar-accent"
+               style="width: 67.5%"></div>
+        </div>
+        <span class="bar-pulls">2×</span>
+        <div class="bar-val-tip">
+          <span class="dim">22.98</span>
+          <span class="tip" data-tip="Mean reward across 2 pull(s) with batch size 8. Reward equals achieved img/s divided by the profiled baseline. Above 1.0 means this batch outperformed the benchmark.">ⓘ</span>
+        </div>
+      </div>
+
+      <div class="bar-row">
+        <span class="bar-lbl-sm">12</span>
+        <div class="bar-track">
+          <div class="bar-fill bar-accent"
+               style="width: 90.5%"></div>
+        </div>
+        <span class="bar-pulls">1×</span>
+        <div class="bar-val-tip">
+          <span class="dim">30.78</span>
+          <span class="tip" data-tip="Mean reward across 1 pull(s) with batch size 12. Reward equals achieved img/s divided by the profiled baseline. Above 1.0 means this batch outperformed the benchmark.">ⓘ</span>
+        </div>
+      </div>
+
+      <div class="bar-row">
+        <span class="bar-lbl-sm">16</span>
+        <div class="bar-track">
+          <div class="bar-fill bar-dominant"
+               style="width: 100.0%"></div>
+        </div>
+        <span class="bar-pulls">10×</span>
+        <div class="bar-val-tip">
+          <span class="green">34.02</span>
+          <span class="tip" data-tip="Mean reward across 10 pull(s) with batch size 16. Reward equals achieved img/s divided by the profiled baseline. Above 1.0 means this batch outperformed the benchmark.">ⓘ</span>
+        </div>
+      </div>
+
+    </div>
+    <hr style="border:none;border-top:1px solid var(--border);margin:0.7rem 0">
+
+    <div style="margin-bottom: 0.5rem;">
+      <h3>dinov2-base
+        <span class="dim" style="font-size:0.69rem;text-transform:none;letter-spacing:0">
+          best batch: 16 &nbsp;·&nbsp; 13 pulls
+        </span>
+      </h3>
+
+
+      <div class="bar-row">
+        <span class="bar-lbl-sm">1</span>
+        <div class="bar-track">
+          <div class="bar-fill bar-accent"
+               style="width: 15.6%"></div>
+        </div>
+        <span class="bar-pulls">1×</span>
+        <div class="bar-val-tip">
+          <span class="dim">9.15</span>
+          <span class="tip" data-tip="Mean reward across 1 pull(s) with batch size 1. Reward equals achieved img/s divided by the profiled baseline. Above 1.0 means this batch outperformed the benchmark.">ⓘ</span>
+        </div>
+      </div>
+
+      <div class="bar-row">
+        <span class="bar-lbl-sm">2</span>
+        <div class="bar-track">
+          <div class="bar-fill bar-accent"
+               style="width: 25.3%"></div>
+        </div>
+        <span class="bar-pulls">1×</span>
+        <div class="bar-val-tip">
+          <span class="dim">14.86</span>
+          <span class="tip" data-tip="Mean reward across 1 pull(s) with batch size 2. Reward equals achieved img/s divided by the profiled baseline. Above 1.0 means this batch outperformed the benchmark.">ⓘ</span>
+        </div>
+      </div>
+
+      <div class="bar-row">
+        <span class="bar-lbl-sm">4</span>
+        <div class="bar-track">
+          <div class="bar-fill bar-accent"
+               style="width: 41.2%"></div>
+        </div>
+        <span class="bar-pulls">1×</span>
+        <div class="bar-val-tip">
+          <span class="dim">24.14</span>
+          <span class="tip" data-tip="Mean reward across 1 pull(s) with batch size 4. Reward equals achieved img/s divided by the profiled baseline. Above 1.0 means this batch outperformed the benchmark.">ⓘ</span>
+        </div>
+      </div>
+
+      <div class="bar-row">
+        <span class="bar-lbl-sm">8</span>
+        <div class="bar-track">
+          <div class="bar-fill bar-accent"
+               style="width: 60.6%"></div>
+        </div>
+        <span class="bar-pulls">3×</span>
+        <div class="bar-val-tip">
+          <span class="dim">35.54</span>
+          <span class="tip" data-tip="Mean reward across 3 pull(s) with batch size 8. Reward equals achieved img/s divided by the profiled baseline. Above 1.0 means this batch outperformed the benchmark.">ⓘ</span>
+        </div>
+      </div>
+
+      <div class="bar-row">
+        <span class="bar-lbl-sm">12</span>
+        <div class="bar-track">
+          <div class="bar-fill bar-accent"
+               style="width: 88.9%"></div>
+        </div>
+        <span class="bar-pulls">1×</span>
+        <div class="bar-val-tip">
+          <span class="dim">52.09</span>
+          <span class="tip" data-tip="Mean reward across 1 pull(s) with batch size 12. Reward equals achieved img/s divided by the profiled baseline. Above 1.0 means this batch outperformed the benchmark.">ⓘ</span>
+        </div>
+      </div>
+
+      <div class="bar-row">
+        <span class="bar-lbl-sm">16</span>
+        <div class="bar-track">
+          <div class="bar-fill bar-dominant"
+               style="width: 100.0%"></div>
+        </div>
+        <span class="bar-pulls">6×</span>
+        <div class="bar-val-tip">
+          <span class="green">58.62</span>
+          <span class="tip" data-tip="Mean reward across 6 pull(s) with batch size 16. Reward equals achieved img/s divided by the profiled baseline. Above 1.0 means this batch outperformed the benchmark.">ⓘ</span>
+        </div>
+      </div>
+
+    </div>
+    <hr style="border:none;border-top:1px solid var(--border);margin:0.7rem 0">
+
+    <div style="margin-bottom: 0.5rem;">
+      <h3>dinov3-b
+        <span class="dim" style="font-size:0.69rem;text-transform:none;letter-spacing:0">
+          best batch: 16 &nbsp;·&nbsp; 16 pulls
+        </span>
+      </h3>
+
+
+      <div class="bar-row">
+        <span class="bar-lbl-sm">1</span>
+        <div class="bar-track">
+          <div class="bar-fill bar-accent"
+               style="width: 16.1%"></div>
+        </div>
+        <span class="bar-pulls">1×</span>
+        <div class="bar-val-tip">
+          <span class="dim">9.84</span>
+          <span class="tip" data-tip="Mean reward across 1 pull(s) with batch size 1. Reward equals achieved img/s divided by the profiled baseline. Above 1.0 means this batch outperformed the benchmark.">ⓘ</span>
+        </div>
+      </div>
+
+      <div class="bar-row">
+        <span class="bar-lbl-sm">2</span>
+        <div class="bar-track">
+          <div class="bar-fill bar-accent"
+               style="width: 26.1%"></div>
+        </div>
+        <span class="bar-pulls">1×</span>
+        <div class="bar-val-tip">
+          <span class="dim">15.99</span>
+          <span class="tip" data-tip="Mean reward across 1 pull(s) with batch size 2. Reward equals achieved img/s divided by the profiled baseline. Above 1.0 means this batch outperformed the benchmark.">ⓘ</span>
+        </div>
+      </div>
+
+      <div class="bar-row">
+        <span class="bar-lbl-sm">4</span>
+        <div class="bar-track">
+          <div class="bar-fill bar-accent"
+               style="width: 42.4%"></div>
+        </div>
+        <span class="bar-pulls">1×</span>
+        <div class="bar-val-tip">
+          <span class="dim">25.97</span>
+          <span class="tip" data-tip="Mean reward across 1 pull(s) with batch size 4. Reward equals achieved img/s divided by the profiled baseline. Above 1.0 means this batch outperformed the benchmark.">ⓘ</span>
+        </div>
+      </div>
+
+      <div class="bar-row">
+        <span class="bar-lbl-sm">8</span>
+        <div class="bar-track">
+          <div class="bar-fill bar-accent"
+               style="width: 75.9%"></div>
+        </div>
+        <span class="bar-pulls">3×</span>
+        <div class="bar-val-tip">
+          <span class="dim">46.54</span>
+          <span class="tip" data-tip="Mean reward across 3 pull(s) with batch size 8. Reward equals achieved img/s divided by the profiled baseline. Above 1.0 means this batch outperformed the benchmark.">ⓘ</span>
+        </div>
+      </div>
+
+      <div class="bar-row">
+        <span class="bar-lbl-sm">12</span>
+        <div class="bar-track">
+          <div class="bar-fill bar-accent"
+               style="width: 91.4%"></div>
+        </div>
+        <span class="bar-pulls">1×</span>
+        <div class="bar-val-tip">
+          <span class="dim">56.03</span>
+          <span class="tip" data-tip="Mean reward across 1 pull(s) with batch size 12. Reward equals achieved img/s divided by the profiled baseline. Above 1.0 means this batch outperformed the benchmark.">ⓘ</span>
+        </div>
+      </div>
+
+      <div class="bar-row">
+        <span class="bar-lbl-sm">16</span>
+        <div class="bar-track">
+          <div class="bar-fill bar-dominant"
+               style="width: 100.0%"></div>
+        </div>
+        <span class="bar-pulls">9×</span>
+        <div class="bar-val-tip">
+          <span class="green">61.28</span>
+          <span class="tip" data-tip="Mean reward across 9 pull(s) with batch size 16. Reward equals achieved img/s divided by the profiled baseline. Above 1.0 means this batch outperformed the benchmark.">ⓘ</span>
+        </div>
+      </div>
+
+    </div>
+    <hr style="border:none;border-top:1px solid var(--border);margin:0.7rem 0">
+
+    <div style="margin-bottom: 0.5rem;">
+      <h3>siglip2-base
+        <span class="dim" style="font-size:0.69rem;text-transform:none;letter-spacing:0">
+          best batch: 16 &nbsp;·&nbsp; 18 pulls
+        </span>
+      </h3>
+
+
+      <div class="bar-row">
+        <span class="bar-lbl-sm">1</span>
+        <div class="bar-track">
+          <div class="bar-fill bar-accent"
+               style="width: 16.3%"></div>
+        </div>
+        <span class="bar-pulls">1×</span>
+        <div class="bar-val-tip">
+          <span class="dim">12.58</span>
+          <span class="tip" data-tip="Mean reward across 1 pull(s) with batch size 1. Reward equals achieved img/s divided by the profiled baseline. Above 1.0 means this batch outperformed the benchmark.">ⓘ</span>
+        </div>
+      </div>
+
+      <div class="bar-row">
+        <span class="bar-lbl-sm">2</span>
+        <div class="bar-track">
+          <div class="bar-fill bar-accent"
+               style="width: 26.5%"></div>
+        </div>
+        <span class="bar-pulls">1×</span>
+        <div class="bar-val-tip">
+          <span class="dim">20.44</span>
+          <span class="tip" data-tip="Mean reward across 1 pull(s) with batch size 2. Reward equals achieved img/s divided by the profiled baseline. Above 1.0 means this batch outperformed the benchmark.">ⓘ</span>
+        </div>
+      </div>
+
+      <div class="bar-row">
+        <span class="bar-lbl-sm">4</span>
+        <div class="bar-track">
+          <div class="bar-fill bar-accent"
+               style="width: 43.0%"></div>
+        </div>
+        <span class="bar-pulls">1×</span>
+        <div class="bar-val-tip">
+          <span class="dim">33.21</span>
+          <span class="tip" data-tip="Mean reward across 1 pull(s) with batch size 4. Reward equals achieved img/s divided by the profiled baseline. Above 1.0 means this batch outperformed the benchmark.">ⓘ</span>
+        </div>
+      </div>
+
+      <div class="bar-row">
+        <span class="bar-lbl-sm">8</span>
+        <div class="bar-track">
+          <div class="bar-fill bar-accent"
+               style="width: 80.2%"></div>
+        </div>
+        <span class="bar-pulls">4×</span>
+        <div class="bar-val-tip">
+          <span class="dim">61.86</span>
+          <span class="tip" data-tip="Mean reward across 4 pull(s) with batch size 8. Reward equals achieved img/s divided by the profiled baseline. Above 1.0 means this batch outperformed the benchmark.">ⓘ</span>
+        </div>
+      </div>
+
+      <div class="bar-row">
+        <span class="bar-lbl-sm">12</span>
+        <div class="bar-track">
+          <div class="bar-fill bar-accent"
+               style="width: 92.9%"></div>
+        </div>
+        <span class="bar-pulls">1×</span>
+        <div class="bar-val-tip">
+          <span class="dim">71.65</span>
+          <span class="tip" data-tip="Mean reward across 1 pull(s) with batch size 12. Reward equals achieved img/s divided by the profiled baseline. Above 1.0 means this batch outperformed the benchmark.">ⓘ</span>
+        </div>
+      </div>
+
+      <div class="bar-row">
+        <span class="bar-lbl-sm">16</span>
+        <div class="bar-track">
+          <div class="bar-fill bar-dominant"
+               style="width: 100.0%"></div>
+        </div>
+        <span class="bar-pulls">10×</span>
+        <div class="bar-val-tip">
+          <span class="green">77.16</span>
+          <span class="tip" data-tip="Mean reward across 10 pull(s) with batch size 16. Reward equals achieved img/s divided by the profiled baseline. Above 1.0 means this batch outperformed the benchmark.">ⓘ</span>
+        </div>
+      </div>
+
+    </div>
+    <hr style="border:none;border-top:1px solid var(--border);margin:0.7rem 0">
+
+    <div style="margin-bottom: 0.5rem;">
+      <h3>siglip2-so400m
+        <span class="dim" style="font-size:0.69rem;text-transform:none;letter-spacing:0">
+          best batch: 4 &nbsp;·&nbsp; 10 pulls
+        </span>
+      </h3>
+
+
+      <div class="bar-row">
+        <span class="bar-lbl-sm">1</span>
+        <div class="bar-track">
+          <div class="bar-fill bar-accent"
+               style="width: 38.5%"></div>
+        </div>
+        <span class="bar-pulls">1×</span>
+        <div class="bar-val-tip">
+          <span class="dim">1.52</span>
+          <span class="tip" data-tip="Mean reward across 1 pull(s) with batch size 1. Reward equals achieved img/s divided by the profiled baseline. Above 1.0 means this batch outperformed the benchmark.">ⓘ</span>
+        </div>
+      </div>
+
+      <div class="bar-row">
+        <span class="bar-lbl-sm">2</span>
+        <div class="bar-track">
+          <div class="bar-fill bar-accent"
+               style="width: 79.0%"></div>
+        </div>
+        <span class="bar-pulls">2×</span>
+        <div class="bar-val-tip">
+          <span class="dim">3.12</span>
+          <span class="tip" data-tip="Mean reward across 2 pull(s) with batch size 2. Reward equals achieved img/s divided by the profiled baseline. Above 1.0 means this batch outperformed the benchmark.">ⓘ</span>
+        </div>
+      </div>
+
+      <div class="bar-row">
+        <span class="bar-lbl-sm">4</span>
+        <div class="bar-track">
+          <div class="bar-fill bar-dominant"
+               style="width: 100.0%"></div>
+        </div>
+        <span class="bar-pulls">7×</span>
+        <div class="bar-val-tip">
+          <span class="green">3.95</span>
+          <span class="tip" data-tip="Mean reward across 7 pull(s) with batch size 4. Reward equals achieved img/s divided by the profiled baseline. Above 1.0 means this batch outperformed the benchmark.">ⓘ</span>
+        </div>
+      </div>
+
+    </div>
+    <hr style="border:none;border-top:1px solid var(--border);margin:0.7rem 0">
+
+    <div style="margin-bottom: 0.5rem;">
+      <h3>yolo11n-pose
+        <span class="dim" style="font-size:0.69rem;text-transform:none;letter-spacing:0">
+          best batch: 16 &nbsp;·&nbsp; 11 pulls
+        </span>
+      </h3>
+
+
+      <div class="bar-row">
+        <span class="bar-lbl-sm">1</span>
+        <div class="bar-track">
+          <div class="bar-fill bar-accent"
+               style="width: 14.4%"></div>
+        </div>
+        <span class="bar-pulls">1×</span>
+        <div class="bar-val-tip">
+          <span class="dim">21.93</span>
+          <span class="tip" data-tip="Mean reward across 1 pull(s) with batch size 1. Reward equals achieved img/s divided by the profiled baseline. Above 1.0 means this batch outperformed the benchmark.">ⓘ</span>
+        </div>
+      </div>
+
+      <div class="bar-row">
+        <span class="bar-lbl-sm">2</span>
+        <div class="bar-track">
+          <div class="bar-fill bar-accent"
+               style="width: 23.3%"></div>
+        </div>
+        <span class="bar-pulls">1×</span>
+        <div class="bar-val-tip">
+          <span class="dim">35.63</span>
+          <span class="tip" data-tip="Mean reward across 1 pull(s) with batch size 2. Reward equals achieved img/s divided by the profiled baseline. Above 1.0 means this batch outperformed the benchmark.">ⓘ</span>
+        </div>
+      </div>
+
+      <div class="bar-row">
+        <span class="bar-lbl-sm">4</span>
+        <div class="bar-track">
+          <div class="bar-fill bar-accent"
+               style="width: 37.9%"></div>
+        </div>
+        <span class="bar-pulls">1×</span>
+        <div class="bar-val-tip">
+          <span class="dim">57.88</span>
+          <span class="tip" data-tip="Mean reward across 1 pull(s) with batch size 4. Reward equals achieved img/s divided by the profiled baseline. Above 1.0 means this batch outperformed the benchmark.">ⓘ</span>
+        </div>
+      </div>
+
+      <div class="bar-row">
+        <span class="bar-lbl-sm">8</span>
+        <div class="bar-track">
+          <div class="bar-fill bar-accent"
+               style="width: 41.9%"></div>
+        </div>
+        <span class="bar-pulls">2×</span>
+        <div class="bar-val-tip">
+          <span class="dim">63.97</span>
+          <span class="tip" data-tip="Mean reward across 2 pull(s) with batch size 8. Reward equals achieved img/s divided by the profiled baseline. Above 1.0 means this batch outperformed the benchmark.">ⓘ</span>
+        </div>
+      </div>
+
+      <div class="bar-row">
+        <span class="bar-lbl-sm">12</span>
+        <div class="bar-track">
+          <div class="bar-fill bar-accent"
+               style="width: 81.8%"></div>
+        </div>
+        <span class="bar-pulls">1×</span>
+        <div class="bar-val-tip">
+          <span class="dim">124.88</span>
+          <span class="tip" data-tip="Mean reward across 1 pull(s) with batch size 12. Reward equals achieved img/s divided by the profiled baseline. Above 1.0 means this batch outperformed the benchmark.">ⓘ</span>
+        </div>
+      </div>
+
+      <div class="bar-row">
+        <span class="bar-lbl-sm">16</span>
+        <div class="bar-track">
+          <div class="bar-fill bar-dominant"
+               style="width: 100.0%"></div>
+        </div>
+        <span class="bar-pulls">5×</span>
+        <div class="bar-val-tip">
+          <span class="green">152.74</span>
+          <span class="tip" data-tip="Mean reward across 5 pull(s) with batch size 16. Reward equals achieved img/s divided by the profiled baseline. Above 1.0 means this batch outperformed the benchmark.">ⓘ</span>
+        </div>
+      </div>
+
+    </div>
+    <hr style="border:none;border-top:1px solid var(--border);margin:0.7rem 0">
+
+    <div style="margin-bottom: 0.5rem;">
+      <h3>yolo26n-pose
+        <span class="dim" style="font-size:0.69rem;text-transform:none;letter-spacing:0">
+          best batch: 12 &nbsp;·&nbsp; 13 pulls
+        </span>
+      </h3>
+
+
+      <div class="bar-row">
+        <span class="bar-lbl-sm">1</span>
+        <div class="bar-track">
+          <div class="bar-fill bar-accent"
+               style="width: 17.6%"></div>
+        </div>
+        <span class="bar-pulls">1×</span>
+        <div class="bar-val-tip">
+          <span class="dim">21.0</span>
+          <span class="tip" data-tip="Mean reward across 1 pull(s) with batch size 1. Reward equals achieved img/s divided by the profiled baseline. Above 1.0 means this batch outperformed the benchmark.">ⓘ</span>
+        </div>
+      </div>
+
+      <div class="bar-row">
+        <span class="bar-lbl-sm">2</span>
+        <div class="bar-track">
+          <div class="bar-fill bar-accent"
+               style="width: 28.5%"></div>
+        </div>
+        <span class="bar-pulls">1×</span>
+        <div class="bar-val-tip">
+          <span class="dim">34.12</span>
+          <span class="tip" data-tip="Mean reward across 1 pull(s) with batch size 2. Reward equals achieved img/s divided by the profiled baseline. Above 1.0 means this batch outperformed the benchmark.">ⓘ</span>
+        </div>
+      </div>
+
+      <div class="bar-row">
+        <span class="bar-lbl-sm">4</span>
+        <div class="bar-track">
+          <div class="bar-fill bar-accent"
+               style="width: 46.3%"></div>
+        </div>
+        <span class="bar-pulls">1×</span>
+        <div class="bar-val-tip">
+          <span class="dim">55.42</span>
+          <span class="tip" data-tip="Mean reward across 1 pull(s) with batch size 4. Reward equals achieved img/s divided by the profiled baseline. Above 1.0 means this batch outperformed the benchmark.">ⓘ</span>
+        </div>
+      </div>
+
+      <div class="bar-row">
+        <span class="bar-lbl-sm">8</span>
+        <div class="bar-track">
+          <div class="bar-fill bar-accent"
+               style="width: 75.3%"></div>
+        </div>
+        <span class="bar-pulls">1×</span>
+        <div class="bar-val-tip">
+          <span class="dim">90.03</span>
+          <span class="tip" data-tip="Mean reward across 1 pull(s) with batch size 8. Reward equals achieved img/s divided by the profiled baseline. Above 1.0 means this batch outperformed the benchmark.">ⓘ</span>
+        </div>
+      </div>
+
+      <div class="bar-row">
+        <span class="bar-lbl-sm">12</span>
+        <div class="bar-track">
+          <div class="bar-fill bar-dominant"
+               style="width: 100.0%"></div>
+        </div>
+        <span class="bar-pulls">1×</span>
+        <div class="bar-val-tip">
+          <span class="green">119.58</span>
+          <span class="tip" data-tip="Mean reward across 1 pull(s) with batch size 12. Reward equals achieved img/s divided by the profiled baseline. Above 1.0 means this batch outperformed the benchmark.">ⓘ</span>
+        </div>
+      </div>
+
+      <div class="bar-row">
+        <span class="bar-lbl-sm">16</span>
+        <div class="bar-track">
+          <div class="bar-fill bar-accent"
+               style="width: 99.6%"></div>
+        </div>
+        <span class="bar-pulls">8×</span>
+        <div class="bar-val-tip">
+          <span class="dim">119.05</span>
+          <span class="tip" data-tip="Mean reward across 8 pull(s) with batch size 16. Reward equals achieved img/s divided by the profiled baseline. Above 1.0 means this batch outperformed the benchmark.">ⓘ</span>
+        </div>
+      </div>
+
+    </div>
+
+
+  </div>
+
+
+</div>
+<div id="tip-float"></div>
+
+<script>
+(function () {
+  const tip = document.getElementById('tip-float');
+  let active = null;
+  document.addEventListener('mouseover', function (e) {
+    const el = e.target.closest('[data-tip]');
+    if (!el) return;
+    active = el;
+    tip.textContent = el.getAttribute('data-tip');
+    tip.style.display = 'block';
+    position();
+  });
+  document.addEventListener('mouseout', function (e) {
+    const el = e.target.closest('[data-tip]');
+    if (el) { tip.style.display = 'none'; active = null; }
+  });
+  document.addEventListener('mousemove', function () { if (active) position(); });
+  function position() {
+    if (!active) return;
+    const r = active.getBoundingClientRect();
+    const tw = tip.offsetWidth, th = tip.offsetHeight;
+    let left = r.left + r.width / 2 - tw / 2;
+    let top  = r.top - th - 8;
+    left = Math.max(8, Math.min(left, window.innerWidth  - tw - 8));
+    if (top < 8) top = r.bottom + 8;
+    tip.style.left = left + 'px';
+    tip.style.top  = top  + 'px';
+  }
+}());
+</script>
+
+<script>
+const GC = { color: "#4b4b6a", font: { size: 11 } };
+const CHART_DEFAULTS = {
+  plugins: { legend: { display: false } },
+  scales: {
+    x: { ticks: { ...GC }, grid: { color: "#14142a" } },
+    y: { ticks: { ...GC }, grid: { color: "#14142a" } },
+  },
+};
+
+
+new Chart(document.getElementById("chartCascade"), {
+  type: "bar",
+  data: {
+    labels: ["RMBG-2.0", "YOLO26n-pose"],
+    datasets: [
+      { label: "Processed", data: [659, 659], backgroundColor: "#7c6af7cc", borderRadius: 3, stack: "s" },
+      { label: "Gated",     data: [4448, 4448],     backgroundColor: "#1e1e30",   borderRadius: 3, stack: "s" },
+    ],
+  },
+  options: {
+    ...CHART_DEFAULTS,
+    maintainAspectRatio: false,
+    plugins: { legend: { display: true, labels: { color: "#6b6b90", font: { size: 11 } } } },
+    scales: { x: CHART_DEFAULTS.scales.x, y: { ...CHART_DEFAULTS.scales.y, stacked: true } },
+  },
+});
+
+
+new Chart(document.getElementById("chartMemoryTimeline"), {
+  type: "bar",
+  data: {
+    labels: ["DINOv3-B", "SigLIP2-base", "aesthetic-predictor-v2-5 (K=357)", "CLIP-IQA+", "RMBG-2.0", "YOLO26n-pose"],
+    datasets: [{
+      data: [0.167, 0.9, 1.739, 0.9, 1.334, 0.9],
+      backgroundColor: [0.167, 0.9, 1.739, 0.9, 1.334, 0.9].map(v => v > 0 ? "#4ade8055" : "#ffffff06"),
+      borderColor:     [0.167, 0.9, 1.739, 0.9, 1.334, 0.9].map(v => v > 0 ? "#4ade80bb" : "transparent"),
+      borderWidth: 1, borderRadius: 3,
+    }],
+  },
+  options: {
+    ...CHART_DEFAULTS,
+    plugins: {
+      legend: { display: false },
+      tooltip: { callbacks: { label: ctx => ctx.raw > 0 ? `${ctx.raw.toFixed(2)} GB` : "no model loaded" } },
+    },
+    scales: {
+      ...CHART_DEFAULTS.scales,
+      y: { ...CHART_DEFAULTS.scales.y, title: { display: true, text: "GB", color: "#6b6b90", font: { size: 10 } } },
+      x: { ...CHART_DEFAULTS.scales.x, ticks: { ...GC, maxRotation: 32 } },
+    },
+  },
+});
+
+
+const CURVE_OPTS = {
+  scales: {
+    x: { ticks: { ...GC }, grid: { color: "#14142a" }, title: { display: true, text: "Batch size", color: "#6b6b90", font: { size: 11 } } },
+    y: { ticks: { ...GC }, grid: { color: "#14142a" } },
+  },
+  plugins: { legend: { labels: { color: "#6b6b90", font: { size: 11 }, boxWidth: 12 } } },
+};
+new Chart(document.getElementById("chartThroughputCurves"), {
+  type: "line",
+  data: { labels: [1, 4, 8, 16, 32], datasets: [{"label": "BiRefNet-lite", "data": [19.9, 38.5, 40.5, 39.7, null], "borderColor": "#7c6af7", "backgroundColor": "#7c6af722", "tension": 0.3, "spanGaps": true}, {"label": "RMBG-2.0", "data": [9.0, 10.3, 10.3, 10.4, null], "borderColor": "#4ade80", "backgroundColor": "#4ade8022", "tension": 0.3, "spanGaps": true}, {"label": "aesthetic-predictor-v2-5", "data": [3.7, 4.0, 4.1, 4.1, null], "borderColor": "#fb923c", "backgroundColor": "#fb923c22", "tension": 0.3, "spanGaps": true}, {"label": "clipiqa+", "data": [27.1, 34.6, 36.8, 37.8, null], "borderColor": "#f472b6", "backgroundColor": "#f472b622", "tension": 0.3, "spanGaps": true}, {"label": "dinov3-b", "data": [57.1, 64.2, 67.2, 68.6, 64.4], "borderColor": "#38bdf8", "backgroundColor": "#38bdf822", "tension": 0.3, "spanGaps": true}, {"label": "siglip2-base", "data": [60.1, 79.6, 84.5, 87.7, 88.8], "borderColor": "#facc15", "backgroundColor": "#facc1522", "tension": 0.3, "spanGaps": true}, {"label": "yolo26n-pose", "data": [85.3, 129.2, 140.0, 146.3, null], "borderColor": "#a78bfa", "backgroundColor": "#a78bfa22", "tension": 0.3, "spanGaps": true}] },
+  options: { ...CURVE_OPTS, scales: { ...CURVE_OPTS.scales,
+    y: { ...CURVE_OPTS.scales.y, title: { display: true, text: "img/s", color: "#6b6b90", font: { size: 11 } } } } },
+});
+new Chart(document.getElementById("chartLatencyCurves"), {
+  type: "line",
+  data: { labels: [1, 4, 8, 16, 32], datasets: [{"label": "BiRefNet-lite", "data": [50.29, 25.942, 24.706, 25.202, null], "borderColor": "#7c6af7", "backgroundColor": "#7c6af722", "tension": 0.3, "spanGaps": true}, {"label": "RMBG-2.0", "data": [111.31, 96.808, 96.854, 95.924, null], "borderColor": "#4ade80", "backgroundColor": "#4ade8022", "tension": 0.3, "spanGaps": true}, {"label": "aesthetic-predictor-v2-5", "data": [271.51, 246.98, 245.382, 243.025, null], "borderColor": "#fb923c", "backgroundColor": "#fb923c22", "tension": 0.3, "spanGaps": true}, {"label": "clipiqa+", "data": [36.87, 28.892, 27.17, 26.481, null], "borderColor": "#f472b6", "backgroundColor": "#f472b622", "tension": 0.3, "spanGaps": true}, {"label": "dinov3-b", "data": [17.51, 15.565, 14.87, 14.583, 15.518], "borderColor": "#38bdf8", "backgroundColor": "#38bdf822", "tension": 0.3, "spanGaps": true}, {"label": "siglip2-base", "data": [16.64, 12.57, 11.834, 11.399, 11.266], "borderColor": "#facc15", "backgroundColor": "#facc1522", "tension": 0.3, "spanGaps": true}, {"label": "yolo26n-pose", "data": [11.72, 7.742, 7.143, 6.836, null], "borderColor": "#a78bfa", "backgroundColor": "#a78bfa22", "tension": 0.3, "spanGaps": true}] },
+  options: { ...CURVE_OPTS, scales: { ...CURVE_OPTS.scales,
+    y: { ...CURVE_OPTS.scales.y, title: { display: true, text: "ms / image", color: "#6b6b90", font: { size: 11 } } } } },
+});
+
+</script>
+</body>
+</html>

@@ -53,7 +53,9 @@ from extractors import (
     unload_pose_model,
 )
 from report import generate_html, generate_json
+from report_performance import generate_performance_report
 from scheduler import pick_batch_size, record_outcome
+from scheduler.profile import get_profile
 from sources import load_sources
 
 console = Console()
@@ -114,6 +116,55 @@ def _flush_pass_profile() -> None:
     _PROFILE_PATH.write_text(json.dumps(existing, indent=2))
 
 
+_PROFILE_FULL_PATH = Path("docs/pipeline_profile_full.json")
+_PROFILE_INCREMENTAL_PATH = Path("docs/pipeline_profile_incremental.json")
+
+
+def _flush_pipeline_summary(
+    total_photos: int,
+    cache_hits: int,
+    cache_misses: int,
+    total_elapsed_s: float,
+    estimated_time_saved_s: float,
+) -> None:
+    """Write a complete snapshot of the current run to pipeline_profile.json.
+
+    Also writes to pipeline_profile_full.json or pipeline_profile_incremental.json
+    depending on ML coverage: if ≥80% of photos went through ML passes this run
+    it is treated as a full run; otherwise incremental.
+
+    The per-pass _flush_pass_profile() calls already write incrementally after
+    each pass for crash safety. This function writes the clean end-of-run snapshot.
+    """
+    active = [p for p in _pass_stats if not p.get("skipped")]
+    if not active:
+        return
+
+    # Determine full vs incremental: use the heaviest ML pass (anything after Pass 1)
+    # as the signal. If it processed ≥80% of total photos, this is a full run.
+    ml_passes = [p for p in active if not p["name"].startswith("Pass 1")]
+    ml_photos_max = max((p["photos"] for p in ml_passes), default=0)
+    is_full_run = total_photos > 0 and (ml_photos_max / total_photos) >= 0.8
+
+    total = total_photos or 1
+    snapshot = {
+        "run_date": datetime.now().strftime("%Y-%m-%d"),
+        "run_type": "full" if is_full_run else "incremental",
+        "total_photos": total_photos,
+        "cache_hits": cache_hits,
+        "cache_misses": cache_misses,
+        "cache_hit_rate_pct": round(100 * cache_hits / total, 1),
+        "estimated_time_saved_s": round(estimated_time_saved_s, 1),
+        "total_pipeline_elapsed_s": round(total_elapsed_s, 1),
+        "passes": active,
+    }
+    _PROFILE_PATH.parent.mkdir(exist_ok=True)
+    _PROFILE_PATH.write_text(json.dumps(snapshot, indent=2))
+
+    ref_path = _PROFILE_FULL_PATH if is_full_run else _PROFILE_INCREMENTAL_PATH
+    ref_path.write_text(json.dumps(snapshot, indent=2))
+
+
 def _memory_mb() -> float | None:
     """Current allocated device memory in MB, after syncing pending ops."""
     if torch.cuda.is_available():
@@ -141,6 +192,13 @@ def _peak_mb() -> float | None:
     return _memory_mb()
 
 
+def _log_scheduler(model: str, batch: int) -> None:
+    prof = get_profile(model)
+    prof_str = f"profiled {prof.profiled_imgs_per_s:.0f} img/s · " if prof else ""
+    avail_gb = psutil.virtual_memory().available / 1e9
+    console.print(f"  [dim]Scheduler → {model}: batch={batch}  {prof_str}avail={avail_gb:.1f} GB[/dim]")
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Image Library Analytics")
     parser.add_argument("--sample", type=int, default=None, help="Analyze a random sample of N photos")
@@ -151,6 +209,13 @@ def parse_args() -> argparse.Namespace:
         "--report-only",
         action="store_true",
         help="Skip all ML passes — load everything from cache and regenerate the report only.",
+    )
+    parser.add_argument(
+        "--run-type",
+        choices=["latest", "full", "incremental"],
+        default="latest",
+        metavar="TYPE",
+        help="With --report-only: which stored run to use for the performance report (latest/full/incremental). Default: latest.",
     )
     parser.add_argument(
         "--skip",
@@ -333,6 +398,34 @@ def main() -> None:
     args = parse_args()
     batch_size = args.batch_size if args.batch_size is not None else pick_batch_size("yolo26n-pose")
 
+    # ── report-only fast path: skip all source fetching ─────────────────────
+    if args.report_only:
+        from cache import load_all_cached
+
+        _run_type_paths = {
+            "latest": _PROFILE_PATH,
+            "full": _PROFILE_FULL_PATH,
+            "incremental": _PROFILE_INCREMENTAL_PATH,
+        }
+        perf_profile_path = _run_type_paths[args.run_type]
+        if args.run_type != "latest" and not perf_profile_path.exists():
+            console.print(f"[yellow]⚠ No {args.run_type} run profile found at {perf_profile_path} — falling back to latest.[/yellow]")
+            perf_profile_path = _PROFILE_PATH
+        run_label = f" (run-type: {args.run_type})" if args.run_type != "latest" else ""
+        console.print(f"\n[bold]--report-only:[/bold] reading from local cache — no source scan{run_label}.")
+        all_records = load_all_cached()
+        aggregated = aggregate(all_records)
+        calibrate_thresholds(all_records)
+        coach_data = aggregate_flags(all_records)
+        data = {"photos": all_records, "aggregated": aggregated, "coach": coach_data}
+        generate_json(data)
+        generate_html(data)
+        generate_performance_report(_pass_stats, profile_path=perf_profile_path)
+        console.print("\n[bold green]Done![/bold green]")
+        console.print("  [dim]Analytics →[/dim] [cyan]docs/analytics_report.html[/cyan]")
+        console.print("  [dim]Performance →[/dim] [cyan]docs/performance_report.html[/cyan]\n")
+        return
+
     sources = os.environ.get("SOURCES", "local")
     console.print(f"\n[bold]Loading sources:[/bold] [cyan]{sources}[/cyan]")
 
@@ -413,20 +506,6 @@ def main() -> None:
         _skip_passes = _PASS_NAMES - {p.strip() for p in args.only.split(",") if p.strip()}
     elif args.skip:
         _skip_passes = {p.strip() for p in args.skip.split(",") if p.strip()}
-
-    # ── report-only shortcut ──────────────────────────────────────────────────
-    if args.report_only:
-        console.print("[bold]--report-only:[/bold] skipping all ML passes, regenerating report from cache.")
-        all_records = list(records.values())
-        aggregated = aggregate(all_records)
-        calibrate_thresholds(all_records)
-        coach_data = aggregate_flags(all_records)
-        data = {"photos": all_records, "aggregated": aggregated, "coach": coach_data}
-        generate_json(data)
-        generate_html(data)
-        console.print("\n[bold green]Done![/bold green]")
-        console.print("  [dim]HTML →[/dim] [cyan]docs/report.html[/cyan]  ← open in your browser\n")
-        return
 
     # ── 1b. Pre-fetch all renditions in parallel ──────────────────────────────
     _prefetch_renditions(list(records.values()))
@@ -513,6 +592,7 @@ def main() -> None:
     # ── Pass 2 — DINOv3-B embeddings (backbone for heads + clustering) ────────
     # Runs first so trained heads can be used immediately on new photos.
     dino_batch = pick_batch_size("dinov3-b")
+    _log_scheduler("dinov3-b", dino_batch)
     _dino_todo = needs_path("dinov3")
     if "dino" in _skip_passes:
         console.print("[bold]Pass 2/7:[/bold] skipped (--skip dino)\n")
@@ -525,6 +605,8 @@ def main() -> None:
             dino_model, dino_processor, device = load_dino_model()
         _p2_dino_load_s = time.perf_counter() - _p2_dino_t0
         _p2_dino_model_mb = _peak_mb()
+        if _p2_dino_model_mb:
+            console.print(f"  [dim]Peak memory: {_p2_dino_model_mb:.0f} MB[/dim]")
 
         _dino_failed = 0
         with _progress(SpinnerColumn(), BarColumn(), TextColumn("{task.description}"), MofNCompleteColumn(), TaskProgressColumn()) as p:
@@ -579,6 +661,7 @@ def main() -> None:
         _pass_stats.append({"name": "Pass 3: scene + VQA", "skipped": True})
     elif todo:
         siglip_batch = pick_batch_size("siglip2-base")
+        _log_scheduler("siglip2-base", siglip_batch)
         console.print(f"[bold]Pass 3/7:[/bold] SigLIP2-base scene + VQA ({len(todo)} photos, batch={siglip_batch})")
         device = get_device()
         _reset_peak()
@@ -589,6 +672,8 @@ def main() -> None:
             scene_feats, vqa_feats = encode_text_features_siglip(siglip_model, siglip_processor, device)
         _p2_load_s = time.perf_counter() - _p2_t0
         _p2_model_mb = _peak_mb()
+        if _p2_model_mb:
+            console.print(f"  [dim]Peak memory: {_p2_model_mb:.0f} MB[/dim]")
 
         from extractors.heads import _exif_season, _exif_time_of_day
         from extractors.prefetch import iter_prefetched
@@ -647,13 +732,14 @@ def main() -> None:
 
     # ── Pass 4a — aesthetic score (warm-start regressor or full SigLIP) ────────
     aes_batch = pick_batch_size("aesthetic-predictor-v2-5")
+    _log_scheduler("aesthetic-predictor-v2-5", aes_batch)
     aes_todo_all = needs_path("aesthetic_score")
     # Only photos with a dinov3 embedding can use the regressor / warm-start.
     aes_todo = [r for r in aes_todo_all if r.get("dinov3")]
 
     if "aesthetic" in _skip_passes:
         console.print("[bold]Pass 4a/7:[/bold] skipped (--skip aesthetic)\n")
-        _pass_stats.append({"name": "Pass 4a: aesthetic", "skipped": True})
+        _pass_stats.append({"name": "Pass 4a: aesthetic-predictor-v2-5", "skipped": True})
 
     elif aes_todo_all:
         _p3a_t0 = time.perf_counter()
@@ -661,7 +747,7 @@ def main() -> None:
         _p3a_model_mb: float | None = None
         _p3a_n_siglip: int = 0
         _p3a_n_regressor: int = 0
-        _p3a_pass_name = "Pass 4a: aesthetic"
+        _p3a_pass_name = "Pass 4a: aesthetic-predictor-v2-5"
         _aes_ran_siglip = False
 
         # ── Inline helper: run aesthetic-predictor-v2-5 on a list of records ──
@@ -674,6 +760,8 @@ def main() -> None:
                 aesthetic = load_aesthetic_model(get_device())
             _p3a_load_s += time.perf_counter() - _t_load
             _p3a_model_mb = _peak_mb()
+            if _p3a_model_mb:
+                console.print(f"  [dim]Peak memory: {_p3a_model_mb:.0f} MB[/dim]")
             failed = 0
             with _progress(SpinnerColumn(), BarColumn(), TextColumn("{task.description}"), MofNCompleteColumn(), TaskProgressColumn()) as p:
                 task = p.add_task(label, total=len(todo))
@@ -742,7 +830,7 @@ def main() -> None:
             _save_batch(aes_todo)
             saved_pct = 100 * _p3a_n_regressor / len(aes_todo) if aes_todo else 0
             console.print(f"  [green]✓[/green] {_p3a_n_siglip} SigLIP + {_p3a_n_regressor} regressor ([green]{saved_pct:.0f}%[/green] of SigLIP calls saved)")
-            _p3a_pass_name = f"Pass 4a: aesthetic warm-start (K={len(seed_records)})"
+            _p3a_pass_name = f"Pass 4a: aesthetic-predictor-v2-5 (K={len(seed_records)})"
             _aes_ran_siglip = True
 
         # ── Case 2: regressor exists with X_seed → OOD-based incremental ──────
@@ -813,7 +901,7 @@ def main() -> None:
 
             _save_batch(aes_todo)
             console.print(f"  [green]✓[/green] {n_ind} in-dist regressor + {_p3a_n_siglip} OOD SigLIP seeds + {_p3a_n_regressor - n_ind} OOD regressor")
-            _p3a_pass_name = "Pass 4a: aesthetic incremental (OOD)"
+            _p3a_pass_name = "Pass 4a: aesthetic-predictor-v2-5 (OOD)"
 
         # ── Case 3: regressor exists but old format (no X_seed) → full SigLIP ─
         elif _reg_exists and not _reg_has_seed and aes_todo_all:
@@ -839,6 +927,9 @@ def main() -> None:
             {
                 "name": _p3a_pass_name,
                 "photos": _p3a_total or len(aes_todo_all),
+                "photos_eligible": len(aes_todo_all),
+                "photos_siglip": _p3a_n_siglip,
+                "photos_regressor": _p3a_n_regressor,
                 "elapsed_s": round(_p3a_elapsed, 2),
                 "throughput_img_s": round(_p3a_total / _p3a_elapsed, 1) if _p3a_elapsed > 0 and _p3a_total else None,
                 "load_s": round(_p3a_load_s, 2) if _p3a_load_s else None,
@@ -872,6 +963,7 @@ def main() -> None:
 
     # ── Pass 4b — CLIP-IQA+: technical IQ score (MPS/CUDA/CPU) ──────────────
     iq_batch = pick_batch_size("clipiqa+")
+    _log_scheduler("clipiqa+", iq_batch)
     iq_todo = needs_path("iq_score")
     if "iq" in _skip_passes or os.environ.get("SKIP_IQ", "false").lower() == "true":
         console.print("[bold]Pass 4b/7:[/bold] CLIP-IQA+ skipped\n")
@@ -885,6 +977,8 @@ def main() -> None:
             iq_metric = load_clipiqa_metric(device)
         _p3b_load_s = time.perf_counter() - _p3b_t0
         _p3b_model_mb = _peak_mb()
+        if _p3b_model_mb:
+            console.print(f"  [dim]Peak memory: {_p3b_model_mb:.0f} MB[/dim]")
 
         if isinstance(iq_metric, Exception):
             console.print(f"  [yellow]CLIP-IQA+ failed to load: {iq_metric}. Skipping.[/yellow]\n")
@@ -948,6 +1042,7 @@ def main() -> None:
         return (r.get("caption") or {}).get("has_person") == "yes"
 
     sal_batch = pick_batch_size("RMBG-2.0")
+    _log_scheduler("RMBG-2.0", sal_batch)
     _saliency_candidates = needs_path("saliency")
     todo = [r for r in _saliency_candidates if _needs_saliency(r)]
     if "saliency" in _skip_passes:
@@ -961,6 +1056,8 @@ def main() -> None:
             saliency_pipe = load_saliency_model(get_device())
         _p5_load_s = time.perf_counter() - _p5_t0
         _p5_model_mb = _peak_mb()
+        if _p5_model_mb:
+            console.print(f"  [dim]Peak memory: {_p5_model_mb:.0f} MB[/dim]")
 
         _sal_failed = 0
         with _progress(SpinnerColumn(), BarColumn(), TextColumn("{task.description}"), MofNCompleteColumn(), TaskProgressColumn()) as p:
@@ -987,6 +1084,7 @@ def main() -> None:
             {
                 "name": "Pass 5: RMBG-2.0",
                 "photos": len(todo),
+                "photos_eligible": len(_saliency_candidates),
                 "elapsed_s": round(_p5_elapsed, 2),
                 "throughput_img_s": round(len(todo) / _p5_elapsed, 1) if _p5_elapsed > 0 else None,
                 "load_s": round(_p5_load_s, 2),
@@ -1006,13 +1104,8 @@ def main() -> None:
         console.print()
 
     # ── Pass 6 — YOLO11-Pose: object detection + pose (portrait photos) ────────
-    todo = [
-        r
-        for r in records.values()
-        if "pose_data" not in r
-        and r.get("caption", {}).get("has_person", "").startswith("yes")
-        and (r.get("path") or (r.get("source") in ("lightroom", "both") and _download_renditions()))
-    ]
+    _pose_eligible = needs_path("pose_data")
+    todo = [r for r in _pose_eligible if r.get("caption", {}).get("has_person", "").startswith("yes")]
     if "pose" in _skip_passes:
         console.print("[bold]Pass 6/7:[/bold] skipped (--skip pose)\n")
         _pass_stats.append({"name": "Pass 6: YOLO26n-pose", "skipped": True})
@@ -1025,6 +1118,8 @@ def main() -> None:
             pose_model = load_pose_model(device)
         _p6_load_s = time.perf_counter() - _p6_t0
         _p6_model_mb = _peak_mb()
+        if _p6_model_mb:
+            console.print(f"  [dim]Peak memory: {_p6_model_mb:.0f} MB[/dim]")
 
         _pose_failed = 0
         with _progress(SpinnerColumn(), BarColumn(), TextColumn("{task.description}"), MofNCompleteColumn(), TaskProgressColumn()) as p:
@@ -1062,6 +1157,7 @@ def main() -> None:
             {
                 "name": "Pass 6: YOLO26n-pose",
                 "photos": len(todo),
+                "photos_eligible": len(_pose_eligible),
                 "elapsed_s": round(_p6_elapsed, 2),
                 "throughput_img_s": round(len(todo) / _p6_elapsed, 1) if _p6_elapsed > 0 else None,
                 "load_s": round(_p6_load_s, 2),
@@ -1099,7 +1195,6 @@ def main() -> None:
     data = {"photos": all_records, "aggregated": aggregated, "coach": coach_data}
     generate_json(data)
     generate_html(data)
-
     # ── Pipeline profile summary ──────────────────────────────────────────────
     if _pass_stats:
         _total_photos = len(all_records)
@@ -1114,17 +1209,25 @@ def main() -> None:
         t = Table(show_header=True, header_style="bold", box=None, padding=(0, 1))
         t.add_column("Pass", style="cyan")
         t.add_column("Photos", justify="right")
+        t.add_column("Filtered", justify="right")
         t.add_column("Time", justify="right")
         t.add_column("img/s", justify="right")
         t.add_column("Load", justify="right")
         t.add_column("Peak mem", justify="right")
         for p in _pass_stats:
             if p.get("skipped"):
-                t.add_row(p["name"], "–", "skipped", "–", "–", "–")
+                t.add_row(p["name"], "–", "–", "skipped", "–", "–", "–")
             else:
+                eligible = p.get("photos_eligible")
+                processed = p["photos"]
+                if eligible and eligible > processed:
+                    filtered_str = f"{processed}/{eligible}"
+                else:
+                    filtered_str = "–"
                 t.add_row(
                     p["name"],
-                    str(p["photos"]),
+                    str(processed),
+                    filtered_str,
                     f"{p['elapsed_s']:.1f}s",
                     f"{p['throughput_img_s']:.1f}" if p.get("throughput_img_s") else "–",
                     f"{p['load_s']:.1f}s" if p.get("load_s") else "–",
@@ -1137,10 +1240,14 @@ def main() -> None:
             f"([green]{_hit_rate:.1f}%[/green])  ·  "
             f"~[green]{_saved_s:.0f}s[/green] saved by cache\n"
         )
+        _flush_pipeline_summary(_total_photos, _cache_hits, _cache_misses, _total_elapsed, _saved_s)
+
+    generate_performance_report(_pass_stats)
 
     console.print("\n[bold green]Done![/bold green]")
     console.print("  [dim]JSON →[/dim] [cyan]docs/results.json[/cyan]")
-    console.print("  [dim]HTML →[/dim] [cyan]docs/report.html[/cyan]  ← open in your browser\n")
+    console.print("  [dim]Analytics →[/dim] [cyan]docs/analytics_report.html[/cyan]")
+    console.print("  [dim]Performance →[/dim] [cyan]docs/performance_report.html[/cyan]\n")
 
 
 if __name__ == "__main__":

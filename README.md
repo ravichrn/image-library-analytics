@@ -1,10 +1,25 @@
 # On-Device Image Analytics
 
-An on-device inference pipeline that runs seven vision models within a fixed memory budget on Apple Silicon through sequential model loading and unloading. Performs scene classification, aesthetic and quality scoring, pose detection, background removal, and near-duplicate clustering. Built around a profiling-driven optimization approach that identified image decode rather than model compute as the primary bottleneck, with a benchmark-driven batch scheduler, content-addressed caching for incremental runs, and a lightweight regressor that reduces the cost of the most expensive model. 
+An on-device inference pipeline that runs seven vision models within a fixed memory budget on Apple Silicon through sequential model loading and unloading. Performs scene classification, aesthetic and quality scoring, pose detection, background removal, and near-duplicate clustering. Built around a profiling-driven optimization approach that identified image decode rather than model compute as the primary bottleneck, with a benchmark-driven batch scheduler, content-addressed caching for incremental runs, and a lightweight regressor that reduces the cost of the most expensive model.
 
 Supports local folders and [Adobe Lightroom](https://lightroom.adobe.com) cloud with per-asset delta sync.
 
-**[Live report](https://ravichrn.github.io/on-device-image-analytics/report.html)**
+**[Analytics report](https://ravichrn.github.io/on-device-image-analytics/analytics_report.html)** · **[Benchmark report](https://ravichrn.github.io/on-device-image-analytics/performance_report.html)**
+
+---
+
+## Key Results
+
+| What | Number | Context |
+|---|---|---|
+| Sequential peak memory | **3.1 GB** | vs ~11 GB naive (all models loaded simultaneously) |
+| RMBG cascade gate | **87% filtered** | 660 / 5,107 photos actually run through RMBG-2.0 |
+| Aesthetic regressor coverage | **~94%** | of incremental photos scored at <1% of SigLIP compute |
+| Decode bottleneck (before fix) | **35 img/s** | image decode dominated GPU idle time |
+| Decode throughput (after fix) | **247 img/s** | PIL draft mode + background prefetch + 4 decode threads |
+| YOLO pre-decode speedup | **42 → 64 img/s** | bypassing YOLO's internal OpenCV path |
+| Incremental run | **~30 s** | vs ~10 min cold (5,107-photo library, M3 Pro) |
+| Cache hit rate (warm) | **100%** | zero model loads on unchanged photos |
 
 ---
 
@@ -224,7 +239,9 @@ SOURCES=lightroom,local  # merged and deduplicated by SHA-256
 ```bash
 uv run python main.py                          # full library
 uv run python main.py --sample 50             # quick test on 50 random photos
-uv run python main.py --report-only           # regenerate report from cache, no ML
+uv run python main.py --report-only           # regenerate reports from latest run
+uv run python main.py --report-only --run-type full         # performance report from last full run
+uv run python main.py --report-only --run-type incremental  # performance report from last incremental run
 
 # Selective passes
 uv run python main.py --skip pose
@@ -246,7 +263,8 @@ uv run python main.py --prune --dry-run
 uv run python main.py --lightroom-album "Best of 2024"
 uv run python main.py --lightroom-since 2024-06-01
 
-open docs/report.html
+open docs/analytics_report.html
+open docs/performance_report.html
 ```
 
 **Pass names for `--skip`/`--only`:** `exif`, `dino`, `scene`, `aesthetic`, `iq`, `saliency`, `pose`
@@ -272,7 +290,11 @@ Results → `docs/backend_comparison.json` · Scheduler profile → `docs/schedu
 
 | File | |
 |---|---|
-| `docs/report.html` | Interactive dashboard (mobile-responsive, URL deep links) |
+| `docs/analytics_report.html` | Analytics dashboard — scene, aesthetic, quality, clusters (mobile-responsive) |
+| `docs/performance_report.html` | Performance report — throughput, memory, cascade filtering, scheduler bandit state |
+| `docs/pipeline_profile.json` | Latest run snapshot (per-pass data flushed incrementally for crash safety) |
+| `docs/pipeline_profile_full.json` | Last full-run reference (auto-detected: ≥80% of photos through ML) |
+| `docs/pipeline_profile_incremental.json` | Last incremental-run reference |
 | `docs/results.json` | Raw metrics + aggregations |
 | `docs/embeddings_cache.json` | UMAP + near-duplicate results; auto-invalidates on embedding change |
 | `artifacts/` | Single folder for all generated and downloaded files — delete to fully reset |

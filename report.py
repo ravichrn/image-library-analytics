@@ -213,11 +213,11 @@ def generate_json(data: dict, path: Path = OUTPUT_DIR / "results.json") -> None:
     path.write_text(json.dumps(output, indent=2))
 
 
-def generate_html(data: dict, path: Path = OUTPUT_DIR / "report.html") -> None:
+def generate_html(data: dict, path: Path = OUTPUT_DIR / "analytics_report.html") -> None:
     OUTPUT_DIR.mkdir(exist_ok=True)
     env = jinja2.Environment(loader=jinja2.FileSystemLoader("templates"), autoescape=True)
     env.filters["tojson"] = lambda v: Markup(json.dumps(v))
-    template = env.get_template("report.html.j2")
+    template = env.get_template("analytics_report.html.j2")
 
     agg = data.get("aggregated", {})
     photos = data.get("photos", [])

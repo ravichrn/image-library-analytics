@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pipeline Performance Report</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+<style>
+:root {
+  --bg:      #09090e;
+  --bg2:     #0c0c14;
+  --bg3:     #11111c;
+  --border:  #1e1e30;
+  --accent:  #7c6af7;
+  --text:    #d8d8e4;
+  --muted:   #6b6b90;
+  --green:   #4ade80;
+  --yellow:  #fde68a;
+  --red:     #f87171;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background: var(--bg); color: var(--text);
+  line-height: 1.65; font-size: 14px;
+}
+.page { max-width: 1100px; margin: 0 auto; padding: 2rem 1.5rem 6rem; }
+h1 { font-size: 1.8rem; font-weight: 700; margin-bottom: 0.25rem; }
+h2 {
+  font-size: 0.88rem; font-weight: 700; color: var(--text);
+  margin: 2.5rem 0 0.9rem; text-transform: uppercase; letter-spacing: 0.1em;
+  padding-bottom: 0.45rem; border-bottom: 1px solid var(--border);
+}
+h3 { font-size: 0.8rem; font-weight: 600; color: var(--muted); margin-bottom: 0.6rem; text-transform: uppercase; letter-spacing: 0.07em; }
+.subtitle { color: var(--muted); font-size: 0.85rem; margin-bottom: 2rem; }
+.badge { display: inline-block; font-size: 0.63rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.08em; padding: 0.12rem 0.45rem; border-radius: 3px; vertical-align: middle; }
+.badge-full        { background: #18113a; color: var(--accent); }
+.badge-incremental { background: #0e2a14; color: var(--green); }
+
+/* ── Stat strip ──────────────────────────────────────────────── */
+.stats { display: grid; grid-template-columns: repeat(auto-fill, minmax(155px, 1fr)); gap: 0.9rem; margin-bottom: 2rem; }
+.stat-card { background: var(--bg2); border: 1px solid var(--border); border-radius: 6px; padding: 1rem 1.2rem; }
+.stat-card .label { font-size: 0.68rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.09em; margin-bottom: 0.3rem; }
+.stat-card .value { font-size: 1.55rem; font-weight: 700; line-height: 1.1; }
+.stat-card .sub   { font-size: 0.7rem; color: var(--muted); margin-top: 0.25rem; }
+.orange { color: var(--accent); }
+.green  { color: var(--green); }
+.yellow { color: var(--yellow); }
+
+/* ── Note card ───────────────────────────────────────────────── */
+.note-card {
+  background: var(--bg3); border-left: 3px solid var(--accent); border-radius: 5px;
+  padding: 0.75rem 1rem; font-size: 0.79rem; color: var(--muted);
+  margin-bottom: 0.8rem; line-height: 1.55;
+}
+.note-card strong { color: var(--text); }
+
+/* ── Tables ──────────────────────────────────────────────────── */
+.card { background: var(--bg2); border: 1px solid var(--border); border-radius: 6px; padding: 1.2rem 1.4rem; margin-bottom: 1rem; }
+table { width: 100%; border-collapse: collapse; font-size: 0.81rem; }
+th {
+  text-align: left; color: var(--muted); font-size: 0.69rem; text-transform: uppercase;
+  letter-spacing: 0.07em; padding: 0.35rem 0.6rem; border-bottom: 1px solid var(--border);
+  position: relative; white-space: nowrap;
+}
+td { padding: 0.42rem 0.6rem; border-bottom: 1px solid rgba(255,255,255,0.03); }
+tr:last-child td { border-bottom: none; }
+.right { text-align: right; }
+.hl  { color: var(--accent); font-weight: 600; }
+.dim { color: var(--muted); }
+
+/* ── Tooltip ─────────────────────────────────────────────────── */
+.tip {
+  cursor: help; color: var(--muted); margin-left: 3px;
+  font-size: 0.66rem; font-weight: 400; text-transform: none; letter-spacing: 0;
+  display: inline-block;
+}
+#tip-float {
+  position: fixed; display: none; pointer-events: none; z-index: 9999;
+  background: #1c1c30; color: var(--text); border: 1px solid var(--border); border-radius: 5px;
+  padding: 0.55rem 0.8rem; font-size: 0.75rem; line-height: 1.6;
+  width: 260px; white-space: normal; word-wrap: break-word;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.5);
+}
+
+/* ── Bar rows (shared across all horizontal bar sections) ────── */
+.bar-row { display: flex; align-items: center; gap: 0.55rem; font-size: 0.78rem; margin: 0.22rem 0; }
+.bar-lbl-sm  { width: 2.4rem;  text-align: right; color: var(--muted); flex-shrink: 0; }
+.bar-lbl-lg  { width: 9.5rem; text-align: right; color: var(--muted); white-space: nowrap;
+               overflow: hidden; text-overflow: ellipsis; flex-shrink: 0; }
+.bar-track   { flex: 1; background: var(--bg3); border-radius: 3px; height: 8px; overflow: hidden; }
+.bar-fill    { height: 100%; border-radius: 3px; }
+.bar-accent  { background: var(--accent); }
+.bar-green   { background: var(--green); }
+.bar-dominant { background: var(--green); }
+.bar-pulls   { width: 3rem; text-align: right; color: var(--muted); flex-shrink: 0; }
+.bar-val     { width: 5.5rem; text-align: right; flex-shrink: 0; }
+.bar-pct     { width: 3rem; text-align: right; color: var(--muted); font-size: 0.73rem; flex-shrink: 0; }
+.bar-val-s   { width: 3.5rem; text-align: right; color: var(--muted); flex-shrink: 0; }
+.bar-val-m   { width: 4rem; text-align: right; color: var(--text); flex-shrink: 0; }
+.bar-val-tip { display: flex; align-items: center; justify-content: flex-end; gap: 0.3rem; width: 5.5rem; flex-shrink: 0; }
+
+/* ── Charts ──────────────────────────────────────────────────── */
+.charts     { display: grid; grid-template-columns: 1fr 2fr; gap: 1rem; margin-bottom: 1rem; }
+.chart-card { background: var(--bg2); border: 1px solid var(--border); border-radius: 6px; padding: 1.1rem; }
+.chart-card canvas { max-height: 220px; }
+.chart-full { grid-column: 1 / -1; }
+
+/* ── Two-column grids inside cards ───────────────────────────── */
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 2.5rem; }
+
+/* ── Mobile ──────────────────────────────────────────────────── */
+@media (max-width: 640px) {
+  .stats  { grid-template-columns: 1fr 1fr; }
+  .charts { grid-template-columns: 1fr !important; }
+  .chart-full { grid-column: 1 !important; }
+  .two-col { grid-template-columns: 1fr !important; }
+  .bar-lbl-lg { width: 6rem; }
+  h1 { font-size: 1.4rem; }
+  h2 { font-size: 0.82rem; }
+}
+</style>
+</head>
+<body>
+<div class="page">
+
+  <h1>Pipeline Performance Report</h1>
+  {% set run_date = pipeline.get("run_date", "–") %}
+  {% set total_photos = pipeline.get("total_photos", "–") %}
+  <p class="subtitle">
+    {{ run_date }}
+    {% if run_type %}&nbsp;·&nbsp;
+      <span class="badge {{ 'badge-full' if run_type == 'full' else 'badge-incremental' }}">{{ run_type }} run</span>
+    {% endif %}
+    &nbsp;·&nbsp; {{ total_photos }} photos &nbsp;·&nbsp;
+    Cache hit rate: {{ pipeline.get("cache_hit_rate_pct", "–") }}%
+  </p>
+
+  <!-- ── Summary stats ── -->
+  <div class="stats">
+    <div class="stat-card">
+      <div class="label">Total elapsed</div>
+      <div class="value orange">{{ total_elapsed_min }} min</div>
+      <div class="sub">{{ "%.0f"|format(pipeline.get("total_pipeline_elapsed_s", 0)) }}s total</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">Total photos</div>
+      <div class="value">{{ total_photos }}</div>
+      <div class="sub">{{ pipeline.get("cache_hits", "–") }} cached &nbsp;·&nbsp; {{ pipeline.get("cache_misses", "–") }} new</div>
+    </div>
+    <div class="stat-card">
+      {% if run_type == "full" %}
+      <div class="label">EXIF &amp; analysis cached</div>
+      <div class="value yellow">{{ "%.1f"|format(pipeline.get("estimated_time_saved_s", 0) / 60) }} min</div>
+      <div class="sub">EXIF, color, ELA, composition — not re-run</div>
+      {% else %}
+      <div class="label">ML inference cached</div>
+      <div class="value yellow">{{ "%.1f"|format(pipeline.get("estimated_time_saved_s", 0) / 60) }} min</div>
+      <div class="sub">ML passes skipped for already-processed photos</div>
+      {% endif %}
+    </div>
+    <div class="stat-card">
+      <div class="label">Sequential peak memory</div>
+      <div class="value green">{{ actual_peak_gb }} GB</div>
+      <div class="sub">vs {{ naive_peak_gb }} GB if all models loaded at once</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">Memory saved</div>
+      <div class="value green">{{ memory_savings_pct }}%</div>
+      <div class="sub">from sequential load/unload vs loading all at once</div>
+    </div>
+  </div>
+
+  <!-- ── Pass time breakdown ── -->
+  <h2>Pass Time Breakdown</h2>
+  <div class="card">
+    <h3>Share of total pipeline time &nbsp;·&nbsp; {{ total_elapsed_min }} min total</h3>
+    {% for row in time_rows %}
+    <div class="bar-row">
+      <span class="bar-lbl-lg">{{ row.label }}</span>
+      <div class="bar-track"><div class="bar-fill bar-accent" style="width: {{ row.pct }}%"></div></div>
+      <span class="bar-val-s">{{ "%.0f"|format(row.elapsed_s) }}s</span>
+      <span class="bar-val-m">{{ row.elapsed_min }} min</span>
+      <span class="bar-pct">{{ row.pct }}%</span>
+    </div>
+    {% endfor %}
+  </div>
+
+  <!-- ── Throughput & Memory ── -->
+  <h2>Throughput &amp; Memory</h2>
+  <div class="card">
+    <div class="two-col">
+      <div>
+        <h3>Throughput (img/s)</h3>
+        {% for row in throughput_rows %}
+        <div class="bar-row">
+          <span class="bar-lbl-lg">{{ row.label }}</span>
+          <div class="bar-track"><div class="bar-fill bar-accent" style="width: {{ row.pct }}%"></div></div>
+          <span class="bar-val hl">{{ "%.1f"|format(row.value) }}</span>
+        </div>
+        {% endfor %}
+      </div>
+      <div>
+        <h3>Peak memory per model</h3>
+        {% for row in memory_rows %}
+        <div class="bar-row">
+          <span class="bar-lbl-lg">{{ row.label }}</span>
+          <div class="bar-track"><div class="bar-fill bar-green" style="width: {{ row.pct }}%"></div></div>
+          <span class="bar-val green">{{ row.value_gb }} GB</span>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Cascade + Memory timeline side by side ── -->
+  <div class="charts">
+    {% if cascade_passes %}
+    <div class="chart-card" style="display:flex;flex-direction:column;">
+      <h3>Cascade filtering — processed vs gated</h3>
+      <div style="flex:1;min-height:160px;position:relative;">
+        <canvas id="chartCascade" style="position:absolute;inset:0;width:100%!important;height:100%!important;"></canvas>
+      </div>
+    </div>
+    <div class="chart-card">
+      <h3>Memory timeline — load / unload sequence (GB)</h3>
+      <p style="font-size:0.72rem;color:var(--muted);margin-bottom:0.6rem;line-height:1.5;">Unlike the peak memory bars above (which show each model's size), this shows the time-ordered sequence: each bar is one pass, and it drops to zero when the model is unloaded before the next one starts.</p>
+    {% else %}
+    <div class="chart-card chart-full">
+      <h3>Memory timeline — load / unload sequence (GB)</h3>
+      <p style="font-size:0.72rem;color:var(--muted);margin-bottom:0.6rem;line-height:1.5;">Shows the load/unload sequence across passes — bar drops to zero when a model is unloaded before the next one starts. Compare bar heights with the peak memory bars above to see which models are heaviest.</p>
+    {% endif %}
+      <canvas id="chartMemoryTimeline"></canvas>
+    </div>
+  </div>
+
+  <!-- ── Pass breakdown ── -->
+  <h2>Pass Breakdown</h2>
+  <div class="note-card">
+    <strong>Eligible &amp; Gated %</strong> are only shown for passes with a cascade pre-filter — a step that runs before the model to skip photos where the model adds no value. RMBG-2.0 and YOLO are pre-filtered by subject/portrait signal, so only a fraction of photos reach those models. All other passes run on every photo. The aesthetic pass routes computation internally (seeds go through the SigLIP model, the rest go through the fast regressor) — that split appears in the sub-row below, not as a photo-count gate here.
+  </div>
+  <div class="card">
+    <table>
+      <thead>
+        <tr>
+          <th>Pass</th>
+          <th class="right">Processed <span class="tip" data-tip="Number of photos that ran through this pass's ML model during this run.">ⓘ</span></th>
+          <th class="right">Eligible <span class="tip" data-tip="Photos considered before the cascade pre-filter ran. Blank means no pre-filter — this pass processed every photo.">ⓘ</span></th>
+          <th class="right">Gated % <span class="tip" data-tip="Share of eligible photos skipped before reaching the model. Only RMBG-2.0 and YOLO have this pre-model filter.">ⓘ</span></th>
+          <th class="right">Time <span class="tip" data-tip="Wall-clock time for all batches in this pass, including image I/O and batching overhead.">ⓘ</span></th>
+          <th class="right">img/s <span class="tip" data-tip="End-to-end throughput: photos processed divided by elapsed time, including prefetch, batching, and the GPU forward pass.">ⓘ</span></th>
+          <th class="right">Load time <span class="tip" data-tip="Time to load model weights from disk into device memory (MPS or CUDA) before the first batch starts.">ⓘ</span></th>
+          <th class="right">Peak memory <span class="tip" data-tip="Maximum device memory allocated during this pass. Sequential loading keeps most models below 2 GB, since each is unloaded before the next starts.">ⓘ</span></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for p in passes %}
+        {% set eligible = p.get("photos_eligible") %}
+        {% set processed = p["photos"] %}
+        {% set gated_pct = ((eligible - processed) / eligible * 100)|round(0)|int if eligible and eligible > processed else None %}
+        <tr>
+          <td>{{ p["name"] }}</td>
+          <td class="right hl">{{ processed }}</td>
+          <td class="right dim">
+            {% if eligible and eligible > processed %}{{ eligible }}
+            {% elif eligible %}{{ eligible }}
+            {% else %}<span class="tip" data-tip="No cascade pre-filter — this pass ran on every photo.">–</span>{% endif %}
+          </td>
+          <td class="right">
+            {% if gated_pct %}<span class="green">{{ gated_pct }}%</span>{% else %}<span class="dim">–</span>{% endif %}
+          </td>
+          <td class="right">{{ "%.1f"|format(p["elapsed_s"]) }}s</td>
+          <td class="right">{{ "%.1f"|format(p["throughput_img_s"]) if p.get("throughput_img_s") else "–" }}</td>
+          <td class="right dim">{{ "%.2f"|format(p["load_s"]) ~ "s" if p.get("load_s") else "–" }}</td>
+          <td class="right">
+            {% if p.get("model_memory_mb") %}
+              {% if p["model_memory_mb"] >= 1000 %}{{ "%.2f"|format(p["model_memory_mb"] / 1024) }} GB
+              {% else %}{{ "%.0f"|format(p["model_memory_mb"]) }} MB{% endif %}
+            {% else %}–{% endif %}
+          </td>
+        </tr>
+        {% if p.get("photos_siglip") is not none and p.get("photos_regressor") is not none %}
+        <tr>
+          <td colspan="8" class="dim" style="font-size:0.74rem;padding-left:1.4rem;">
+            ↳ {{ p["photos_siglip"] }} via SigLIP seed &nbsp;·&nbsp; {{ p["photos_regressor"] }} via regressor
+            {% if p["photos_siglip"] + p["photos_regressor"] > 0 %}
+              &nbsp;·&nbsp; <span class="green">{{ (p["photos_regressor"] / (p["photos_siglip"] + p["photos_regressor"]) * 100)|round(0)|int }}% regressor coverage</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% endif %}
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ── Microbenchmark batch-scaling curves ── -->
+  {% if batch_curves %}
+  <h2>Microbenchmark — Batch Scaling ({{ batch_curves.hardware }}{% if batch_curves.run_date %}, {{ batch_curves.run_date }}{% endif %})</h2>
+  <div class="charts">
+    <div class="chart-card chart-full">
+      <h3>Throughput (img/s) vs batch size</h3>
+      <canvas id="chartThroughputCurves" style="max-height: 260px;"></canvas>
+    </div>
+    <div class="chart-card chart-full">
+      <div class="note-card">
+        <strong>Why latency curves matter:</strong> p50 per-image latency at each batch size reveals whether a model is compute-bound or memory-bound. A compute-bound model (YOLO, DINOv3) shows latency flat or slowly rising with batch — the GPU stays fully utilised at all sizes. A memory-bound model (RMBG, aesthetic predictor) plateaus quickly and latency rises sharply past the saturation point. The safe batch is chosen just before that inflection, and the bandit confirms it at runtime.
+      </div>
+      <h3>Per-image latency p50 (ms) vs batch size</h3>
+      <canvas id="chartLatencyCurves" style="max-height: 260px;"></canvas>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- ── Scheduler static profiles ── -->
+  {% if sched_models %}
+  <h2>Scheduler — Static Profiles</h2>
+  <div class="card">
+    <table>
+      <thead>
+        <tr>
+          <th>Model</th>
+          <th class="right">Safe batch <span class="tip" data-tip="Smallest batch size reaching at least 99% of peak throughput in the microbenchmark. Used as a conservative starting point before the bandit explores larger batches.">ⓘ</span></th>
+          <th class="right">Best batch <span class="tip" data-tip="Batch size with the highest measured throughput in the static microbenchmark. Pre-seeds the bandit's dominant arm so it starts near the optimal.">ⓘ</span></th>
+          <th class="right">Max batch <span class="tip" data-tip="Largest batch size that completed without running out of memory during the microbenchmark sweep.">ⓘ</span></th>
+          <th class="right">Profiled img/s <span class="tip" data-tip="Throughput at best_batch from the static microbenchmark. The bandit uses this as the reward baseline — a reward of 1.0 means the live run exactly matched this figure.">ⓘ</span></th>
+          <th class="right">Profiled p95 (ms) <span class="tip" data-tip="95th-percentile per-batch latency at best_batch from the microbenchmark. The bandit downgrades the batch size if live p95 exceeds twice this value and throughput falls below 90% of the profiled rate simultaneously.">ⓘ</span></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for m in sched_models %}
+        <tr>
+          <td>{{ m["model"] }}</td>
+          <td class="right dim">{{ m["safe_batch"] }}</td>
+          <td class="right hl">{{ m["best_batch"] }}</td>
+          <td class="right dim">{{ m["max_batch"] }}</td>
+          <td class="right">{{ m["profiled_imgs_per_s"] }}</td>
+          <td class="right">{{ m["profiled_p95_ms"] }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% endif %}
+
+  <!-- ── Bandit state ── -->
+  {% if bandit_rows %}
+  <h2>Scheduler — UCB Bandit Convergence</h2>
+  <div class="note-card">
+    <strong>How the bandit works:</strong> Each model has several batch-size <strong>arms</strong> (e.g. batch=1, 4, 8, 16). On each pass the UCB (Upper Confidence Bound) algorithm picks an arm, balancing exploitation (use the highest-reward arm) with exploration (occasionally try others to confirm they're still worse). After each run it records a <strong>reward</strong> equal to achieved img/s divided by the profiled img/s baseline. The bar length shows mean reward per pull. The <strong style="color:var(--green)">green bar</strong> is the dominant arm — the batch size with the highest mean reward. A reward of 1.0 means the live run matched the benchmark; above 1.0 means this machine outperformed it at that batch size.
+  </div>
+  <div class="card">
+    {% for row in bandit_rows %}
+    <div style="margin-bottom: 0.5rem;">
+      <h3>{{ row["model"] }}
+        <span class="dim" style="font-size:0.69rem;text-transform:none;letter-spacing:0">
+          best batch: {{ row["dominant_batch"] }} &nbsp;·&nbsp; {{ row["total_pulls"] }} pulls
+        </span>
+      </h3>
+      {% set max_reward = row["arms"]|map(attribute="mean_reward")|max %}
+      {% for arm in row["arms"] %}
+      <div class="bar-row">
+        <span class="bar-lbl-sm">{{ arm["batch"] }}</span>
+        <div class="bar-track">
+          <div class="bar-fill {{ 'bar-dominant' if arm['batch'] == row['dominant_batch'] else 'bar-accent' }}"
+               style="width: {{ (arm['mean_reward'] / max_reward * 100)|round(1) if max_reward > 0 else 0 }}%"></div>
+        </div>
+        <span class="bar-pulls">{{ arm["pulls"] }}×</span>
+        <div class="bar-val-tip">
+          <span class="{{ 'green' if arm['batch'] == row['dominant_batch'] else 'dim' }}">{{ arm["mean_reward"] }}</span>
+          <span class="tip" data-tip="Mean reward across {{ arm['pulls'] }} pull(s) with batch size {{ arm['batch'] }}. Reward equals achieved img/s divided by the profiled baseline. Above 1.0 means this batch outperformed the benchmark.">ⓘ</span>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% if not loop.last %}<hr style="border:none;border-top:1px solid var(--border);margin:0.7rem 0">{% endif %}
+    {% endfor %}
+  </div>
+  {% endif %}
+
+</div>
+<div id="tip-float"></div>
+
+<script>
+(function () {
+  const tip = document.getElementById('tip-float');
+  let active = null;
+  document.addEventListener('mouseover', function (e) {
+    const el = e.target.closest('[data-tip]');
+    if (!el) return;
+    active = el;
+    tip.textContent = el.getAttribute('data-tip');
+    tip.style.display = 'block';
+    position();
+  });
+  document.addEventListener('mouseout', function (e) {
+    const el = e.target.closest('[data-tip]');
+    if (el) { tip.style.display = 'none'; active = null; }
+  });
+  document.addEventListener('mousemove', function () { if (active) position(); });
+  function position() {
+    if (!active) return;
+    const r = active.getBoundingClientRect();
+    const tw = tip.offsetWidth, th = tip.offsetHeight;
+    let left = r.left + r.width / 2 - tw / 2;
+    let top  = r.top - th - 8;
+    left = Math.max(8, Math.min(left, window.innerWidth  - tw - 8));
+    if (top < 8) top = r.bottom + 8;
+    tip.style.left = left + 'px';
+    tip.style.top  = top  + 'px';
+  }
+}());
+</script>
+
+<script>
+const GC = { color: "#4b4b6a", font: { size: 11 } };
+const CHART_DEFAULTS = {
+  plugins: { legend: { display: false } },
+  scales: {
+    x: { ticks: { ...GC }, grid: { color: "#14142a" } },
+    y: { ticks: { ...GC }, grid: { color: "#14142a" } },
+  },
+};
+
+{% if cascade_passes %}
+new Chart(document.getElementById("chartCascade"), {
+  type: "bar",
+  data: {
+    labels: {{ chart_cascade_labels }},
+    datasets: [
+      { label: "Processed", data: {{ chart_cascade_processed }}, backgroundColor: "#7c6af7cc", borderRadius: 3, stack: "s" },
+      { label: "Gated",     data: {{ chart_cascade_gated }},     backgroundColor: "#1e1e30",   borderRadius: 3, stack: "s" },
+    ],
+  },
+  options: {
+    ...CHART_DEFAULTS,
+    maintainAspectRatio: false,
+    plugins: { legend: { display: true, labels: { color: "#6b6b90", font: { size: 11 } } } },
+    scales: { x: CHART_DEFAULTS.scales.x, y: { ...CHART_DEFAULTS.scales.y, stacked: true } },
+  },
+});
+{% endif %}
+
+new Chart(document.getElementById("chartMemoryTimeline"), {
+  type: "bar",
+  data: {
+    labels: {{ chart_memory_timeline_labels }},
+    datasets: [{
+      data: {{ chart_memory_timeline_values_gb }},
+      backgroundColor: {{ chart_memory_timeline_values_gb }}.map(v => v > 0 ? "#4ade8055" : "#ffffff06"),
+      borderColor:     {{ chart_memory_timeline_values_gb }}.map(v => v > 0 ? "#4ade80bb" : "transparent"),
+      borderWidth: 1, borderRadius: 3,
+    }],
+  },
+  options: {
+    ...CHART_DEFAULTS,
+    plugins: {
+      legend: { display: false },
+      tooltip: { callbacks: { label: ctx => ctx.raw > 0 ? `${ctx.raw.toFixed(2)} GB` : "no model loaded" } },
+    },
+    scales: {
+      ...CHART_DEFAULTS.scales,
+      y: { ...CHART_DEFAULTS.scales.y, title: { display: true, text: "GB", color: "#6b6b90", font: { size: 10 } } },
+      x: { ...CHART_DEFAULTS.scales.x, ticks: { ...GC, maxRotation: 32 } },
+    },
+  },
+});
+
+{% if batch_curves %}
+const CURVE_OPTS = {
+  scales: {
+    x: { ticks: { ...GC }, grid: { color: "#14142a" }, title: { display: true, text: "Batch size", color: "#6b6b90", font: { size: 11 } } },
+    y: { ticks: { ...GC }, grid: { color: "#14142a" } },
+  },
+  plugins: { legend: { labels: { color: "#6b6b90", font: { size: 11 }, boxWidth: 12 } } },
+};
+new Chart(document.getElementById("chartThroughputCurves"), {
+  type: "line",
+  data: { labels: {{ chart_batch_sizes }}, datasets: {{ chart_throughput_curve_datasets }} },
+  options: { ...CURVE_OPTS, scales: { ...CURVE_OPTS.scales,
+    y: { ...CURVE_OPTS.scales.y, title: { display: true, text: "img/s", color: "#6b6b90", font: { size: 11 } } } } },
+});
+new Chart(document.getElementById("chartLatencyCurves"), {
+  type: "line",
+  data: { labels: {{ chart_batch_sizes }}, datasets: {{ chart_latency_curve_datasets }} },
+  options: { ...CURVE_OPTS, scales: { ...CURVE_OPTS.scales,
+    y: { ...CURVE_OPTS.scales.y, title: { display: true, text: "ms / image", color: "#6b6b90", font: { size: 11 } } } } },
+});
+{% endif %}
+</script>
+</body>
+</html>
