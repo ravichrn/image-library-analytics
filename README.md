@@ -26,35 +26,30 @@ Supports local folders and [Adobe Lightroom](https://lightroom.adobe.com) cloud 
 ## Features/Optimisations
 
 **GPU (MPS)**
-- Sequential model loading: each pass loads, runs, fully unloads with a device cache flush — peak memory ~3.1 GB vs ~10 GB all-at-once
-- `torch.float16` for all MPS forward passes; `torch.compile` applied best-effort on CUDA
-- Explicit `del model`, `gc.collect()`, and `empty_cache()` after every pass
+- Sequential model loading: each pass loads, runs, and fully unloads with a device cache flush — peak memory 1.74 GB vs 9.04 GB naive
+- `torch.float16` for all MPS forward passes
 
 **Batch sizing — benchmark-driven scheduler**
 - Microbenchmark finds the smallest batch reaching ≥99% peak throughput per model; UCB bandit adapts per-machine at runtime
-- Benchmark config imported from extractor modules — pipeline changes propagate automatically
 - Downgrades batch size only on an observed latency spike (p95 > 2× profiled AND throughput < 90% profiled)
 - Memory guardrail at launch: free device memory ≥12 GB → 2× default batch; <6 GB → half
 
 **I/O — CPU → GPU pipeline**
-- 1 background thread prefetches batch N+1 while GPU runs batch N; 4 decode threads within each batch — GPU idle time between batches eliminated
-- PIL draft mode on every JPEG: libjpeg-turbo downscales before full decode — 2.4× decode speedup; 35 → 247 img/s measured
-- YOLO receives pre-decoded PIL images, bypassing its internal C++ OpenCV path: 42 → 64 img/s end-to-end
+- 1 background thread prefetches batch N+1 while GPU runs batch N; 4 decode threads within each batch — GPU idle time eliminated
+- PIL draft mode on every JPEG: libjpeg-turbo downscales before full decode — 35 → 247 img/s
+- YOLO receives pre-decoded PIL images, bypassing its internal OpenCV path: 42 → 64 img/s end-to-end
 - Pass 1 (EXIF · color · composition · ELA) runs `min(CPU, 6)` threads across photos
 - Lightroom renditions: 16-worker parallel download completes before any ML pass begins
 
 **Aesthetic scoring — warm-start**
 - k-means selects K=`5×√N` diverse seeds (≤1,500); only seeds run through the aesthetic predictor; a Ridge regressor predicts the remaining N−K. Incremental runs: OOD check per new photo — zero SigLIP calls when in-distribution.
-- Regressor retrains on all accumulated SigLIP-labelled records after each pass — quality improves monotonically
 
 **Scene / VQA**
-- Multi-label: `scene_types` includes all labels within 85% of the top cosine score. Relative thresholding — absolute sigmoid thresholds are not used (logit_scale pushes scores to ≈1.0 for short labels).
+- Multi-label: `scene_types` includes all labels within 85% of the top cosine score — relative thresholding avoids the absolute sigmoid collapse at high logit_scale
 - `time_of_day` and `season` derived from EXIF timestamp only — no visual inference
-- Scene + VQA text embeddings cached to `artifacts/siglip_text_feats.pt` with a label hash — text encoding skipped on warm runs
 
 **RMBG-2.0 — subject filtering**
-- Saliency only runs on photos with an isolatable subject: `has_person = yes` from VQA, or `{people and portraits, animals, food, interior}` scoring ≥ 0.35 cosine similarity.
-- Cuts RMBG candidates from 5,107 → ~660 photos on this library (~75 s vs ~495 s without filtering; count is library-dependent).
+- Saliency only runs on photos with an isolatable subject: `has_person = yes` from VQA, or `{people and portraits, animals, food, interior}` scoring ≥ 0.35 cosine similarity — cuts candidates from 5,107 → ~660 on this library (~75 s vs ~495 s without filtering; count is library-dependent)
 
 **Cache**
 - SHA-256 content-addressed SQLite cache; passes with 100% hit rate are skipped without loading any model
@@ -155,31 +150,6 @@ uv run python scripts/train_aesthetic_regressor.py              # train + save
 
 ---
 
-## Apple Silicon backend benchmark
-
-MLX and CoreML evaluated but unavailable: CoreML conversion fails on torch 2.11.0 + coremltools 9.0; no mlx-community DINOv3 encoder exists.
-
-
-**Microbench throughput (img/s, GPU forward pass only, synthetic inputs — higher than E2E due to no file I/O):**
-
-| Model | bs=1 | bs=4 | bs=8 | bs=16 | bs=32 | Scheduler picks |
-|---|---:|---:|---:|---:|---:|:---:|
-| DINOv3-B | 57.1 | 64.2 | 67.2 | **68.6** | 64.4 | bs=16 |
-| SigLIP2-base | 60.1 | 79.6 | 84.5 | **87.7** | 88.8 | bs=16 |
-| aesthetic-predictor | 3.7 | 4.0 | **4.1** | 4.1 | — | bs=8 |
-| RMBG-2.0 @ 256 px | 9.0 | **10.3** | 10.3 | 10.4 | — | bs=4 (flat curve — transformer compute bound) |
-| CLIP-IQA+ | 27.1 | 34.6 | 36.8 | **37.8** | — | bs=16 |
-| YOLO26n-pose | 85.3 | 129.2 | 140.0 | **146.3** | — | bs=16 |
-
-**End-to-end (real files, includes decode + prefetch + preprocessing):**
-
-| Model | E2E before optimisations | E2E after |
-|---|---:|---:|
-| YOLO26n-pose | 42.6 img/s | **63.9 img/s** (+50%) |
-| DINOv3-B | ~35 img/s | ~247 img/s decode throughput |
-
----
-
 ## Coaching
 
 Local rule engine (`coach_client.py`) — no API calls. Thresholds auto-calibrated from your library distribution (e.g. `aesthetic_floor` = p15); fixed photographic standards (`horizon_tilt_deg`, clipping) are not auto-tuned. `coach_rules.yaml` overrides always win.
@@ -237,72 +207,24 @@ SOURCES=lightroom,local  # merged and deduplicated by SHA-256
 ## Usage
 
 ```bash
-uv run python main.py                          # full library
-uv run python main.py --sample 50             # quick test on 50 random photos
-uv run python main.py --report-only           # regenerate reports from latest run
-uv run python main.py --report-only --run-type full         # performance report from last full run
-uv run python main.py --report-only --run-type incremental  # performance report from last incremental run
+uv run python main.py                  # full library
+uv run python main.py --sample 50     # quick test on 50 random photos
+uv run python main.py --report-only   # regenerate reports from latest run
 
-# Selective passes
-uv run python main.py --skip pose
+# Selective passes (names: exif, dino, scene, aesthetic, iq, saliency, pose)
 uv run python main.py --skip iq,saliency
 uv run python main.py --only dino
 
-# Refresh aesthetic regressor labels (teacher = full SigLIP on all photos)
-uv run python main.py --teacher --skip scene,iq,saliency,pose,dino
-
 # Cache management
-uv run python main.py --clear-key ml                  # clear all ML keys
-uv run python main.py --clear-key dinov3              # clear embeddings
-uv run python main.py --clear-key saliency,iq_score
-uv run python main.py --clear-key lightroom_develop   # force XMP re-fetch on next sync
-uv run python main.py --prune                         # remove stale entries
-uv run python main.py --prune --dry-run
+uv run python main.py --clear-key ml      # clear all ML keys
+uv run python main.py --prune             # remove stale entries
 
 # Lightroom scoped runs
 uv run python main.py --lightroom-album "Best of 2024"
 uv run python main.py --lightroom-since 2024-06-01
-
-open docs/analytics_report.html
-open docs/performance_report.html
 ```
 
-**Pass names for `--skip`/`--only`:** `exif`, `dino`, `scene`, `aesthetic`, `iq`, `saliency`, `pose`
-
-```ini
-SKIP_IQ=true  # .env — skip IQ for CI or large libraries
-```
-
-```bash
-# Benchmarking
-uv run python scripts/benchmark_backends.py                # all models, bs=1 4 8 16, 3 runs
-uv run python scripts/benchmark_backends.py --model dinov3      # single model
-uv run python scripts/benchmark_backends.py --full         # micro + e2e + scheduler profile regeneration
-uv run python scripts/generate_scheduler_profile.py        # recompute scheduler profile from existing data
-uv run python scripts/generate_edge_ai_report.py           # compile performance summary from all data files
-
-Results → `docs/backend_comparison.json` · Scheduler profile → `docs/scheduler_profile.json` · Edge-AI report → `docs/edge_ai_report.md`.
-```
-
----
-
-## Output
-
-| File | |
-|---|---|
-| `docs/analytics_report.html` | Analytics dashboard — scene, aesthetic, quality, clusters (mobile-responsive) |
-| `docs/performance_report.html` | Performance report — throughput, memory, cascade filtering, scheduler bandit state |
-| `docs/pipeline_profile.json` | Latest run snapshot (per-pass data flushed incrementally for crash safety) |
-| `docs/pipeline_profile_full.json` | Last full-run reference (auto-detected: ≥80% of photos through ML) |
-| `docs/pipeline_profile_incremental.json` | Last incremental-run reference |
-| `docs/results.json` | Raw metrics + aggregations |
-| `docs/embeddings_cache.json` | UMAP + near-duplicate results; auto-invalidates on embedding change |
-| `artifacts/` | Single folder for all generated and downloaded files — delete to fully reset |
-| `artifacts/aesthetic_regressor.joblib` | Ridge aesthetic regressor (with seed embeddings + coverage threshold) |
-| `artifacts/aesthetic_regressor_meta.json` | Regressor metadata (n_samples, R², MAE, alpha) |
-| `artifacts/yolo26n-pose.pt` | YOLO model weights (downloaded on first run) |
-| `artifacts/cache/cache.db` | SQLite cache keyed by SHA-256 |
-| `artifacts/cache/renditions/` | Lightroom renditions (2048px) |
+Reports land in `docs/` — open `analytics_report.html` and `performance_report.html`. All generated files and model weights go in `artifacts/`; delete it to fully reset.
 
 ---
 
