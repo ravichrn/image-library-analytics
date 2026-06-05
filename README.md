@@ -4,7 +4,7 @@ An on-device inference pipeline that runs seven vision models within a fixed mem
 
 Supports local folders and [Adobe Lightroom](https://lightroom.adobe.com) cloud with per-asset delta sync.
 
-**[Analytics report](https://ravichrn.github.io/on-device-image-analytics/analytics_report.html)** · **[Benchmark report](https://ravichrn.github.io/on-device-image-analytics/performance_report.html)**
+**[Analytics report](https://ravichrn.github.io/on-device-image-analytics/analytics_report.html)** · **[Performance report](https://ravichrn.github.io/on-device-image-analytics/performance_report.html)**
 
 ---
 
@@ -79,23 +79,23 @@ Supports local folders and [Adobe Lightroom](https://lightroom.adobe.com) cloud 
 
 ## Pipeline
 
-**Estimated timings** (M3 Pro 18 GB, 5,107 photos, benchmark-derived):
+**Measured timings** (M3 Pro 18 GB, 5,107-photo library, last full run):
 
-| Pass | Model | Photos | Est. time | img/s | Peak mem |
+| Pass | Model | Photos | Time | img/s | Peak mem |
 |---|---|---:|---:|---:|---:|
-| 1 | EXIF · Color · Composition · ELA | 5,107 | — | — | — |
-| 2 | DINOv3-B | 5,107 | ~74 s | 68.6 | — |
-| 3 | SigLIP2-base | 5,107 | ~58 s | 87.7 | — |
-| 4a | aesthetic-predictor on K seeds | ~357 | ~87 s | 4.1 | 1,781 MB |
+| 1 | EXIF · Color · Composition · ELA | 5,107 | cached | — | — |
+| 2 | DINOv3-B | 5,107 | 91 s | 56.1 | 171 MB |
+| 3 | SigLIP2-base | 5,107 | 77 s | 66.2 | 922 MB |
+| 4a | aesthetic-predictor on K=357 seeds | 5,107 | 99 s | 51.7 | 1,781 MB |
 | 4a | Ridge regressor on remainder | ~4,750 | < 1 s | — | — |
 | 4a | OOD check + regressor *(incremental)* | new photos | < 1 s + seeds | — | — |
-| 4b | CLIP-IQA+ | 5,107 | ~135 s | 37.8 | 922 MB |
-| 5 | RMBG-2.0 @ 256 px | library-dep. ¹ | ~75 s ¹ | 10.3 | 1,366 MB |
-| 6 | YOLO26n-pose | library-dep. ¹ | ~9 s ¹ | 146.3 | — |
+| 4b | CLIP-IQA+ | 5,107 | 156 s | 32.8 | 922 MB |
+| 5 | RMBG-2.0 @ 256 px | library-dep. ¹ | 76 s ¹ | 8.6 | 1,366 MB |
+| 6 | YOLO26n-pose | library-dep. ¹ | 9 s ¹ | 75.5 | 922 MB |
 
 ¹ Passes 5–6 photo counts depend on library content (portrait/animal/food/interior ratio). Measured on this library: ~660 photos each.
 
-**First run (with regressor training):** ~10 min · **Incremental (300 new photos):** ~30 s
+**Full run:** ~8.5 min · **Incremental (new/changed photos only):** ~30 s
 
 ---
 
@@ -160,7 +160,7 @@ uv run python scripts/train_aesthetic_regressor.py              # train + save
 MLX and CoreML evaluated but unavailable: CoreML conversion fails on torch 2.11.0 + coremltools 9.0; no mlx-community DINOv3 encoder exists.
 
 
-**Microbench throughput (img/s, forward pass only on synthetic inputs):**
+**Microbench throughput (img/s, GPU forward pass only, synthetic inputs — higher than E2E due to no file I/O):**
 
 | Model | bs=1 | bs=4 | bs=8 | bs=16 | bs=32 | Scheduler picks |
 |---|---:|---:|---:|---:|---:|:---:|
