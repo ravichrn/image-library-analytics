@@ -30,9 +30,12 @@ def _load_json(path: Path) -> dict:
         return {}
 
 
+_SO400M_MB = 3174  # SigLIP SO400M loaded for all photos without the aesthetic regressor
+
+
 def _naive_peak_mb(passes: list[dict]) -> float:
-    """Sum of all per-pass peak memory — what a naive all-at-once load would cost."""
-    return sum(p.get("model_memory_mb") or 0.0 for p in passes)
+    """Sum of all per-pass peak memory plus SO400M cost without the aesthetic regressor."""
+    return sum(p.get("model_memory_mb") or 0.0 for p in passes) + _SO400M_MB
 
 
 def _dominant_arm(arms: dict[str, int], rewards: dict[str, float]) -> str | None:

@@ -12,13 +12,13 @@ Supports local folders and [Adobe Lightroom](https://lightroom.adobe.com) cloud 
 
 | What | Number | Context |
 |---|---|---|
-| Sequential peak memory | **3.1 GB** | vs ~11 GB naive (all models loaded simultaneously) |
-| RMBG cascade gate | **87% filtered** | 660 / 5,107 photos actually run through RMBG-2.0 |
-| Aesthetic regressor coverage | **~94%** | of incremental photos scored at <1% of SigLIP compute |
+| Sequential peak memory | **1.74 GB** | vs 9.04 GB naive (all models at once + SO400M for all photos) |
+| RMBG cascade gate | **87% filtered** | 659 / 5,107 photos actually run through RMBG-2.0 |
+| Aesthetic regressor coverage | **~93%** | of photos scored at <1% of SigLIP compute |
 | Decode bottleneck (before fix) | **35 img/s** | image decode dominated GPU idle time |
 | Decode throughput (after fix) | **247 img/s** | PIL draft mode + background prefetch + 4 decode threads |
 | YOLO pre-decode speedup | **42 → 64 img/s** | bypassing YOLO's internal OpenCV path |
-| Incremental run | **~30 s** | vs ~10 min cold (5,107-photo library, M3 Pro) |
+| Incremental run | **~30 s** | vs ~8.5 min full run (5,107-photo library, M3 Pro) |
 | Cache hit rate (warm) | **100%** | zero model loads on unchanged photos |
 
 ---
