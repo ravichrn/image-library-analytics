@@ -31,18 +31,18 @@ from extractors import (
     extract_aesthetic_batch,
     extract_color,
     extract_composition,
-    extract_ela,
     extract_embedding_batch,
     extract_exif,
     extract_iq_batch,
+    extract_jpeg_quality,
     extract_pose_batch,
     extract_saliency_batch,
     extract_vqa_batch,
     get_device,
     load_aesthetic_model,
     load_aesthetic_regressor,
-    load_clipiqa_metric,
     load_dino_model,
+    load_iq_metric,
     load_pose_model,
     load_saliency_model,
     load_siglip_model,
@@ -60,7 +60,7 @@ from sources import load_sources
 
 console = Console()
 
-CHEAP_KEYS = {"exif", "color", "composition", "ela"}
+CHEAP_KEYS = {"exif", "color", "composition", "jpeg_quality"}
 BATCH_SIZE = 16
 
 
@@ -99,9 +99,15 @@ _PROFILE_PATH = Path("docs/pipeline_profile.json")
 
 
 def _flush_pass_profile() -> None:
-    """Merge the latest entry in _pass_stats into pipeline_profile.json."""
+    """Merge the latest entry in _pass_stats into pipeline_profile.json and print timing."""
     if not _pass_stats or _pass_stats[-1].get("skipped"):
         return
+    p = _pass_stats[-1]
+    elapsed = p.get("elapsed_s", 0)
+    tput = p.get("throughput_img_s")
+    tput_str = f" · {tput:.0f} img/s" if tput else ""
+    console.print(f"  [dim]Done in {elapsed:.1f}s{tput_str}[/dim]\n")
+
     existing: dict = {}
     if _PROFILE_PATH.exists():
         try:
@@ -127,14 +133,15 @@ def _flush_pipeline_summary(
     total_elapsed_s: float,
     estimated_time_saved_s: float,
 ) -> None:
-    """Write a complete snapshot of the current run to pipeline_profile.json.
+    """Write a merged end-of-run snapshot to pipeline_profile.json.
 
-    Also writes to pipeline_profile_full.json or pipeline_profile_incremental.json
-    depending on ML coverage: if ≥80% of photos went through ML passes this run
-    it is treated as a full run; otherwise incremental.
+    Passes are merged by name across runs so partial runs (--only, --skip, or
+    cache-update passes like --only exif) update only their passes and preserve
+    timings from previous runs. The performance report therefore always shows the
+    complete picture regardless of which passes ran this time.
 
-    The per-pass _flush_pass_profile() calls already write incrementally after
-    each pass for crash safety. This function writes the clean end-of-run snapshot.
+    pipeline_profile_full.json is kept in sync with the same merged view.
+    pipeline_profile_incremental.json records only what ran this time (for debugging).
     """
     active = [p for p in _pass_stats if not p.get("skipped")]
     if not active:
@@ -146,8 +153,18 @@ def _flush_pipeline_summary(
     ml_photos_max = max((p["photos"] for p in ml_passes), default=0)
     is_full_run = total_photos > 0 and (ml_photos_max / total_photos) >= 0.8
 
+    # Merge current passes into the existing profile — preserves passes from prior runs
+    existing_by_name: dict[str, dict] = {}
+    if _PROFILE_PATH.exists():
+        try:
+            existing_by_name = {p["name"]: p for p in json.loads(_PROFILE_PATH.read_text()).get("passes", [])}
+        except Exception:
+            pass
+    for p in active:
+        existing_by_name[p["name"]] = p
+
     total = total_photos or 1
-    snapshot = {
+    merged_snapshot = {
         "run_date": datetime.now().strftime("%Y-%m-%d"),
         "run_type": "full" if is_full_run else "incremental",
         "total_photos": total_photos,
@@ -156,13 +173,18 @@ def _flush_pipeline_summary(
         "cache_hit_rate_pct": round(100 * cache_hits / total, 1),
         "estimated_time_saved_s": round(estimated_time_saved_s, 1),
         "total_pipeline_elapsed_s": round(total_elapsed_s, 1),
-        "passes": active,
+        "passes": list(existing_by_name.values()),
     }
     _PROFILE_PATH.parent.mkdir(exist_ok=True)
-    _PROFILE_PATH.write_text(json.dumps(snapshot, indent=2))
+    _PROFILE_PATH.write_text(json.dumps(merged_snapshot, indent=2))
 
-    ref_path = _PROFILE_FULL_PATH if is_full_run else _PROFILE_INCREMENTAL_PATH
-    ref_path.write_text(json.dumps(snapshot, indent=2))
+    # Full-run reference always gets the merged view so --run-type full stays complete
+    _PROFILE_FULL_PATH.write_text(json.dumps(merged_snapshot, indent=2))
+
+    # Incremental reference records only what ran this time (debugging partial runs)
+    if not is_full_run:
+        partial_snapshot = {**merged_snapshot, "passes": active}
+        _PROFILE_INCREMENTAL_PATH.write_text(json.dumps(partial_snapshot, indent=2))
 
 
 def _memory_mb() -> float | None:
@@ -427,45 +449,90 @@ def main() -> None:
         return
 
     sources = os.environ.get("SOURCES", "local")
-    console.print(f"\n[bold]Loading sources:[/bold] [cyan]{sources}[/cyan]")
+    _has_lightroom = "lightroom" in sources
+    # Lightroom refreshes only on a plain run. Detect via sys.argv: any flag that
+    # isn't a Lightroom-specific filter means the user wants a specific operation.
+    # No need to enumerate operation flags — new flags are handled automatically.
+    _LIGHTROOM_FLAGS = {"--lightroom-album", "--lightroom-since"}
+    _skip_lightroom = any(a for a in sys.argv[1:] if a.startswith("-") and a not in _LIGHTROOM_FLAGS)
 
-    # ── 1. Fetch metadata from all sources ───────────────────────────────────
-    raw = load_sources(sample=args.sample, lightroom_album=args.lightroom_album, lightroom_since=args.lightroom_since)
-    if not raw:
+    def _build_records(raw: list[dict]) -> dict[str, dict]:
+        global _cache_hits, _cache_misses
+        result: dict[str, dict] = {}
+        for r in raw:
+            h = r["hash"]
+            cached = load_cache(h) or {}
+            if cached:
+                _cache_hits += 1
+            else:
+                _cache_misses += 1
+            merged = {**r, **{k: v for k, v in cached.items() if k not in ("path", "hash", "source")}}
+            # Always use fresh lightroom_exif from the API (never from cache — it can change)
+            if r.get("lightroom_exif"):
+                merged["lightroom_exif"] = r["lightroom_exif"]
+            # Apply XMP camera fields onto exif unconditionally — Lightroom renditions have EXIF stripped
+            if merged.get("lightroom_exif") and merged.get("exif"):
+                for field, val in merged["lightroom_exif"].items():
+                    if val is not None:
+                        merged["exif"][field] = val
+            result[h] = merged
+        return result
+
+    # ── 1. First pass: local + cached Lightroom records — no API calls ────────
+    console.print(f"\n[bold]Loading sources:[/bold] [cyan]{sources}[/cyan]")
+    raw = load_sources(
+        sample=args.sample,
+        lightroom_album=args.lightroom_album,
+        lightroom_since=args.lightroom_since,
+        refresh_lightroom=False,
+    )
+
+    global _cache_hits, _cache_misses
+    records = _build_records(raw) if raw else {}
+
+    # ── 2. Decide whether to refresh Lightroom ────────────────────────────────
+    # Always fetch if Phase 1 found nothing — cache is cold or source is Lightroom-only.
+    # Otherwise only refresh on a plain run where all photos are fully cached (incremental
+    # update check). Any operation flag → skip refresh, focus on the requested work.
+    _ML_KEYS_CHECK = {"dinov3", "scene", "aesthetic_score", "iq_score"}
+    _do_lightroom_refresh = _has_lightroom and (
+        not records  # cold cache / Lightroom-only with no cached records
+        or (not _skip_lightroom and _cache_misses == 0 and all(_ML_KEYS_CHECK.issubset(r.keys()) for r in records.values()))
+    )
+
+    if _do_lightroom_refresh:
+        if not records:
+            console.print("[dim]No cached records found — fetching from Lightroom…[/dim]")
+        else:
+            console.print("[dim]All photos cached — checking Lightroom for updates…[/dim]")
+        _cache_hits = 0
+        _cache_misses = 0
+        raw = load_sources(
+            sample=args.sample,
+            lightroom_album=args.lightroom_album,
+            lightroom_since=args.lightroom_since,
+            refresh_lightroom=True,
+        )
+        records = _build_records(raw)
+    elif _has_lightroom and _skip_lightroom:
+        console.print("[dim]Skipping Lightroom refresh.[/dim]")
+
+    if not records:
         console.print("[red]No photos found. Check SOURCES and PHOTO_DIR in .env[/red]")
         sys.exit(1)
-    console.print(f"Found [green]{len(raw)}[/green] photo(s).\n")
 
-    if "lightroom" in sources and not _download_renditions():
-        _no_path_count = sum(1 for r in raw if not r.get("path"))
-        if _no_path_count > len(raw) // 2:
+    console.print(f"Found [green]{len(records)}[/green] photo(s).\n")
+
+    if _has_lightroom and not _download_renditions():
+        _no_path_count = sum(1 for r in records.values() if not r.get("path"))
+        if _no_path_count > len(records) // 2:
             console.print(
-                f"  [bold yellow]⚠ {_no_path_count}/{len(raw)} Lightroom photos have no local file.[/bold yellow]\n"
+                f"  [bold yellow]⚠ {_no_path_count}/{len(records)} Lightroom photos have no local file.[/bold yellow]\n"
                 "  [dim]Set LIGHTROOM_DOWNLOAD_RENDITIONS=true in .env to download renditions for ML passes.[/dim]\n"
             )
 
     if args.prune:
-        _prune_stale(sources, raw, dry_run=args.dry_run)
-
-    global _cache_hits, _cache_misses
-    records: dict[str, dict] = {}
-    for r in raw:
-        h = r["hash"]
-        cached = load_cache(h) or {}
-        if cached:
-            _cache_hits += 1
-        else:
-            _cache_misses += 1
-        merged = {**r, **{k: v for k, v in cached.items() if k not in ("path", "hash", "source")}}
-        # Always use fresh lightroom_exif from the API (never from cache — it can change)
-        if r.get("lightroom_exif"):
-            merged["lightroom_exif"] = r["lightroom_exif"]
-        # Apply XMP camera fields onto exif unconditionally — Lightroom renditions have EXIF stripped
-        if merged.get("lightroom_exif") and merged.get("exif"):
-            for field, val in merged["lightroom_exif"].items():
-                if val is not None:
-                    merged["exif"][field] = val
-        records[h] = merged
+        _prune_stale(sources, list(records.values()), dry_run=args.dry_run)
 
     for r in records.values():
         if r.get("source") in ("lightroom", "both") and r.get("lightroom_id"):
@@ -530,7 +597,7 @@ def main() -> None:
     ]
     if "exif" in _skip_passes:
         console.print("[bold]Pass 1/6:[/bold] skipped (--skip exif)\n")
-        _pass_stats.append({"name": "Pass 1: EXIF · Color · Composition · ELA", "skipped": True})
+        _pass_stats.append({"name": "Pass 1: EXIF · Color · Composition · JPEG Quality", "skipped": True})
     elif todo:
         console.print(f"[bold]Pass 1/6:[/bold] EXIF · Color · Composition ({len(todo)} photos)")
         _p1_t0 = time.perf_counter()
@@ -548,11 +615,16 @@ def main() -> None:
                 from PIL import Image
 
                 with Image.open(img_path) as img:
-                    img.load()
+                    # EXIF and JPEG quality live in the file header — read before any
+                    # pixel decode so they don't pay the full-image load cost.
                     r["exif"] = extract_exif(img)
+                    r["jpeg_quality"] = extract_jpeg_quality(img)
+                    # Draft mode: libjpeg-turbo decodes at reduced resolution.
+                    # Composition needs ≤300px, color ≤200px — capped at 300.
+                    img.draft("RGB", (300, 300))
+                    img.load()
                     r["color"] = extract_color(img)
                     r["composition"] = extract_composition(img)
-                    r["ela"] = extract_ela(img_path)
                 # Lightroom XMP fields take priority over PIL (renditions have EXIF stripped)
                 if r.get("lightroom_exif"):
                     for field, val in r["lightroom_exif"].items():
@@ -564,7 +636,7 @@ def main() -> None:
 
         with _progress(SpinnerColumn(), BarColumn(), TextColumn("{task.description}"), MofNCompleteColumn(), TaskProgressColumn()) as p:
             task = p.add_task("Extracting metadata...", total=len(todo))
-            with ThreadPoolExecutor(max_workers=min(os.cpu_count() or 4, 6)) as pool:
+            with ThreadPoolExecutor(max_workers=os.cpu_count() or 4) as pool:
                 futs = {pool.submit(_process_cheap, r): r for r in todo}
                 for fut in as_completed(futs):
                     r = futs[fut]
@@ -578,7 +650,7 @@ def main() -> None:
         _p1_elapsed = time.perf_counter() - _p1_t0
         _pass_stats.append(
             {
-                "name": "Pass 1: EXIF · Color · Composition · ELA",
+                "name": "Pass 1: EXIF · Color · Composition · JPEG Quality",
                 "photos": len(todo),
                 "elapsed_s": round(_p1_elapsed, 2),
                 "throughput_img_s": round(len(todo) / _p1_elapsed, 1) if _p1_elapsed > 0 else None,
@@ -587,7 +659,6 @@ def main() -> None:
             }
         )
         _flush_pass_profile()
-        console.print()
 
     # ── Pass 2 — DINOv3-B embeddings (backbone for heads + clustering) ────────
     # Runs first so trained heads can be used immediately on new photos.
@@ -651,7 +722,6 @@ def main() -> None:
             failure_rate=_dino_failed / len(_dino_todo) if _dino_todo else 0.0,
         )
         _flush_pass_profile()
-        console.print()
 
     # ── Pass 3 — Scene classification + VQA ─────────────────────────────────
     todo = [r for r in records.values() if "scene" not in r or "caption" not in r]
@@ -728,7 +798,6 @@ def main() -> None:
             failure_rate=_siglip_failed / len(todo) if todo else 0.0,
         )
         _flush_pass_profile()
-        console.print()
 
     # ── Pass 4a — aesthetic score (warm-start regressor or full SigLIP) ────────
     aes_batch = pick_batch_size("aesthetic-predictor-v2-5")
@@ -961,27 +1030,27 @@ def main() -> None:
                 console.print(f"  [green]✓ Regressor updated[/green]  n={_reg_meta['n_samples']}  R²={_reg_meta['cv_r2']}  MAE={_reg_meta['cv_mae']}")
         console.print()
 
-    # ── Pass 4b — CLIP-IQA+: technical IQ score (MPS/CUDA/CPU) ──────────────
-    iq_batch = pick_batch_size("clipiqa+")
-    _log_scheduler("clipiqa+", iq_batch)
+    # ── Pass 4b — ARNIQA: technical IQ score (MPS/CUDA/CPU) ─────────────────
+    iq_batch = pick_batch_size("arniqa")
+    _log_scheduler("arniqa", iq_batch)
     iq_todo = needs_path("iq_score")
     if "iq" in _skip_passes or os.environ.get("SKIP_IQ", "false").lower() == "true":
-        console.print("[bold]Pass 4b/7:[/bold] CLIP-IQA+ skipped\n")
-        _pass_stats.append({"name": "Pass 4b: CLIP-IQA+", "skipped": True})
+        console.print("[bold]Pass 4b/7:[/bold] ARNIQA skipped\n")
+        _pass_stats.append({"name": "Pass 4b: ARNIQA", "skipped": True})
     elif iq_todo:
         device = get_device()
-        console.print(f"[bold]Pass 4b/7:[/bold] CLIP-IQA+ technical quality ({len(iq_todo)} photos, batch={iq_batch}, {device})")
+        console.print(f"[bold]Pass 4b/7:[/bold] ARNIQA technical quality ({len(iq_todo)} photos, batch={iq_batch}, {device})")
         _reset_peak()
         _p3b_t0 = time.perf_counter()
-        with console.status("Loading CLIP-IQA+ (pyiqa)..."):
-            iq_metric = load_clipiqa_metric(device)
+        with console.status("Loading ARNIQA (pyiqa)..."):
+            iq_metric = load_iq_metric(device)
         _p3b_load_s = time.perf_counter() - _p3b_t0
         _p3b_model_mb = _peak_mb()
         if _p3b_model_mb:
             console.print(f"  [dim]Peak memory: {_p3b_model_mb:.0f} MB[/dim]")
 
         if isinstance(iq_metric, Exception):
-            console.print(f"  [yellow]CLIP-IQA+ failed to load: {iq_metric}. Skipping.[/yellow]\n")
+            console.print(f"  [yellow]ARNIQA failed to load: {iq_metric}. Skipping.[/yellow]\n")
             iq_metric = None
         if iq_metric is not None:
             _iq_failed = 0
@@ -1006,7 +1075,7 @@ def main() -> None:
             _p3b_elapsed = time.perf_counter() - _p3b_t0
             _pass_stats.append(
                 {
-                    "name": "Pass 4b: CLIP-IQA+",
+                    "name": "Pass 4b: ARNIQA",
                     "photos": len(iq_todo),
                     "elapsed_s": round(_p3b_elapsed, 2),
                     "throughput_img_s": round(len(iq_todo) / _p3b_elapsed, 1) if _p3b_elapsed > 0 else None,
@@ -1016,7 +1085,7 @@ def main() -> None:
             )
             _n3b = max(1, len(iq_todo) // iq_batch)
             record_outcome(
-                "clipiqa+",
+                "arniqa",
                 iq_batch,
                 imgs_per_s=len(iq_todo) / _p3b_elapsed if _p3b_elapsed > 0 else 0.0,
                 system_available_mb=psutil.virtual_memory().available / 1e6,
@@ -1024,7 +1093,6 @@ def main() -> None:
                 failure_rate=_iq_failed / len(iq_todo) if iq_todo else 0.0,
             )
             _flush_pass_profile()
-        console.print()
 
     # ── Pass 5 — RMBG 2.0 saliency (batched) ──────────────────────────────────
     # Only run on photos likely to have an isolatable subject.
@@ -1101,7 +1169,6 @@ def main() -> None:
             failure_rate=_sal_failed / len(todo) if todo else 0.0,
         )
         _flush_pass_profile()
-        console.print()
 
     # ── Pass 6 — YOLO11-Pose: object detection + pose (portrait photos) ────────
     _pose_eligible = needs_path("pose_data")
@@ -1174,7 +1241,6 @@ def main() -> None:
             failure_rate=_pose_failed / len(todo) if todo else 0.0,
         )
         _flush_pass_profile()
-        console.print()
 
     all_records = list(records.values())
     _ml_complete = sum(1 for r in all_records if r.get("scene") is not None)

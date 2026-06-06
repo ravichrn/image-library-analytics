@@ -153,7 +153,7 @@ tr:last-child td { border-bottom: none; }
       {% if run_type == "full" %}
       <div class="label">EXIF &amp; analysis cached</div>
       <div class="value yellow">{{ "%.1f"|format(pipeline.get("estimated_time_saved_s", 0) / 60) }} min</div>
-      <div class="sub">EXIF, color, ELA, composition — not re-run</div>
+      <div class="sub">EXIF, color, JPEG quality, composition — not re-run</div>
       {% else %}
       <div class="label">ML inference cached</div>
       <div class="value yellow">{{ "%.1f"|format(pipeline.get("estimated_time_saved_s", 0) / 60) }} min</div>

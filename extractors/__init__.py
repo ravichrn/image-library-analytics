@@ -2,7 +2,6 @@ from .color import extract_color as extract_color
 from .composition import extract_composition as extract_composition
 from .device import empty_cache as empty_cache
 from .device import get_device as get_device
-from .ela import extract_ela as extract_ela
 from .embedding import extract_embedding_batch as extract_embedding_batch
 from .embedding import load_dino_model as load_dino_model
 from .embedding import unload_model as unload_model
@@ -18,6 +17,7 @@ from .heads import load_aesthetic_regressor as load_aesthetic_regressor
 from .heads import predict_aesthetic_scores as predict_aesthetic_scores
 from .heads import select_aesthetic_seed as select_aesthetic_seed
 from .heads import train_and_save_aesthetic_regressor as train_and_save_aesthetic_regressor
+from .jpeg_quality import extract_jpeg_quality as extract_jpeg_quality
 from .pose import extract_pose_batch as extract_pose_batch
 from .pose import load_pose_model as load_pose_model
 from .pose import unload_pose_model as unload_pose_model
@@ -30,5 +30,5 @@ from .scene import extract_aesthetic_batch as extract_aesthetic_batch
 from .scene import extract_iq_batch as extract_iq_batch
 from .scene import extract_vqa_batch as extract_vqa_batch
 from .scene import load_aesthetic_model as load_aesthetic_model
-from .scene import load_clipiqa_metric as load_clipiqa_metric
+from .scene import load_iq_metric as load_iq_metric
 from .scene import load_siglip_model as load_siglip_model

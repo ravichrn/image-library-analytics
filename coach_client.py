@@ -224,7 +224,7 @@ RULES = [
             and r["aesthetic_score"] > THRESHOLDS["aesthetic_high"]
             else None
         ),
-        "CLIP-IQA+ rates this photo technically poor (noise, blur, compression) but the aesthetic score is high — "
+        "Technical IQ score rates this photo poor (noise, blur, compression) but the aesthetic score is high — "
         "the composition and mood are strong. This is a reshoot candidate: the same scene with better technique "
         "could produce a standout image.",
     ),

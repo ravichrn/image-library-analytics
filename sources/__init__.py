@@ -12,7 +12,7 @@ _ML_KEYS = {
     "caption",
     "iq_score",
     "saliency",
-    "ela",
+    "jpeg_quality",
     "pose_data",
 }
 
@@ -21,6 +21,7 @@ def load_sources(
     sample: int | None = None,
     lightroom_album: str | None = None,
     lightroom_since: str | None = None,
+    refresh_lightroom: bool = True,
 ) -> list[dict]:
     """
     Load photo records from all configured sources (SOURCES env var).
@@ -30,6 +31,10 @@ def load_sources(
     2. Filename stem match (e.g. DSC02136) — local export and Lightroom original
        are the same photo. ML results from the local record are merged into the
        Lightroom record so no analysis work is lost.
+
+    refresh_lightroom=False: use cached Lightroom records from SQLite instead of
+    making API calls. Used when ML passes are going to run anyway — no need to pay
+    the Lightroom API round-trip cost just to discover new content.
     """
     raw_sources = os.environ.get("SOURCES", "local")
     source_names = [s.strip().lower() for s in raw_sources.split(",") if s.strip()]
@@ -43,9 +48,14 @@ def load_sources(
 
             records = load_local(sample=sample)
         elif name == "lightroom":
-            from sources.lightroom import load_lightroom
+            if refresh_lightroom:
+                from sources.lightroom import load_lightroom
 
-            records = load_lightroom(sample=sample, album_name=lightroom_album, since_override=lightroom_since)
+                records = load_lightroom(sample=sample, album_name=lightroom_album, since_override=lightroom_since)
+            else:
+                from cache import load_all_cached
+
+                records = [r for r in load_all_cached() if r.get("source") in ("lightroom", "both")]
         else:
             raise ValueError(f"Unknown source: {name!r}. Valid values: local, lightroom")
 

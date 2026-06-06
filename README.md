@@ -38,7 +38,7 @@ Supports local folders and [Adobe Lightroom](https://lightroom.adobe.com) cloud 
 - 1 background thread prefetches batch N+1 while GPU runs batch N; 4 decode threads within each batch — GPU idle time eliminated
 - PIL draft mode on every JPEG: libjpeg-turbo downscales before full decode — 35 → 247 img/s
 - YOLO receives pre-decoded PIL images, bypassing its internal OpenCV path: 42 → 64 img/s end-to-end
-- Pass 1 (EXIF · color · composition · ELA) runs `min(CPU, 6)` threads across photos
+- Pass 1 (EXIF · color · composition · JPEG quality) runs `min(CPU, 6)` threads across photos
 - Lightroom renditions: 16-worker parallel download completes before any ML pass begins
 
 **Aesthetic scoring — warm-start**
@@ -64,10 +64,10 @@ Supports local folders and [Adobe Lightroom](https://lightroom.adobe.com) cloud 
 | DINOv3-B | 768-dim visual embeddings — backbone for all downstream tasks | Pass 2: all new photos; cached embeddings reused in all subsequent passes |
 | Aesthetic Ridge regressor | Aesthetic score 0–100 from DINOv3-B features; trained on k-means seed labels | Pass 4a: seeds → SigLIP, remainder → regressor; incremental runs use OOD check |
 | aesthetic-predictor-v2-5 | SigLIP-based MLP — ground-truth labels for the regressor | Pass 4a: seed photos only; `--teacher` forces full-library scoring for regressor retraining |
-| CLIP-IQA+ | Technical IQ score — blur, noise, exposure | Pass 4b: bs=16 |
+| ARNIQA | Technical IQ score — blur, noise, exposure; self-supervised ResNet-50, fewer MACs than CLIP-based models | Pass 4b: bs=16 |
 | RMBG-2.0 | Subject mask → area, centroid, fg/bg palette | Pass 5: 256 px input; filtered to photos with subject signal (library-dependent) |
 | YOLO26n-pose | Object detection + pose estimation | Pass 6: portraits only; +7.2% mAP50-95 vs YOLO11n; PIL input |
-| ELA | JPEG compression artifact detection | Pass 1: CPU, alongside EXIF/color/composition |
+| JPEG quant tables | Quality factor (0–100) from quantization tables; `quant_table_nonstandard` flag distinguishes camera-original from software re-exports | Pass 1: CPU, alongside EXIF/color/composition |
 | SigLIP2-base (224 px) | Multi-label scene classification + VQA | Pass 3: all photos; 87.7 img/s at bs=16 on MPS |
 
 ---
@@ -78,13 +78,13 @@ Supports local folders and [Adobe Lightroom](https://lightroom.adobe.com) cloud 
 
 | Pass | Model | Photos | Time | img/s | Peak mem |
 |---|---|---:|---:|---:|---:|
-| 1 | EXIF · Color · Composition · ELA | 5,107 | cached | — | — |
+| 1 | EXIF · Color · Composition · JPEG Quality | 5,107 | cached | — | — |
 | 2 | DINOv3-B | 5,107 | 91 s | 56.1 | 171 MB |
 | 3 | SigLIP2-base | 5,107 | 77 s | 66.2 | 922 MB |
 | 4a | aesthetic-predictor on K=357 seeds | 5,107 | 99 s | 51.7 | 1,781 MB |
 | 4a | Ridge regressor on remainder | ~4,750 | < 1 s | — | — |
 | 4a | OOD check + regressor *(incremental)* | new photos | < 1 s + seeds | — | — |
-| 4b | CLIP-IQA+ | 5,107 | 156 s | 32.8 | 922 MB |
+| 4b | ARNIQA | 5,107 | — | — | — |
 | 5 | RMBG-2.0 @ 256 px | library-dep. ¹ | 76 s ¹ | 8.6 | 1,366 MB |
 | 6 | YOLO26n-pose | library-dep. ¹ | 9 s ¹ | 75.5 | 922 MB |
 
@@ -101,8 +101,8 @@ Supports local folders and [Adobe Lightroom](https://lightroom.adobe.com) cloud 
 | `core` | Color, composition, EXIF, aesthetic, scene, folder breakdown, exposure, sharpness, megapixels |
 | `temporal` | Shooting hours, monthly distribution, editing trends (month-over-month deltas) |
 | `aesthetics` | Editing style patterns, hue/sat histograms, composition patterns |
-| `advanced` | VQA attributes, saliency, pose, object frequency, CLIP-IQA+ |
-| `forensics` | ELA suspicious-image stats, ELA/IQ conflict count |
+| `advanced` | VQA attributes, saliency, pose, object frequency, IQ scores |
+| `forensics` | JPEG quality factor stats, re-export rate, JPEG/IQ conflict count |
 | `embeddings` | UMAP scatter, KMeans clusters, burst/duplicate detection, event grouping |
 | `gear` | Device breakdown, top lenses, shutter/flash/metering mix, GPS, shooting profile |
 | `lightroom` | Develop stats, signature edit, HSL fingerprint, editing intensity, pick/reject, albums |

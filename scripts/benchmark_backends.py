@@ -17,7 +17,7 @@ Metrics: p50/p95 latency, imgs/s, CV% across runs, process RSS delta,
 system available RAM at benchmark time, optional perf-per-watt via powermetrics.
 
 Run from project root:
-    uv run python scripts/benchmark_backends.py --model dinov3 siglip yolo rmbg rmbg14 birefnet-lite aesthetic clipiqa
+    uv run python scripts/benchmark_backends.py --model dinov3 siglip yolo rmbg rmbg14 birefnet-lite aesthetic arniqa
     uv run python scripts/benchmark_backends.py --model dinov3 --runs 3 --batch-sizes 1 4 8 16
     uv run python scripts/benchmark_backends.py --e2e --photos-dir /path/to/photos
     sudo uv run python scripts/benchmark_backends.py --model dinov3 --batch-sizes 1 4 8 16 --energy
@@ -863,11 +863,11 @@ def bench_aesthetic_mps(batch_sizes, warmup, iters, runs, run_energy, energy_dur
 
 
 # ---------------------------------------------------------------------------
-# MPS: CLIP-IQA+
+# MPS: ARNIQA
 # ---------------------------------------------------------------------------
 
 
-def bench_clipiqa_mps(batch_sizes, warmup, iters, runs, run_energy, energy_duration) -> list[BenchmarkResult]:
+def bench_arniqa_mps(batch_sizes, warmup, iters, runs, run_energy, energy_duration) -> list[BenchmarkResult]:
     import torchvision.transforms as _TV
 
     device = "mps" if torch.backends.mps.is_available() else "cpu"
@@ -876,17 +876,17 @@ def bench_clipiqa_mps(batch_sizes, warmup, iters, runs, run_energy, energy_durat
     # _IQ_INPUT_SIZE imported from extractors.scene — matches the real pipeline transform
     transform = _TV.Compose([_TV.Resize((_IQ_INPUT_SIZE, _IQ_INPUT_SIZE)), _TV.ToTensor()])
 
-    print("\n  [clipiqa+ / mps] loading …")
+    print("\n  [arniqa / mps] loading …")
     t0 = time.perf_counter()
     try:
         import pyiqa
 
-        metric = pyiqa.create_metric("clipiqa+", device=device)
+        metric = pyiqa.create_metric("arniqa", device=device)
     except Exception as exc:
-        print(f"  [clipiqa+] skipped — pyiqa unavailable: {exc}")
+        print(f"  [arniqa] skipped — pyiqa unavailable: {exc}")
         return []
     load_s = round(time.perf_counter() - t0, 2)
-    print(f"  [clipiqa+ / mps] load={load_s}s  device={device}")
+    print(f"  [arniqa / mps] load={load_s}s  device={device}")
 
     results: list[BenchmarkResult] = []
     for bs in batch_sizes:
@@ -901,12 +901,12 @@ def bench_clipiqa_mps(batch_sizes, warmup, iters, runs, run_energy, energy_durat
         def preprocess_fn(_t=transform, _pimgs=pre_imgs):
             torch.stack([_t(img) for img in _pimgs])
 
-        cell = _bench_cell(fn, preprocess_fn, bs, warmup, iters, runs, sync_fn=sync, desc=f"clipiqa/mps bs={bs}")
+        cell = _bench_cell(fn, preprocess_fn, bs, warmup, iters, runs, sync_fn=sync, desc=f"arniqa/mps bs={bs}")
         ipj, ane_mw = run_power_bench(fn, bs, energy_duration) if run_energy else (None, None)
         cv_str = f"  cv={cell.cv_pct:.1f}%" if cell.cv_pct is not None else ""
         mem = cell.peak_memory_mb or 0
         print(
-            f"  [clipiqa+ / mps] bs={bs:2d}"
+            f"  [arniqa / mps] bs={bs:2d}"
             f"  p50={cell.p50_ms:.1f}ms  p95={cell.p95_ms:.1f}ms"
             f"  {cell.imgs_per_s} img/s{cv_str}"
             f"  pre={cell.preprocess_p50_ms:.1f}ms"
@@ -914,7 +914,7 @@ def bench_clipiqa_mps(batch_sizes, warmup, iters, runs, run_energy, energy_durat
         )
         results.append(
             BenchmarkResult(
-                model="clipiqa+",
+                model="arniqa",
                 backend="mps",
                 batch_size=bs,
                 load_time_s=load_s,
@@ -934,7 +934,7 @@ def bench_clipiqa_mps(batch_sizes, warmup, iters, runs, run_energy, energy_durat
                 system_available_mb=cell.system_available_mb,
                 mps_alloc_mb_debug=cell.mps_alloc_mb_debug,
                 preprocess_p50_ms=cell.preprocess_p50_ms,
-                notes="forward pass only (torchvision Resize+ToTensor 512×512); real pipeline decodes from file path",
+                notes="forward pass only (torchvision Resize+ToTensor 224×224); real pipeline decodes from file path",
             )
         )
 
@@ -1129,24 +1129,24 @@ def bench_e2e(photos_dir: Path, batch_size: int, n_samples: int = _E2E_SAMPLE_DE
     cv_str = f"  cv={r.cv_pct:.1f}%" if r.cv_pct is not None else ""
     print(f"  [e2e] aesthetic  {r.imgs_per_s} img/s{cv_str}  sys={r.system_available_mb:.0f}MB free")
 
-    # ── CLIP-IQA+ ───────────────────────────────────────────────────────────
-    from extractors.scene import extract_iq_batch, load_clipiqa_metric
+    # ── ARNIQA ──────────────────────────────────────────────────────────────
+    from extractors.scene import extract_iq_batch, load_iq_metric
 
     t0 = time.perf_counter()
-    iq = load_clipiqa_metric(device)
+    iq = load_iq_metric(device)
     load_s = round(time.perf_counter() - t0, 2)
     if isinstance(iq, Exception):
-        print(f"  [e2e] CLIP-IQA+ skipped: {iq}")
+        print(f"  [e2e] ARNIQA skipped: {iq}")
     else:
-        print(f"  [e2e] CLIP-IQA+  loaded {load_s}s")
-        wall = _run_with_progress("CLIP-IQA+", lambda b: extract_iq_batch(b, iq, batch_size))
-        results.append(_e2e_result("clipiqa+", paths, batch_size, wall, load_s))
+        print(f"  [e2e] ARNIQA  loaded {load_s}s")
+        wall = _run_with_progress("ARNIQA", lambda b: extract_iq_batch(b, iq, batch_size))
+        results.append(_e2e_result("arniqa", paths, batch_size, wall, load_s))
         gc.collect()
         if device == "mps":
             torch.mps.empty_cache()
         r = results[-1]
         cv_str = f"  cv={r.cv_pct:.1f}%" if r.cv_pct is not None else ""
-        print(f"  [e2e] CLIP-IQA+  {r.imgs_per_s} img/s{cv_str}  sys={r.system_available_mb:.0f}MB free")
+        print(f"  [e2e] ARNIQA  {r.imgs_per_s} img/s{cv_str}  sys={r.system_available_mb:.0f}MB free")
 
     return results
 
@@ -1156,7 +1156,7 @@ def bench_e2e(photos_dir: Path, batch_size: int, n_samples: int = _E2E_SAMPLE_DE
 # ---------------------------------------------------------------------------
 
 
-_ALL_MODELS = ["dinov3", "siglip-base", "yolo", "rmbg", "rmbg14", "birefnet-lite", "aesthetic", "clipiqa"]
+_ALL_MODELS = ["dinov3", "siglip-base", "yolo", "rmbg", "rmbg14", "birefnet-lite", "aesthetic", "arniqa"]
 
 
 def main() -> None:
@@ -1267,9 +1267,9 @@ Examples:
     if "aesthetic" in _models:
         _step_print("aesthetic-predictor-v2-5")
         all_results.extend(bench_aesthetic_mps(args.batch_sizes, **_kw))
-    if "clipiqa" in _models:
-        _step_print("clipiqa+")
-        all_results.extend(bench_clipiqa_mps(args.batch_sizes, **_kw))
+    if "arniqa" in _models:
+        _step_print("arniqa")
+        all_results.extend(bench_arniqa_mps(args.batch_sizes, **_kw))
 
     # ------ Output — merge with existing file (deduplicate by model+backend+batch_size) ------
     # Both microbench and e2e results are merged independently so a partial re-run

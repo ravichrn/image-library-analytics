@@ -69,7 +69,7 @@ def analyze(records: list[dict]) -> dict:
         "total_analyzed": sum(1 for v in sal_areas if v is not None),
     }
 
-    # ── CLIP-IQA+ IQ score stats ─────────────────────────────────────────────
+    # ── ARNIQA IQ score stats ────────────────────────────────────────────────
     iq_scores = [r.get("iq_score") for r in records if r.get("iq_score") is not None]
     if iq_scores:
         buckets_iq = [0] * 10

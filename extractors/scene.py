@@ -9,9 +9,9 @@ from PIL import Image
 _TEXT_FEATS_CACHE = Path("artifacts/siglip_text_feats.pt")
 _SIGLIP_MODEL_ID = "google/siglip2-base-patch16-224"
 
-# CLIP-IQA+ expects 512×512 RGB tensors in [0, 1]
-_IQ_INPUT_SIZE = 512
-_IQ_TRANSFORM = _TV.Compose([_TV.Resize((_IQ_INPUT_SIZE, _IQ_INPUT_SIZE)), _TV.ToTensor()])
+# ARNIQA is trained on 224×224 crops; resize before batching to keep memory bounded
+_IQ_INPUT_SIZE = 224
+_IQ_TRANSFORM = _TV.Compose([_TV.Resize((_IQ_INPUT_SIZE, _IQ_INPUT_SIZE), antialias=True), _TV.ToTensor()])
 
 SCENE_LABELS = [
     "nature",
@@ -254,12 +254,12 @@ def extract_aesthetic_batch(paths: list, aesthetic, batch_size: int = 4) -> list
     return results
 
 
-def load_clipiqa_metric(device: str):
-    """Load CLIP-IQA+ on MPS/CUDA/CPU for technical IQ scoring."""
+def load_iq_metric(device: str):
+    """Load ARNIQA on MPS/CUDA/CPU for technical IQ scoring."""
     try:
         import pyiqa
 
-        return pyiqa.create_metric("clipiqa+", device=device)
+        return pyiqa.create_metric("arniqa", device=device)
     except Exception as e:
         return e  # caller logs the real error
 
@@ -270,7 +270,7 @@ def extract_iq_batch(
     batch_size: int = 16,
     on_batch=None,
 ) -> list[float | None]:
-    """Run CLIP-IQA+ over all paths, overlapping JPEG decode with GPU inference.
+    """Run ARNIQA over all paths, overlapping JPEG decode with GPU inference.
 
     Args:
         paths:      All image paths (may include None for missing files).

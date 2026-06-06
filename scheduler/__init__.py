@@ -38,7 +38,7 @@ _DETERMINISTIC = os.environ.get("SCHEDULER_DETERMINISTIC", "").strip() == "1"
 _HARDCODED_DEFAULTS: dict[str, int] = {
     "siglip2-base": 16,
     "aesthetic-predictor-v2-5": 4,
-    "clipiqa+": 8,
+    "arniqa": 8,
     "dinov3-b": 8,
     "RMBG-2.0": 8,
     "yolo26n-pose": 16,
