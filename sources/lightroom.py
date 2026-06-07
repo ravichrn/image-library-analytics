@@ -506,6 +506,10 @@ def load_lightroom(
             if _xmp_develop_href(asset.get("links", {})):
                 assets_to_process.append(asset)
 
+    no_hash_count = sum(1 for a in all_assets if not _asset_sha256(a))
+    if no_hash_count:
+        console.print(f"  [dim]{no_hash_count} assets skipped — no content hash (cloud-only or smart-preview-only)[/dim]")
+
     new_count = sum(1 for a in assets_to_process if a.get("id") not in cached_by_lid)
     upd_count = len(assets_to_process) - new_count
     empty_dev_count = sum(1 for a in assets_to_process if cached_by_lid.get(a.get("id")) and not cached_by_lid[a.get("id")].get("lightroom_develop"))

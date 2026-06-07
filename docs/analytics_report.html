@@ -382,7 +382,7 @@ canvas { max-height: 300px; }
 <!-- ══════════════════════════════════════ HERO ══════════════════ -->
 <div class="hero" id="s-overview">
   <h1 class="hero-title" style="font-size:1.9rem;letter-spacing:0.04em;font-weight:800;text-transform:uppercase;color:#c8c8de;">On-Device Image Analytics</h1>
-  <p class="hero-sub">5107 images · SigLIP2-base · aesthetic-predictor-v2-5 · ARNIQA · DINOv3-B · RMBG-2.0</p>
+  <p class="hero-sub">4886 images · SigLIP2-base · aesthetic-predictor-v2-5 · ARNIQA · DINOv3-B · RMBG-2.0</p>
   <p style="font-size:0.82rem;color:#8080aa;line-height:1.7;margin-bottom:1rem;">This report analyzes your photo library using on-device AI models — covering shooting habits, composition patterns, editing style, color grading, and technical quality.</p>
   <div style="font-size:0.68rem;font-weight:700;color:#7878a0;text-transform:uppercase;letter-spacing:0.12em;margin-bottom:0.6rem;">Highlights</div>
   <div class="stat-grid">
@@ -391,7 +391,7 @@ canvas { max-height: 300px; }
 
 
       <div class="stat-v" style="font-size:1.1rem;text-transform:capitalize;">nature</div>
-      <div class="stat-s">43% of library</div>
+      <div class="stat-s">45% of library</div>
     </div>
     <div class="stat" style="cursor:pointer;" onclick="document.getElementById('s-aesthetics').scrollIntoView({behavior:'smooth'})">
       <div class="stat-l">Avg Aesthetic Score</div>
@@ -455,6 +455,12 @@ canvas { max-height: 300px; }
     </div>
 
 
+    <div class="stat" style="cursor:pointer;" onclick="document.getElementById('s-aesthetics').scrollIntoView({behavior:'smooth'})">
+      <div class="stat-l">High Feel, Low IQ</div>
+      <div class="stat-v" style="color:#f87171;">206 photos</div>
+      <div class="stat-s">aesthetic &gt;65 · technical IQ &lt;40</div>
+    </div>
+
   </div>
 </div>
 
@@ -486,6 +492,11 @@ canvas { max-height: 300px; }
   </div>
 
 
+  <div style="display:flex;gap:0.6rem;align-items:flex-start;padding:0.45rem 0;">
+    <span style="flex-shrink:0;margin-top:5px;display:inline-block;width:5px;height:5px;border-radius:50%;background:#f87171;"></span>
+    <div style="font-size:0.78rem;color:#9090b8;line-height:1.6;">206 photos score high aesthetically (&gt;65) but low on technical quality (&lt;40) — likely due to motion blur, noise, or soft focus. These are candidates for a reshoot or a sharper edit pass.</div>
+  </div>
+
 </div>
 
 
@@ -505,10 +516,10 @@ canvas { max-height: 300px; }
     <div style="margin-bottom:7px;">
       <div style="display:flex;justify-content:space-between;margin-bottom:2px;">
         <span style="font-size:0.78rem;color:#c0c0d8;text-transform:capitalize;">nature</span>
-        <span style="font-size:0.72rem;color:#7878a0;">43.2% · 2208</span>
+        <span style="font-size:0.72rem;color:#7878a0;">45.2% · 2208</span>
       </div>
       <div style="background:#16161f;border-radius:3px;height:5px;">
-        <div style="width:43.2%;background:#7c6af7;border-radius:3px;height:5px;opacity:0.8;"></div>
+        <div style="width:45.2%;background:#7c6af7;border-radius:3px;height:5px;opacity:0.8;"></div>
       </div>
     </div>
 
@@ -517,10 +528,10 @@ canvas { max-height: 300px; }
     <div style="margin-bottom:7px;">
       <div style="display:flex;justify-content:space-between;margin-bottom:2px;">
         <span style="font-size:0.78rem;color:#c0c0d8;text-transform:capitalize;">people and portraits</span>
-        <span style="font-size:0.72rem;color:#7878a0;">37.5% · 1914</span>
+        <span style="font-size:0.72rem;color:#7878a0;">39.2% · 1914</span>
       </div>
       <div style="background:#16161f;border-radius:3px;height:5px;">
-        <div style="width:37.5%;background:#10b981;border-radius:3px;height:5px;opacity:0.8;"></div>
+        <div style="width:39.2%;background:#10b981;border-radius:3px;height:5px;opacity:0.8;"></div>
       </div>
     </div>
 
@@ -529,10 +540,10 @@ canvas { max-height: 300px; }
     <div style="margin-bottom:7px;">
       <div style="display:flex;justify-content:space-between;margin-bottom:2px;">
         <span style="font-size:0.78rem;color:#c0c0d8;text-transform:capitalize;">architecture</span>
-        <span style="font-size:0.72rem;color:#7878a0;">19.4% · 991</span>
+        <span style="font-size:0.72rem;color:#7878a0;">20.3% · 991</span>
       </div>
       <div style="background:#16161f;border-radius:3px;height:5px;">
-        <div style="width:19.4%;background:#f59e0b;border-radius:3px;height:5px;opacity:0.8;"></div>
+        <div style="width:20.3%;background:#f59e0b;border-radius:3px;height:5px;opacity:0.8;"></div>
       </div>
     </div>
 
@@ -541,10 +552,10 @@ canvas { max-height: 300px; }
     <div style="margin-bottom:7px;">
       <div style="display:flex;justify-content:space-between;margin-bottom:2px;">
         <span style="font-size:0.78rem;color:#c0c0d8;text-transform:capitalize;">travel and landmarks</span>
-        <span style="font-size:0.72rem;color:#7878a0;">14.4% · 737</span>
+        <span style="font-size:0.72rem;color:#7878a0;">15.1% · 736</span>
       </div>
       <div style="background:#16161f;border-radius:3px;height:5px;">
-        <div style="width:14.4%;background:#3b82f6;border-radius:3px;height:5px;opacity:0.8;"></div>
+        <div style="width:15.1%;background:#3b82f6;border-radius:3px;height:5px;opacity:0.8;"></div>
       </div>
     </div>
 
@@ -553,10 +564,10 @@ canvas { max-height: 300px; }
     <div style="margin-bottom:7px;">
       <div style="display:flex;justify-content:space-between;margin-bottom:2px;">
         <span style="font-size:0.78rem;color:#c0c0d8;text-transform:capitalize;">urban street</span>
-        <span style="font-size:0.72rem;color:#7878a0;">9.6% · 491</span>
+        <span style="font-size:0.72rem;color:#7878a0;">10.0% · 491</span>
       </div>
       <div style="background:#16161f;border-radius:3px;height:5px;">
-        <div style="width:9.6%;background:#ec4899;border-radius:3px;height:5px;opacity:0.8;"></div>
+        <div style="width:10.0%;background:#ec4899;border-radius:3px;height:5px;opacity:0.8;"></div>
       </div>
     </div>
 
@@ -565,10 +576,10 @@ canvas { max-height: 300px; }
     <div style="margin-bottom:7px;">
       <div style="display:flex;justify-content:space-between;margin-bottom:2px;">
         <span style="font-size:0.78rem;color:#c0c0d8;text-transform:capitalize;">night scene</span>
-        <span style="font-size:0.72rem;color:#7878a0;">7.2% · 368</span>
+        <span style="font-size:0.72rem;color:#7878a0;">7.5% · 368</span>
       </div>
       <div style="background:#16161f;border-radius:3px;height:5px;">
-        <div style="width:7.2%;background:#f97316;border-radius:3px;height:5px;opacity:0.8;"></div>
+        <div style="width:7.5%;background:#f97316;border-radius:3px;height:5px;opacity:0.8;"></div>
       </div>
     </div>
 
@@ -577,10 +588,10 @@ canvas { max-height: 300px; }
     <div style="margin-bottom:7px;">
       <div style="display:flex;justify-content:space-between;margin-bottom:2px;">
         <span style="font-size:0.78rem;color:#c0c0d8;text-transform:capitalize;">abstract</span>
-        <span style="font-size:0.72rem;color:#7878a0;">6.9% · 353</span>
+        <span style="font-size:0.72rem;color:#7878a0;">7.2% · 353</span>
       </div>
       <div style="background:#16161f;border-radius:3px;height:5px;">
-        <div style="width:6.9%;background:#06b6d4;border-radius:3px;height:5px;opacity:0.8;"></div>
+        <div style="width:7.2%;background:#06b6d4;border-radius:3px;height:5px;opacity:0.8;"></div>
       </div>
     </div>
 
@@ -589,10 +600,10 @@ canvas { max-height: 300px; }
     <div style="margin-bottom:7px;">
       <div style="display:flex;justify-content:space-between;margin-bottom:2px;">
         <span style="font-size:0.78rem;color:#c0c0d8;text-transform:capitalize;">animals</span>
-        <span style="font-size:0.72rem;color:#7878a0;">4.5% · 232</span>
+        <span style="font-size:0.72rem;color:#7878a0;">4.7% · 232</span>
       </div>
       <div style="background:#16161f;border-radius:3px;height:5px;">
-        <div style="width:4.5%;background:#8b5cf6;border-radius:3px;height:5px;opacity:0.8;"></div>
+        <div style="width:4.7%;background:#8b5cf6;border-radius:3px;height:5px;opacity:0.8;"></div>
       </div>
     </div>
 
@@ -601,10 +612,10 @@ canvas { max-height: 300px; }
     <div style="margin-bottom:7px;">
       <div style="display:flex;justify-content:space-between;margin-bottom:2px;">
         <span style="font-size:0.78rem;color:#c0c0d8;text-transform:capitalize;">interior</span>
-        <span style="font-size:0.72rem;color:#7878a0;">2.2% · 110</span>
+        <span style="font-size:0.72rem;color:#7878a0;">2.3% · 110</span>
       </div>
       <div style="background:#16161f;border-radius:3px;height:5px;">
-        <div style="width:2.2%;background:#22c55e;border-radius:3px;height:5px;opacity:0.8;"></div>
+        <div style="width:2.3%;background:#22c55e;border-radius:3px;height:5px;opacity:0.8;"></div>
       </div>
     </div>
 
@@ -887,7 +898,7 @@ canvas { max-height: 300px; }
     <div style="margin-bottom:6px;">
       <div style="display:flex;justify-content:space-between;margin-bottom:2px;">
         <span style="font-size:0.78rem;color:#c0c0d8;">85mm</span>
-        <span style="font-size:0.72rem;color:#7878a0;">46.9% · 2395</span>
+        <span style="font-size:0.72rem;color:#7878a0;">49.0% · 2395</span>
       </div>
       <div style="background:#16161f;border-radius:3px;height:5px;">
         <div style="width:100%;background:#f97316;border-radius:3px;height:5px;opacity:0.75;"></div>
@@ -897,7 +908,7 @@ canvas { max-height: 300px; }
     <div style="margin-bottom:6px;">
       <div style="display:flex;justify-content:space-between;margin-bottom:2px;">
         <span style="font-size:0.78rem;color:#c0c0d8;">50mm</span>
-        <span style="font-size:0.72rem;color:#7878a0;">41.1% · 2098</span>
+        <span style="font-size:0.72rem;color:#7878a0;">42.9% · 2098</span>
       </div>
       <div style="background:#16161f;border-radius:3px;height:5px;">
         <div style="width:88%;background:#f97316;border-radius:3px;height:5px;opacity:0.75;"></div>
@@ -907,7 +918,7 @@ canvas { max-height: 300px; }
     <div style="margin-bottom:6px;">
       <div style="display:flex;justify-content:space-between;margin-bottom:2px;">
         <span style="font-size:0.78rem;color:#c0c0d8;">24mm</span>
-        <span style="font-size:0.72rem;color:#7878a0;">2.5% · 129</span>
+        <span style="font-size:0.72rem;color:#7878a0;">2.6% · 129</span>
       </div>
       <div style="background:#16161f;border-radius:3px;height:5px;">
         <div style="width:5%;background:#f97316;border-radius:3px;height:5px;opacity:0.75;"></div>
@@ -917,7 +928,7 @@ canvas { max-height: 300px; }
     <div style="margin-bottom:6px;">
       <div style="display:flex;justify-content:space-between;margin-bottom:2px;">
         <span style="font-size:0.78rem;color:#c0c0d8;">20mm</span>
-        <span style="font-size:0.72rem;color:#7878a0;">1.8% · 94</span>
+        <span style="font-size:0.72rem;color:#7878a0;">1.9% · 94</span>
       </div>
       <div style="background:#16161f;border-radius:3px;height:5px;">
         <div style="width:4%;background:#f97316;border-radius:3px;height:5px;opacity:0.75;"></div>
@@ -1029,7 +1040,7 @@ canvas { max-height: 300px; }
     <div style="margin-bottom:6px;">
       <div style="display:flex;justify-content:space-between;margin-bottom:2px;">
         <span style="font-size:0.78rem;color:#c0c0d8;">f/1.8</span>
-        <span style="font-size:0.72rem;color:#7878a0;">62.0% · 3167</span>
+        <span style="font-size:0.72rem;color:#7878a0;">64.8% · 3167</span>
       </div>
       <div style="background:#16161f;border-radius:3px;height:5px;">
         <div style="width:100%;background:#10b981;border-radius:3px;height:5px;opacity:0.75;"></div>
@@ -1039,7 +1050,7 @@ canvas { max-height: 300px; }
     <div style="margin-bottom:6px;">
       <div style="display:flex;justify-content:space-between;margin-bottom:2px;">
         <span style="font-size:0.78rem;color:#c0c0d8;">f/2</span>
-        <span style="font-size:0.72rem;color:#7878a0;">2.3% · 120</span>
+        <span style="font-size:0.72rem;color:#7878a0;">2.5% · 120</span>
       </div>
       <div style="background:#16161f;border-radius:3px;height:5px;">
         <div style="width:4%;background:#10b981;border-radius:3px;height:5px;opacity:0.75;"></div>
@@ -1049,7 +1060,7 @@ canvas { max-height: 300px; }
     <div style="margin-bottom:6px;">
       <div style="display:flex;justify-content:space-between;margin-bottom:2px;">
         <span style="font-size:0.78rem;color:#c0c0d8;">f/2.8</span>
-        <span style="font-size:0.72rem;color:#7878a0;">12.8% · 655</span>
+        <span style="font-size:0.72rem;color:#7878a0;">13.4% · 655</span>
       </div>
       <div style="background:#16161f;border-radius:3px;height:5px;">
         <div style="width:21%;background:#10b981;border-radius:3px;height:5px;opacity:0.75;"></div>
@@ -1059,7 +1070,7 @@ canvas { max-height: 300px; }
     <div style="margin-bottom:6px;">
       <div style="display:flex;justify-content:space-between;margin-bottom:2px;">
         <span style="font-size:0.78rem;color:#c0c0d8;">f/4</span>
-        <span style="font-size:0.72rem;color:#7878a0;">8.9% · 454</span>
+        <span style="font-size:0.72rem;color:#7878a0;">9.3% · 454</span>
       </div>
       <div style="background:#16161f;border-radius:3px;height:5px;">
         <div style="width:14%;background:#10b981;border-radius:3px;height:5px;opacity:0.75;"></div>
@@ -1069,7 +1080,7 @@ canvas { max-height: 300px; }
     <div style="margin-bottom:6px;">
       <div style="display:flex;justify-content:space-between;margin-bottom:2px;">
         <span style="font-size:0.78rem;color:#c0c0d8;">f/5.6</span>
-        <span style="font-size:0.72rem;color:#7878a0;">5.8% · 298</span>
+        <span style="font-size:0.72rem;color:#7878a0;">6.1% · 298</span>
       </div>
       <div style="background:#16161f;border-radius:3px;height:5px;">
         <div style="width:9%;background:#10b981;border-radius:3px;height:5px;opacity:0.75;"></div>
@@ -1089,7 +1100,7 @@ canvas { max-height: 300px; }
     <div style="margin-bottom:6px;">
       <div style="display:flex;justify-content:space-between;margin-bottom:2px;">
         <span style="font-size:0.78rem;color:#c0c0d8;">f/11</span>
-        <span style="font-size:0.72rem;color:#7878a0;">0.5% · 28</span>
+        <span style="font-size:0.72rem;color:#7878a0;">0.6% · 28</span>
       </div>
       <div style="background:#16161f;border-radius:3px;height:5px;">
         <div style="width:1%;background:#10b981;border-radius:3px;height:5px;opacity:0.75;"></div>
@@ -1099,7 +1110,7 @@ canvas { max-height: 300px; }
     <div style="margin-bottom:6px;">
       <div style="display:flex;justify-content:space-between;margin-bottom:2px;">
         <span style="font-size:0.78rem;color:#c0c0d8;">f/16</span>
-        <span style="font-size:0.72rem;color:#7878a0;">1.1% · 57</span>
+        <span style="font-size:0.72rem;color:#7878a0;">1.2% · 57</span>
       </div>
       <div style="background:#16161f;border-radius:3px;height:5px;">
         <div style="width:2%;background:#10b981;border-radius:3px;height:5px;opacity:0.75;"></div>
@@ -1131,7 +1142,7 @@ canvas { max-height: 300px; }
     <div style="margin-bottom:6px;">
       <div style="display:flex;justify-content:space-between;margin-bottom:2px;">
         <span style="font-size:0.78rem;color:#c0c0d8;">≤100</span>
-        <span style="font-size:0.72rem;color:#7878a0;">42.1% · 2148</span>
+        <span style="font-size:0.72rem;color:#7878a0;">44.0% · 2148</span>
       </div>
       <div style="background:#16161f;border-radius:3px;height:5px;">
         <div style="width:100%;background:#f59e0b;border-radius:3px;height:5px;opacity:0.75;"></div>
@@ -1141,7 +1152,7 @@ canvas { max-height: 300px; }
     <div style="margin-bottom:6px;">
       <div style="display:flex;justify-content:space-between;margin-bottom:2px;">
         <span style="font-size:0.78rem;color:#c0c0d8;">101–400</span>
-        <span style="font-size:0.72rem;color:#7878a0;">36.5% · 1864</span>
+        <span style="font-size:0.72rem;color:#7878a0;">38.1% · 1864</span>
       </div>
       <div style="background:#16161f;border-radius:3px;height:5px;">
         <div style="width:87%;background:#f59e0b;border-radius:3px;height:5px;opacity:0.75;"></div>
@@ -1151,7 +1162,7 @@ canvas { max-height: 300px; }
     <div style="margin-bottom:6px;">
       <div style="display:flex;justify-content:space-between;margin-bottom:2px;">
         <span style="font-size:0.78rem;color:#c0c0d8;">401–800</span>
-        <span style="font-size:0.72rem;color:#7878a0;">9.2% · 471</span>
+        <span style="font-size:0.72rem;color:#7878a0;">9.6% · 471</span>
       </div>
       <div style="background:#16161f;border-radius:3px;height:5px;">
         <div style="width:22%;background:#f59e0b;border-radius:3px;height:5px;opacity:0.75;"></div>
@@ -1161,7 +1172,7 @@ canvas { max-height: 300px; }
     <div style="margin-bottom:6px;">
       <div style="display:flex;justify-content:space-between;margin-bottom:2px;">
         <span style="font-size:0.78rem;color:#c0c0d8;">801–1600</span>
-        <span style="font-size:0.72rem;color:#7878a0;">3.2% · 164</span>
+        <span style="font-size:0.72rem;color:#7878a0;">3.4% · 164</span>
       </div>
       <div style="background:#16161f;border-radius:3px;height:5px;">
         <div style="width:8%;background:#f59e0b;border-radius:3px;height:5px;opacity:0.75;"></div>
@@ -1171,7 +1182,7 @@ canvas { max-height: 300px; }
     <div style="margin-bottom:6px;">
       <div style="display:flex;justify-content:space-between;margin-bottom:2px;">
         <span style="font-size:0.78rem;color:#c0c0d8;">1601–3200</span>
-        <span style="font-size:0.72rem;color:#7878a0;">3.3% · 166</span>
+        <span style="font-size:0.72rem;color:#7878a0;">3.4% · 166</span>
       </div>
       <div style="background:#16161f;border-radius:3px;height:5px;">
         <div style="width:8%;background:#f59e0b;border-radius:3px;height:5px;opacity:0.75;"></div>
@@ -1181,7 +1192,7 @@ canvas { max-height: 300px; }
     <div style="margin-bottom:6px;">
       <div style="display:flex;justify-content:space-between;margin-bottom:2px;">
         <span style="font-size:0.78rem;color:#c0c0d8;">3201+</span>
-        <span style="font-size:0.72rem;color:#7878a0;">1.4% · 73</span>
+        <span style="font-size:0.72rem;color:#7878a0;">1.5% · 73</span>
       </div>
       <div style="background:#16161f;border-radius:3px;height:5px;">
         <div style="width:3%;background:#f59e0b;border-radius:3px;height:5px;opacity:0.75;"></div>
@@ -1346,20 +1357,20 @@ canvas { max-height: 300px; }
 
 
       <div class="dbar">
-        <div class="dbar-row"><span>Mid</span><span>48%</span></div>
-        <div class="dbar-bg"><div class="dbar-fill" style="width:48%;background:#7c6af7;"></div></div>
+        <div class="dbar-row"><span>Mid</span><span>50%</span></div>
+        <div class="dbar-bg"><div class="dbar-fill" style="width:50%;background:#7c6af7;"></div></div>
       </div>
 
 
       <div class="dbar">
-        <div class="dbar-row"><span>Bottom</span><span>30%</span></div>
-        <div class="dbar-bg"><div class="dbar-fill" style="width:30%;background:#7c6af7;"></div></div>
+        <div class="dbar-row"><span>Bottom</span><span>32%</span></div>
+        <div class="dbar-bg"><div class="dbar-fill" style="width:32%;background:#7c6af7;"></div></div>
       </div>
 
 
       <div class="dbar">
-        <div class="dbar-row"><span>None</span><span>15%</span></div>
-        <div class="dbar-bg"><div class="dbar-fill" style="width:15%;background:#7c6af7;"></div></div>
+        <div class="dbar-row"><span>None</span><span>12%</span></div>
+        <div class="dbar-bg"><div class="dbar-fill" style="width:12%;background:#7c6af7;"></div></div>
       </div>
 
     </div>
@@ -1418,8 +1429,8 @@ canvas { max-height: 300px; }
       <div class="stat" style="padding:0.5rem 0.6rem;"><div class="stat-l">Solo</div><div class="stat-v">284</div><div class="stat-s">1 person</div></div>
 
 
-      <div class="stat" style="padding:0.5rem 0.6rem;"><div class="stat-l">Pair</div><div class="stat-v">159</div><div class="stat-s">2 people</div></div>
-      <div class="stat" style="padding:0.5rem 0.6rem;"><div class="stat-l">Group 3+</div><div class="stat-v">170</div><div class="stat-s">3 or more</div></div>
+      <div class="stat" style="padding:0.5rem 0.6rem;"><div class="stat-l">Pair</div><div class="stat-v">160</div><div class="stat-s">2 people</div></div>
+      <div class="stat" style="padding:0.5rem 0.6rem;"><div class="stat-l">Group 3+</div><div class="stat-v">169</div><div class="stat-s">3 or more</div></div>
 
     </div>
   </div>
@@ -1450,7 +1461,7 @@ canvas { max-height: 300px; }
 
 
       <div style="flex:1;background:#3b82f6;opacity:0.5;border-radius:8px;padding:0.7rem 0.4rem;text-align:center;">
-        <div style="font-size:1.1rem;font-weight:700;color:#fff;opacity:1;">16%</div>
+        <div style="font-size:1.1rem;font-weight:700;color:#fff;opacity:1;">15%</div>
         <div style="font-size:0.68rem;color:#ffffffcc;text-transform:capitalize;margin-top:2px;">wide</div>
         <div style="font-size:0.6rem;color:#ffffff99;margin-top:1px;">61.0 aesthetic</div>
       </div>
@@ -1476,19 +1487,13 @@ canvas { max-height: 300px; }
   <div class="strip mb" style="margin-bottom:1rem;">
 
 
-    <div class="strip-item" style="flex:0.9242216565498336;min-width:80px;">
+    <div class="strip-item" style="flex:0.9660253786328284;min-width:80px;">
       <div class="strip-v">4720</div>
       <div class="strip-s">mirrorless</div>
       <div class="strip-s" style="color:#7c6af7;">62.9 aes</div>
     </div>
 
-    <div class="strip-item" style="flex:0.043273937732523984;min-width:80px;">
-      <div class="strip-v">221</div>
-      <div class="strip-s">unknown</div>
-
-    </div>
-
-    <div class="strip-item" style="flex:0.03250440571764245;min-width:80px;">
+    <div class="strip-item" style="flex:0.03397462136717151;min-width:80px;">
       <div class="strip-v">166</div>
       <div class="strip-s">phone</div>
       <div class="strip-s" style="color:#7c6af7;">63.7 aes</div>
@@ -1508,28 +1513,28 @@ canvas { max-height: 300px; }
       <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.25rem;">
         <div style="font-size:0.75rem;min-width:130px;color:#c8c8e8;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="FE 85mm F1.8">FE 85mm F1.8</div>
         <div style="flex:1;background:#1c1c2e;border-radius:3px;height:6px;"><div style="width:100.0%;background:#7c6af7;height:100%;border-radius:3px;"></div></div>
-        <div style="font-size:0.72rem;color:#9090b8;min-width:60px;text-align:right;">46.8% · 2392</div>
+        <div style="font-size:0.72rem;color:#9090b8;min-width:60px;text-align:right;">49.0% · 2392</div>
       </div>
 
 
       <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.25rem;">
         <div style="font-size:0.75rem;min-width:130px;color:#c8c8e8;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="FE 50mm F1.8">FE 50mm F1.8</div>
         <div style="flex:1;background:#1c1c2e;border-radius:3px;height:6px;"><div style="width:87.7%;background:#7c6af7;height:100%;border-radius:3px;"></div></div>
-        <div style="font-size:0.72rem;color:#9090b8;min-width:60px;text-align:right;">41.1% · 2097</div>
+        <div style="font-size:0.72rem;color:#9090b8;min-width:60px;text-align:right;">42.9% · 2097</div>
       </div>
 
 
       <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.25rem;">
         <div style="font-size:0.75rem;min-width:130px;color:#c8c8e8;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="iPhone 14 Pro back triple camera 6.86mm f/1.78">iPhone 14 Pro back triple camera 6.86mm f/1.78</div>
         <div style="flex:1;background:#1c1c2e;border-radius:3px;height:6px;"><div style="width:4.3%;background:#7c6af7;height:100%;border-radius:3px;"></div></div>
-        <div style="font-size:0.72rem;color:#9090b8;min-width:60px;text-align:right;">2.0% · 102</div>
+        <div style="font-size:0.72rem;color:#9090b8;min-width:60px;text-align:right;">2.1% · 102</div>
       </div>
 
 
       <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.25rem;">
         <div style="font-size:0.75rem;min-width:130px;color:#c8c8e8;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="FE 20mm F1.8 G">FE 20mm F1.8 G</div>
         <div style="flex:1;background:#1c1c2e;border-radius:3px;height:6px;"><div style="width:3.9%;background:#7c6af7;height:100%;border-radius:3px;"></div></div>
-        <div style="font-size:0.72rem;color:#9090b8;min-width:60px;text-align:right;">1.8% · 94</div>
+        <div style="font-size:0.72rem;color:#9090b8;min-width:60px;text-align:right;">1.9% · 94</div>
       </div>
 
 
@@ -1686,28 +1691,28 @@ canvas { max-height: 300px; }
 
 
     <div class="dbar">
-      <div class="dbar-row"><span style="text-transform:capitalize;">analogous</span><span>44.8%</span></div>
-      <div class="dbar-bg"><div class="dbar-fill" style="width:44.8%;background:#7c6af7;"></div></div>
+      <div class="dbar-row"><span style="text-transform:capitalize;">analogous</span><span>46.3%</span></div>
+      <div class="dbar-bg"><div class="dbar-fill" style="width:46.3%;background:#7c6af7;"></div></div>
     </div>
 
     <div class="dbar">
-      <div class="dbar-row"><span style="text-transform:capitalize;">monochromatic</span><span>35.3%</span></div>
-      <div class="dbar-bg"><div class="dbar-fill" style="width:35.3%;background:#94a3b8;"></div></div>
+      <div class="dbar-row"><span style="text-transform:capitalize;">monochromatic</span><span>32.5%</span></div>
+      <div class="dbar-bg"><div class="dbar-fill" style="width:32.5%;background:#94a3b8;"></div></div>
     </div>
 
     <div class="dbar">
-      <div class="dbar-row"><span style="text-transform:capitalize;">complementary</span><span>12.1%</span></div>
-      <div class="dbar-bg"><div class="dbar-fill" style="width:12.1%;background:#f97316;"></div></div>
+      <div class="dbar-row"><span style="text-transform:capitalize;">complementary</span><span>12.4%</span></div>
+      <div class="dbar-bg"><div class="dbar-fill" style="width:12.4%;background:#f97316;"></div></div>
     </div>
 
     <div class="dbar">
-      <div class="dbar-row"><span style="text-transform:capitalize;">mixed</span><span>4.4%</span></div>
-      <div class="dbar-bg"><div class="dbar-fill" style="width:4.4%;background:#f59e0b;"></div></div>
+      <div class="dbar-row"><span style="text-transform:capitalize;">mixed</span><span>4.8%</span></div>
+      <div class="dbar-bg"><div class="dbar-fill" style="width:4.8%;background:#f59e0b;"></div></div>
     </div>
 
     <div class="dbar">
-      <div class="dbar-row"><span style="text-transform:capitalize;">triadic</span><span>3.4%</span></div>
-      <div class="dbar-bg"><div class="dbar-fill" style="width:3.4%;background:#10b981;"></div></div>
+      <div class="dbar-row"><span style="text-transform:capitalize;">triadic</span><span>4.0%</span></div>
+      <div class="dbar-bg"><div class="dbar-fill" style="width:4.0%;background:#10b981;"></div></div>
     </div>
 
 
@@ -1736,7 +1741,7 @@ canvas { max-height: 300px; }
     </div>
     <div style="font-size:0.72rem;color:#c8c8e8;">Green highlights · green shadows</div>
 
-    <div style="font-size:0.65rem;color:#7878a0;margin-top:0.3rem;">Balance -3.0 · shadow lift 20.9 EV · highlight push 6.6 EV</div>
+    <div style="font-size:0.65rem;color:#7878a0;margin-top:0.3rem;">Balance -3.3 · shadow lift 20.2 EV · highlight push 5.8 EV</div>
 
 
   </div>
@@ -1825,7 +1830,7 @@ canvas { max-height: 300px; }
 <div class="card card-purple card-accent-top mb">
   <div class="card-title">Signature Edit</div>
 
-  <div class="pull">Heavy tonal recovery — pulling highlights (-80) while lifting shadows (+62) for maximum dynamic range. Rich selective colour — vibrance +42 over global saturation (-15) keeps skin tones natural. Brightening exposure by 0.6 stop.</div>
+  <div class="pull">Heavy tonal recovery — pulling highlights (-80) while lifting shadows (+63) for maximum dynamic range. Rich selective colour — vibrance +42 over global saturation (-15) keeps skin tones natural. Brightening exposure by 0.6 stop.</div>
 
   <div class="row two" style="margin-bottom:0;">
     <div>
@@ -1838,7 +1843,7 @@ canvas { max-height: 300px; }
           <div class="sig-center"></div>
 
 
-          <div class="sig-pos" style="left:50%;width:5.5%;background:#7c6af7;"></div>
+          <div class="sig-pos" style="left:50%;width:5.6000000000000005%;background:#7c6af7;"></div>
 
         </div>
       </div>
@@ -1856,12 +1861,12 @@ canvas { max-height: 300px; }
 
 
       <div class="sig-row">
-        <div class="sig-lbl"><span>Shadows</span><span>+62.0 ±28</span></div>
+        <div class="sig-lbl"><span>Shadows</span><span>+63.0 ±28</span></div>
         <div class="sig-track">
           <div class="sig-center"></div>
 
 
-          <div class="sig-pos" style="left:50%;width:31.0%;background:#7c6af7;"></div>
+          <div class="sig-pos" style="left:50%;width:31.5%;background:#7c6af7;"></div>
 
         </div>
       </div>
@@ -1879,7 +1884,7 @@ canvas { max-height: 300px; }
 
 
       <div class="sig-row">
-        <div class="sig-lbl"><span>Blacks</span><span>+4.0 ±13</span></div>
+        <div class="sig-lbl"><span>Blacks</span><span>+4.0 ±12</span></div>
         <div class="sig-track">
           <div class="sig-center"></div>
 
@@ -1891,12 +1896,12 @@ canvas { max-height: 300px; }
 
 
       <div class="sig-row">
-        <div class="sig-lbl"><span>Contrast</span><span>+11.0 ±20</span></div>
+        <div class="sig-lbl"><span>Contrast</span><span>+12.0 ±20</span></div>
         <div class="sig-track">
           <div class="sig-center"></div>
 
 
-          <div class="sig-pos" style="left:50%;width:5.5%;background:#7c6af7;"></div>
+          <div class="sig-pos" style="left:50%;width:6.0%;background:#7c6af7;"></div>
 
         </div>
       </div>
@@ -1907,7 +1912,7 @@ canvas { max-height: 300px; }
 
 
       <div class="sig-row">
-        <div class="sig-lbl"><span>Texture</span><span>-5.0 ±10</span></div>
+        <div class="sig-lbl"><span>Texture</span><span>-5.0 ±9</span></div>
         <div class="sig-track">
           <div class="sig-center"></div>
 
@@ -1943,7 +1948,7 @@ canvas { max-height: 300px; }
 
 
       <div class="sig-row">
-        <div class="sig-lbl"><span>Saturation</span><span>-15.0 ±12</span></div>
+        <div class="sig-lbl"><span>Saturation</span><span>-15.0 ±11</span></div>
         <div class="sig-track">
           <div class="sig-center"></div>
 
@@ -1954,12 +1959,12 @@ canvas { max-height: 300px; }
 
 
       <div class="sig-row">
-        <div class="sig-lbl"><span>White Balance</span><span>6054K · warm</span></div>
+        <div class="sig-lbl"><span>White Balance</span><span>6088K · warm</span></div>
         <div class="sig-track">
           <div class="sig-center"></div>
 
 
-          <div class="sig-pos" style="left:50%;width:5.050000000000001%;background:#f59e0b;"></div>
+          <div class="sig-pos" style="left:50%;width:5.35%;background:#f59e0b;"></div>
 
         </div>
       </div>
@@ -1989,20 +1994,20 @@ canvas { max-height: 300px; }
 
 
 
-    <div style="background:rgba(239,68,68,0.1);border-radius:4px;padding:3px 5px;text-align:center;font-size:0.72rem;color:#7878a0;">
-      -2.0
+    <div style="background:rgba(239,68,68,0.09);border-radius:4px;padding:3px 5px;text-align:center;font-size:0.72rem;color:#7878a0;">
+      -1.8
     </div>
 
 
 
-    <div style="background:rgba(239,68,68,0.35);border-radius:4px;padding:3px 5px;text-align:center;font-size:0.72rem;color:#e8e8f8;">
-      -7.0
+    <div style="background:rgba(239,68,68,0.38);border-radius:4px;padding:3px 5px;text-align:center;font-size:0.72rem;color:#e8e8f8;">
+      -7.6
     </div>
 
 
 
-    <div style="background:rgba(124,106,247,0.05);border-radius:4px;padding:3px 5px;text-align:center;font-size:0.72rem;color:#7878a0;">
-      +0.9
+    <div style="background:rgba(124,106,247,0.04);border-radius:4px;padding:3px 5px;text-align:center;font-size:0.72rem;color:#7878a0;">
+      +0.7
     </div>
 
   </div>
@@ -2019,14 +2024,14 @@ canvas { max-height: 300px; }
 
 
 
-    <div style="background:rgba(239,68,68,0.53);border-radius:4px;padding:3px 5px;text-align:center;font-size:0.72rem;color:#e8e8f8;">
-      -10.7
+    <div style="background:rgba(239,68,68,0.56);border-radius:4px;padding:3px 5px;text-align:center;font-size:0.72rem;color:#e8e8f8;">
+      -11.2
     </div>
 
 
 
-    <div style="background:rgba(124,106,247,0.59);border-radius:4px;padding:3px 5px;text-align:center;font-size:0.72rem;color:#e8e8f8;">
-      +10.4
+    <div style="background:rgba(124,106,247,0.57);border-radius:4px;padding:3px 5px;text-align:center;font-size:0.72rem;color:#e8e8f8;">
+      +10.0
     </div>
 
   </div>
@@ -2038,19 +2043,19 @@ canvas { max-height: 300px; }
 
 
     <div style="background:rgba(239,68,68,0.75);border-radius:4px;padding:3px 5px;text-align:center;font-size:0.72rem;color:#e8e8f8;">
-      -27.4
+      -28.0
     </div>
 
 
 
     <div style="background:rgba(239,68,68,0.75);border-radius:4px;padding:3px 5px;text-align:center;font-size:0.72rem;color:#e8e8f8;">
-      -20.5
+      -21.2
     </div>
 
 
 
-    <div style="background:rgba(124,106,247,0.1);border-radius:4px;padding:3px 5px;text-align:center;font-size:0.72rem;color:#7878a0;">
-      +1.9
+    <div style="background:rgba(124,106,247,0.09);border-radius:4px;padding:3px 5px;text-align:center;font-size:0.72rem;color:#7878a0;">
+      +1.6
     </div>
 
   </div>
@@ -2062,19 +2067,19 @@ canvas { max-height: 300px; }
 
 
     <div style="background:rgba(239,68,68,0.75);border-radius:4px;padding:3px 5px;text-align:center;font-size:0.72rem;color:#e8e8f8;">
-      -37.4
+      -38.5
     </div>
 
 
 
     <div style="background:rgba(239,68,68,0.75);border-radius:4px;padding:3px 5px;text-align:center;font-size:0.72rem;color:#e8e8f8;">
-      -28.8
+      -29.8
     </div>
 
 
 
-    <div style="background:rgba(124,106,247,0.06);border-radius:4px;padding:3px 5px;text-align:center;font-size:0.72rem;color:#7878a0;">
-      +1.1
+    <div style="background:rgba(124,106,247,0.04);border-radius:4px;padding:3px 5px;text-align:center;font-size:0.72rem;color:#7878a0;">
+      +0.7
     </div>
 
   </div>
@@ -2085,14 +2090,14 @@ canvas { max-height: 300px; }
 
 
 
-    <div style="background:rgba(239,68,68,0.41);border-radius:4px;padding:3px 5px;text-align:center;font-size:0.72rem;color:#e8e8f8;">
-      -8.2
+    <div style="background:rgba(239,68,68,0.42);border-radius:4px;padding:3px 5px;text-align:center;font-size:0.72rem;color:#e8e8f8;">
+      -8.4
     </div>
 
 
 
     <div style="background:rgba(239,68,68,0.75);border-radius:4px;padding:3px 5px;text-align:center;font-size:0.72rem;color:#e8e8f8;">
-      -31.6
+      -32.5
     </div>
 
 
@@ -2110,13 +2115,13 @@ canvas { max-height: 300px; }
 
 
     <div style="background:rgba(239,68,68,0.75);border-radius:4px;padding:3px 5px;text-align:center;font-size:0.72rem;color:#e8e8f8;">
-      -16.7
+      -17.1
     </div>
 
 
 
     <div style="background:rgba(239,68,68,0.75);border-radius:4px;padding:3px 5px;text-align:center;font-size:0.72rem;color:#e8e8f8;">
-      -28.9
+      -30.3
     </div>
 
 
@@ -2133,14 +2138,14 @@ canvas { max-height: 300px; }
 
 
 
-    <div style="background:rgba(239,68,68,0.57);border-radius:4px;padding:3px 5px;text-align:center;font-size:0.72rem;color:#e8e8f8;">
-      -11.3
+    <div style="background:rgba(239,68,68,0.58);border-radius:4px;padding:3px 5px;text-align:center;font-size:0.72rem;color:#e8e8f8;">
+      -11.7
     </div>
 
 
 
     <div style="background:rgba(239,68,68,0.75);border-radius:4px;padding:3px 5px;text-align:center;font-size:0.72rem;color:#e8e8f8;">
-      -22.6
+      -23.2
     </div>
 
 
@@ -2157,20 +2162,20 @@ canvas { max-height: 300px; }
 
 
 
-    <div style="background:rgba(124,106,247,0.09);border-radius:4px;padding:3px 5px;text-align:center;font-size:0.72rem;color:#7878a0;">
-      +1.5
+    <div style="background:rgba(124,106,247,0.08);border-radius:4px;padding:3px 5px;text-align:center;font-size:0.72rem;color:#7878a0;">
+      +1.4
     </div>
 
 
 
     <div style="background:rgba(239,68,68,0.75);border-radius:4px;padding:3px 5px;text-align:center;font-size:0.72rem;color:#e8e8f8;">
-      -16.2
+      -16.8
     </div>
 
 
 
-    <div style="background:rgba(124,106,247,0.03);border-radius:4px;padding:3px 5px;text-align:center;font-size:0.72rem;color:#7878a0;">
-      +0.5
+    <div style="background:rgba(124,106,247,0.02);border-radius:4px;padding:3px 5px;text-align:center;font-size:0.72rem;color:#7878a0;">
+      +0.3
     </div>
 
   </div>
@@ -2182,7 +2187,7 @@ canvas { max-height: 300px; }
 <!-- LR Develop Settings -->
 
 <div class="card mb">
-  <div class="card-title">Adobe Lightroom Develop Settings <span style="color:#8080aa;font-weight:400;">5091 of 5107 images with develop metadata</span></div>
+  <div class="card-title">Adobe Lightroom Develop Settings <span style="color:#8080aa;font-weight:400;">4870 of 4886 images with develop metadata</span></div>
   <div class="card-desc" style="margin-bottom:0.9rem;">Avg slider positions across your library. Only images synced from Lightroom include develop settings — local folder imports don't carry this data. <strong style="color:#9090b8;">Lum. Noise</strong> = Luminance Smoothing, which reduces grain/texture noise in the brightness channel (high-ISO shots). <strong style="color:#9090b8;">Color NR</strong> = Color Noise Reduction, which removes coloured speckles (chroma noise) in shadow areas.</div>
   <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px;margin-top:4px;">
 
@@ -2209,27 +2214,27 @@ canvas { max-height: 300px; }
 
     <div style="background:#16161f;border-radius:7px;padding:10px;">
       <div style="color:#7878a0;font-size:10px;margin-bottom:2px;">Vibrance</div>
-      <div style="font-size:1.1rem;font-weight:700;color:#34d399;">+35.6</div>
+      <div style="font-size:1.1rem;font-weight:700;color:#34d399;">+36.3</div>
       <div style="height:3px;background:#1e1e2e;border-radius:2px;margin-top:6px;">
 
-        <div style="width:67%;height:3px;background:#34d399;border-radius:2px;"></div>
+        <div style="width:68%;height:3px;background:#34d399;border-radius:2px;"></div>
       </div>
     </div>
 
 
     <div style="background:#16161f;border-radius:7px;padding:10px;">
       <div style="color:#7878a0;font-size:10px;margin-bottom:2px;">Saturation</div>
-      <div style="font-size:1.1rem;font-weight:700;color:#f87171;">-15.4</div>
+      <div style="font-size:1.1rem;font-weight:700;color:#f87171;">-16.1</div>
       <div style="height:3px;background:#1e1e2e;border-radius:2px;margin-top:6px;">
 
-        <div style="width:42%;height:3px;background:#f87171;border-radius:2px;"></div>
+        <div style="width:41%;height:3px;background:#f87171;border-radius:2px;"></div>
       </div>
     </div>
 
 
     <div style="background:#16161f;border-radius:7px;padding:10px;">
       <div style="color:#7878a0;font-size:10px;margin-bottom:2px;">Sharpness</div>
-      <div style="font-size:1.1rem;font-weight:700;color:#34d399;">+43.2</div>
+      <div style="font-size:1.1rem;font-weight:700;color:#34d399;">+43.3</div>
       <div style="height:3px;background:#1e1e2e;border-radius:2px;margin-top:6px;">
 
         <div style="width:71%;height:3px;background:#34d399;border-radius:2px;"></div>
@@ -2249,7 +2254,7 @@ canvas { max-height: 300px; }
 
     <div style="background:#16161f;border-radius:7px;padding:10px;">
       <div style="color:#7878a0;font-size:10px;margin-bottom:2px;">Color NR</div>
-      <div style="font-size:1.1rem;font-weight:700;color:#34d399;">+19.6</div>
+      <div style="font-size:1.1rem;font-weight:700;color:#34d399;">+19.4</div>
       <div style="height:3px;background:#1e1e2e;border-radius:2px;margin-top:6px;">
 
         <div style="width:59%;height:3px;background:#34d399;border-radius:2px;"></div>
@@ -2819,7 +2824,7 @@ canvas { max-height: 300px; }
         <span class="cs-pill">sat 0.19</span>
         <span class="cs-pill">bri 0.63</span>
         <span class="cs-pill">con 0.21</span>
-        <span class="cs-pill">737 images</span>
+        <span class="cs-pill">736 images</span>
       </div>
     </div>
 
@@ -3023,17 +3028,17 @@ canvas { max-height: 300px; }
 
     <div style="flex:1;min-width:120px;background:#13131f;border-radius:8px;padding:0.7rem 0.85rem;border:1px solid #1a1a28;">
       <div style="font-size:0.62rem;text-transform:uppercase;letter-spacing:0.05em;color:#9090b8;margin-bottom:0.4rem;">early</div>
-      <div style="font-size:1.15rem;font-weight:700;color:#c8c8e8;">63.8</div>
+      <div style="font-size:1.15rem;font-weight:700;color:#c8c8e8;">64.0</div>
       <div style="font-size:0.62rem;color:#7878a0;margin-bottom:0.3rem;">avg aesthetic</div>
       <div style="display:flex;gap:0.6rem;flex-wrap:wrap;">
-        <span style="font-size:0.68rem;"><span style="color:#7c6af7;font-weight:600;">269</span> <span style="color:#7878a0;">intensity</span></span>
+        <span style="font-size:0.68rem;"><span style="color:#7c6af7;font-weight:600;">268</span> <span style="color:#7878a0;">intensity</span></span>
         <span style="font-size:0.68rem;"><span style="color:#10b981;font-weight:600;">4%</span> <span style="color:#7878a0;">automated</span></span>
       </div>
     </div>
 
     <div style="flex:1;min-width:120px;background:#13131f;border-radius:8px;padding:0.7rem 0.85rem;border:1px solid #1a1a28;">
       <div style="font-size:0.62rem;text-transform:uppercase;letter-spacing:0.05em;color:#9090b8;margin-bottom:0.4rem;">recent</div>
-      <div style="font-size:1.15rem;font-weight:700;color:#c8c8e8;">62.0</div>
+      <div style="font-size:1.15rem;font-weight:700;color:#c8c8e8;">61.8</div>
       <div style="font-size:0.62rem;color:#7878a0;margin-bottom:0.3rem;">avg aesthetic</div>
       <div style="display:flex;gap:0.6rem;flex-wrap:wrap;">
         <span style="font-size:0.68rem;"><span style="color:#7c6af7;font-weight:600;">299</span> <span style="color:#7878a0;">intensity</span></span>
@@ -3058,12 +3063,12 @@ canvas { max-height: 300px; }
       <div class="strip-s">Lightroom collections</div>
     </div>
     <div class="strip-item">
-      <div class="strip-v">738</div>
+      <div class="strip-v">681</div>
       <div class="strip-l">Curated Images</div>
-      <div class="strip-s">of 5107 Lightroom images</div>
+      <div class="strip-s">of 4886 Lightroom images</div>
     </div>
     <div class="strip-item">
-      <div class="strip-v" style="color:#7c6af7;">14.5%</div>
+      <div class="strip-v" style="color:#7c6af7;">13.9%</div>
       <div class="strip-l">Curation Rate</div>
       <div class="strip-s">in at least one album</div>
     </div>
@@ -3115,7 +3120,7 @@ canvas { max-height: 300px; }
       <td style="padding:5px 8px;font-size:0.82rem;color:#7c6af7;text-align:right;font-weight:600;">62.9</td>
       <td style="padding:5px 8px;font-size:0.72rem;color:#7878a0;text-align:right;">3.16</td>
       <td style="padding:5px 8px;font-size:0.72rem;color:#9090b8;text-align:right;">315</td>
-      <td style="padding:5px 8px;"><span style="display:inline-block;width:13px;height:13px;background:#20282a;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#20282a"></span><span style="display:inline-block;width:13px;height:13px;background:#e3dbf2;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#e3dbf2"></span><span style="display:inline-block;width:13px;height:13px;background:#674b4f;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#674b4f"></span><span style="display:inline-block;width:13px;height:13px;background:#d1d2cd;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#d1d2cd"></span><span style="display:inline-block;width:13px;height:13px;background:#bdbbba;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#bdbbba"></span><span style="display:inline-block;width:13px;height:13px;background:#353839;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#353839"></span></td>
+      <td style="padding:5px 8px;"><span style="display:inline-block;width:13px;height:13px;background:#232b2d;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#232b2d"></span><span style="display:inline-block;width:13px;height:13px;background:#e3dcf2;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#e3dcf2"></span><span style="display:inline-block;width:13px;height:13px;background:#525c61;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#525c61"></span><span style="display:inline-block;width:13px;height:13px;background:#bab6b4;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#bab6b4"></span><span style="display:inline-block;width:13px;height:13px;background:#d4d5cd;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#d4d5cd"></span><span style="display:inline-block;width:13px;height:13px;background:#8c7e7b;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#8c7e7b"></span></td>
     </tr>
 
     <tr>
@@ -3124,7 +3129,7 @@ canvas { max-height: 300px; }
       <td style="padding:5px 8px;font-size:0.82rem;color:#7c6af7;text-align:right;font-weight:600;">66.7</td>
       <td style="padding:5px 8px;font-size:0.72rem;color:#7878a0;text-align:right;">4.00</td>
       <td style="padding:5px 8px;font-size:0.72rem;color:#9090b8;text-align:right;">373</td>
-      <td style="padding:5px 8px;"><span style="display:inline-block;width:13px;height:13px;background:#d7e0db;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#d7e0db"></span><span style="display:inline-block;width:13px;height:13px;background:#322c1c;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#322c1c"></span><span style="display:inline-block;width:13px;height:13px;background:#c3c0a7;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#c3c0a7"></span><span style="display:inline-block;width:13px;height:13px;background:#b9dbdd;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#b9dbdd"></span><span style="display:inline-block;width:13px;height:13px;background:#b3c0c1;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#b3c0c1"></span><span style="display:inline-block;width:13px;height:13px;background:#f3f7f6;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#f3f7f6"></span></td>
+      <td style="padding:5px 8px;"><span style="display:inline-block;width:13px;height:13px;background:#d6e0dc;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#d6e0dc"></span><span style="display:inline-block;width:13px;height:13px;background:#bec6cd;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#bec6cd"></span><span style="display:inline-block;width:13px;height:13px;background:#f3f7f5;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#f3f7f5"></span><span style="display:inline-block;width:13px;height:13px;background:#342e1c;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#342e1c"></span><span style="display:inline-block;width:13px;height:13px;background:#7c774c;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#7c774c"></span><span style="display:inline-block;width:13px;height:13px;background:#4b4634;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#4b4634"></span></td>
     </tr>
 
     <tr>
@@ -3133,34 +3138,25 @@ canvas { max-height: 300px; }
       <td style="padding:5px 8px;font-size:0.82rem;color:#7c6af7;text-align:right;font-weight:600;">63.9</td>
       <td style="padding:5px 8px;font-size:0.72rem;color:#7878a0;text-align:right;">4.08</td>
       <td style="padding:5px 8px;font-size:0.72rem;color:#9090b8;text-align:right;">292</td>
-      <td style="padding:5px 8px;"><span style="display:inline-block;width:13px;height:13px;background:#1a2e2e;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#1a2e2e"></span><span style="display:inline-block;width:13px;height:13px;background:#4a473f;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#4a473f"></span><span style="display:inline-block;width:13px;height:13px;background:#efeae6;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#efeae6"></span><span style="display:inline-block;width:13px;height:13px;background:#abb1ad;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#abb1ad"></span><span style="display:inline-block;width:13px;height:13px;background:#43301f;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#43301f"></span><span style="display:inline-block;width:13px;height:13px;background:#56625d;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#56625d"></span></td>
+      <td style="padding:5px 8px;"><span style="display:inline-block;width:13px;height:13px;background:#221b19;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#221b19"></span><span style="display:inline-block;width:13px;height:13px;background:#544e44;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#544e44"></span><span style="display:inline-block;width:13px;height:13px;background:#1a2f2f;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#1a2f2f"></span><span style="display:inline-block;width:13px;height:13px;background:#c7d6e3;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#c7d6e3"></span><span style="display:inline-block;width:13px;height:13px;background:#354243;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#354243"></span><span style="display:inline-block;width:13px;height:13px;background:#efe9e5;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#efe9e5"></span></td>
     </tr>
 
     <tr>
       <td style="padding:5px 8px;font-size:0.78rem;color:#c0c0d8;">Flora &amp; Fauna</td>
-      <td style="padding:5px 8px;font-size:0.78rem;color:#9090b8;text-align:right;">74</td>
+      <td style="padding:5px 8px;font-size:0.78rem;color:#9090b8;text-align:right;">71</td>
       <td style="padding:5px 8px;font-size:0.82rem;color:#7c6af7;text-align:right;font-weight:600;">62.0</td>
       <td style="padding:5px 8px;font-size:0.72rem;color:#7878a0;text-align:right;">2.55</td>
-      <td style="padding:5px 8px;font-size:0.72rem;color:#9090b8;text-align:right;">286</td>
-      <td style="padding:5px 8px;"><span style="display:inline-block;width:13px;height:13px;background:#232520;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#232520"></span><span style="display:inline-block;width:13px;height:13px;background:#343732;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#343732"></span><span style="display:inline-block;width:13px;height:13px;background:#565a4d;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#565a4d"></span><span style="display:inline-block;width:13px;height:13px;background:#435435;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#435435"></span><span style="display:inline-block;width:13px;height:13px;background:#ba9a87;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#ba9a87"></span><span style="display:inline-block;width:13px;height:13px;background:#796c55;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#796c55"></span></td>
+      <td style="padding:5px 8px;font-size:0.72rem;color:#9090b8;text-align:right;">287</td>
+      <td style="padding:5px 8px;"><span style="display:inline-block;width:13px;height:13px;background:#232621;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#232621"></span><span style="display:inline-block;width:13px;height:13px;background:#415035;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#415035"></span><span style="display:inline-block;width:13px;height:13px;background:#403429;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#403429"></span><span style="display:inline-block;width:13px;height:13px;background:#666859;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#666859"></span><span style="display:inline-block;width:13px;height:13px;background:#a69884;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#a69884"></span><span style="display:inline-block;width:13px;height:13px;background:#c0a88e;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#c0a88e"></span></td>
     </tr>
 
     <tr>
       <td style="padding:5px 8px;font-size:0.78rem;color:#c0c0d8;">Misc</td>
-      <td style="padding:5px 8px;font-size:0.78rem;color:#9090b8;text-align:right;">71</td>
+      <td style="padding:5px 8px;font-size:0.78rem;color:#9090b8;text-align:right;">60</td>
       <td style="padding:5px 8px;font-size:0.82rem;color:#7c6af7;text-align:right;font-weight:600;">61.4</td>
       <td style="padding:5px 8px;font-size:0.72rem;color:#7878a0;text-align:right;">4.75</td>
-      <td style="padding:5px 8px;font-size:0.72rem;color:#9090b8;text-align:right;">239</td>
-      <td style="padding:5px 8px;"><span style="display:inline-block;width:13px;height:13px;background:#21180b;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#21180b"></span><span style="display:inline-block;width:13px;height:13px;background:#242e30;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#242e30"></span><span style="display:inline-block;width:13px;height:13px;background:#a3a1ae;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#a3a1ae"></span><span style="display:inline-block;width:13px;height:13px;background:#01101d;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#01101d"></span><span style="display:inline-block;width:13px;height:13px;background:#c5cacd;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#c5cacd"></span><span style="display:inline-block;width:13px;height:13px;background:#4a372c;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#4a372c"></span></td>
-    </tr>
-
-    <tr>
-      <td style="padding:5px 8px;font-size:0.78rem;color:#c0c0d8;">Dubai</td>
-      <td style="padding:5px 8px;font-size:0.78rem;color:#9090b8;text-align:right;">57</td>
-      <td style="padding:5px 8px;font-size:0.82rem;color:#7c6af7;text-align:right;font-weight:600;">61.3</td>
-      <td style="padding:5px 8px;font-size:0.72rem;color:#7878a0;text-align:right;">3.19</td>
-      <td style="padding:5px 8px;font-size:0.72rem;color:#9090b8;text-align:right;">380</td>
-      <td style="padding:5px 8px;"><span style="display:inline-block;width:13px;height:13px;background:#21383b;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#21383b"></span><span style="display:inline-block;width:13px;height:13px;background:#3c464d;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#3c464d"></span><span style="display:inline-block;width:13px;height:13px;background:#f0f4f9;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#f0f4f9"></span><span style="display:inline-block;width:13px;height:13px;background:#aebbb1;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#aebbb1"></span><span style="display:inline-block;width:13px;height:13px;background:#c4cad9;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#c4cad9"></span><span style="display:inline-block;width:13px;height:13px;background:#716e78;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#716e78"></span></td>
+      <td style="padding:5px 8px;font-size:0.72rem;color:#9090b8;text-align:right;">253</td>
+      <td style="padding:5px 8px;"><span style="display:inline-block;width:13px;height:13px;background:#19140b;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#19140b"></span><span style="display:inline-block;width:13px;height:13px;background:#283435;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#283435"></span><span style="display:inline-block;width:13px;height:13px;background:#e7f0f2;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#e7f0f2"></span><span style="display:inline-block;width:13px;height:13px;background:#c5cacd;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#c5cacd"></span><span style="display:inline-block;width:13px;height:13px;background:#30221e;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#30221e"></span><span style="display:inline-block;width:13px;height:13px;background:#a19cac;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#a19cac"></span></td>
     </tr>
 
     <tr>
@@ -3169,7 +3165,7 @@ canvas { max-height: 300px; }
       <td style="padding:5px 8px;font-size:0.82rem;color:#7c6af7;text-align:right;font-weight:600;">60.7</td>
       <td style="padding:5px 8px;font-size:0.72rem;color:#7878a0;text-align:right;">1.82</td>
       <td style="padding:5px 8px;font-size:0.72rem;color:#9090b8;text-align:right;">369</td>
-      <td style="padding:5px 8px;"><span style="display:inline-block;width:13px;height:13px;background:#121415;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#121415"></span><span style="display:inline-block;width:13px;height:13px;background:#c6ced6;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#c6ced6"></span><span style="display:inline-block;width:13px;height:13px;background:#dce7ed;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#dce7ed"></span><span style="display:inline-block;width:13px;height:13px;background:#baa290;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#baa290"></span><span style="display:inline-block;width:13px;height:13px;background:#a6b1b8;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#a6b1b8"></span><span style="display:inline-block;width:13px;height:13px;background:#8cd3e1;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#8cd3e1"></span></td>
+      <td style="padding:5px 8px;"><span style="display:inline-block;width:13px;height:13px;background:#121315;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#121315"></span><span style="display:inline-block;width:13px;height:13px;background:#e0eaef;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#e0eaef"></span><span style="display:inline-block;width:13px;height:13px;background:#c6ced6;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#c6ced6"></span><span style="display:inline-block;width:13px;height:13px;background:#453429;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#453429"></span><span style="display:inline-block;width:13px;height:13px;background:#aebac2;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#aebac2"></span><span style="display:inline-block;width:13px;height:13px;background:#a2dfec;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#a2dfec"></span></td>
     </tr>
 
     <tr>
@@ -3178,16 +3174,25 @@ canvas { max-height: 300px; }
       <td style="padding:5px 8px;font-size:0.82rem;color:#7c6af7;text-align:right;font-weight:600;">54.4</td>
       <td style="padding:5px 8px;font-size:0.72rem;color:#7878a0;text-align:right;">2.95</td>
       <td style="padding:5px 8px;font-size:0.72rem;color:#9090b8;text-align:right;">291</td>
-      <td style="padding:5px 8px;"><span style="display:inline-block;width:13px;height:13px;background:#111111;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#111111"></span><span style="display:inline-block;width:13px;height:13px;background:#27221f;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#27221f"></span><span style="display:inline-block;width:13px;height:13px;background:#544239;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#544239"></span><span style="display:inline-block;width:13px;height:13px;background:#685550;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#685550"></span><span style="display:inline-block;width:13px;height:13px;background:#83695c;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#83695c"></span><span style="display:inline-block;width:13px;height:13px;background:#b29587;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#b29587"></span></td>
+      <td style="padding:5px 8px;"><span style="display:inline-block;width:13px;height:13px;background:#28221f;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#28221f"></span><span style="display:inline-block;width:13px;height:13px;background:#353737;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#353737"></span><span style="display:inline-block;width:13px;height:13px;background:#544238;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#544238"></span><span style="display:inline-block;width:13px;height:13px;background:#090909;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#090909"></span><span style="display:inline-block;width:13px;height:13px;background:#7c655b;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#7c655b"></span><span style="display:inline-block;width:13px;height:13px;background:#555555;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#555555"></span></td>
     </tr>
 
     <tr>
       <td style="padding:5px 8px;font-size:0.78rem;color:#c0c0d8;">Iphone</td>
-      <td style="padding:5px 8px;font-size:0.78rem;color:#9090b8;text-align:right;">48</td>
+      <td style="padding:5px 8px;font-size:0.78rem;color:#9090b8;text-align:right;">47</td>
       <td style="padding:5px 8px;font-size:0.82rem;color:#7c6af7;text-align:right;font-weight:600;">62.6</td>
       <td style="padding:5px 8px;font-size:0.72rem;color:#7878a0;text-align:right;">4.99</td>
-      <td style="padding:5px 8px;font-size:0.72rem;color:#9090b8;text-align:right;">75</td>
-      <td style="padding:5px 8px;"><span style="display:inline-block;width:13px;height:13px;background:#d5e1e8;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#d5e1e8"></span><span style="display:inline-block;width:13px;height:13px;background:#161616;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#161616"></span><span style="display:inline-block;width:13px;height:13px;background:#392a26;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#392a26"></span><span style="display:inline-block;width:13px;height:13px;background:#c7ccd0;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#c7ccd0"></span><span style="display:inline-block;width:13px;height:13px;background:#adadad;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#adadad"></span><span style="display:inline-block;width:13px;height:13px;background:#585e5d;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#585e5d"></span></td>
+      <td style="padding:5px 8px;font-size:0.72rem;color:#9090b8;text-align:right;">77</td>
+      <td style="padding:5px 8px;"><span style="display:inline-block;width:13px;height:13px;background:#d4dfe6;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#d4dfe6"></span><span style="display:inline-block;width:13px;height:13px;background:#161616;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#161616"></span><span style="display:inline-block;width:13px;height:13px;background:#362723;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#362723"></span><span style="display:inline-block;width:13px;height:13px;background:#585d5a;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#585d5a"></span><span style="display:inline-block;width:13px;height:13px;background:#c6cbd0;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#c6cbd0"></span><span style="display:inline-block;width:13px;height:13px;background:#a3a3a3;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#a3a3a3"></span></td>
+    </tr>
+
+    <tr>
+      <td style="padding:5px 8px;font-size:0.78rem;color:#c0c0d8;">Dubai</td>
+      <td style="padding:5px 8px;font-size:0.78rem;color:#9090b8;text-align:right;">46</td>
+      <td style="padding:5px 8px;font-size:0.82rem;color:#7c6af7;text-align:right;font-weight:600;">61.3</td>
+      <td style="padding:5px 8px;font-size:0.72rem;color:#7878a0;text-align:right;">3.19</td>
+      <td style="padding:5px 8px;font-size:0.72rem;color:#9090b8;text-align:right;">392</td>
+      <td style="padding:5px 8px;"><span style="display:inline-block;width:13px;height:13px;background:#21383b;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#21383b"></span><span style="display:inline-block;width:13px;height:13px;background:#ecf0f7;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#ecf0f7"></span><span style="display:inline-block;width:13px;height:13px;background:#454c53;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#454c53"></span><span style="display:inline-block;width:13px;height:13px;background:#afbaae;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#afbaae"></span><span style="display:inline-block;width:13px;height:13px;background:#cad7d5;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#cad7d5"></span><span style="display:inline-block;width:13px;height:13px;background:#b8bccb;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#b8bccb"></span></td>
     </tr>
 
     <tr>
@@ -3196,34 +3201,25 @@ canvas { max-height: 300px; }
       <td style="padding:5px 8px;font-size:0.82rem;color:#7c6af7;text-align:right;font-weight:600;">67.5</td>
       <td style="padding:5px 8px;font-size:0.72rem;color:#7878a0;text-align:right;">3.28</td>
       <td style="padding:5px 8px;font-size:0.72rem;color:#9090b8;text-align:right;">317</td>
-      <td style="padding:5px 8px;"><span style="display:inline-block;width:13px;height:13px;background:#26201a;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#26201a"></span><span style="display:inline-block;width:13px;height:13px;background:#44362b;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#44362b"></span><span style="display:inline-block;width:13px;height:13px;background:#604933;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#604933"></span><span style="display:inline-block;width:13px;height:13px;background:#eee9ea;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#eee9ea"></span><span style="display:inline-block;width:13px;height:13px;background:#6c5a50;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#6c5a50"></span><span style="display:inline-block;width:13px;height:13px;background:#c9c4cd;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#c9c4cd"></span></td>
+      <td style="padding:5px 8px;"><span style="display:inline-block;width:13px;height:13px;background:#25201a;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#25201a"></span><span style="display:inline-block;width:13px;height:13px;background:#40342a;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#40342a"></span><span style="display:inline-block;width:13px;height:13px;background:#6b584b;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#6b584b"></span><span style="display:inline-block;width:13px;height:13px;background:#d4d2d9;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#d4d2d9"></span><span style="display:inline-block;width:13px;height:13px;background:#ebe4e5;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#ebe4e5"></span><span style="display:inline-block;width:13px;height:13px;background:#6d552a;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#6d552a"></span></td>
     </tr>
 
     <tr>
       <td style="padding:5px 8px;font-size:0.78rem;color:#c0c0d8;">Utah &amp; Vegas</td>
-      <td style="padding:5px 8px;font-size:0.78rem;color:#9090b8;text-align:right;">36</td>
+      <td style="padding:5px 8px;font-size:0.78rem;color:#9090b8;text-align:right;">26</td>
       <td style="padding:5px 8px;font-size:0.82rem;color:#7c6af7;text-align:right;font-weight:600;">65.3</td>
       <td style="padding:5px 8px;font-size:0.72rem;color:#7878a0;text-align:right;">3.88</td>
-      <td style="padding:5px 8px;font-size:0.72rem;color:#9090b8;text-align:right;">330</td>
-      <td style="padding:5px 8px;"><span style="display:inline-block;width:13px;height:13px;background:#30312e;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#30312e"></span><span style="display:inline-block;width:13px;height:13px;background:#e2e9ed;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#e2e9ed"></span><span style="display:inline-block;width:13px;height:13px;background:#5e3d32;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#5e3d32"></span><span style="display:inline-block;width:13px;height:13px;background:#c9dae2;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#c9dae2"></span><span style="display:inline-block;width:13px;height:13px;background:#b0bbc5;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#b0bbc5"></span><span style="display:inline-block;width:13px;height:13px;background:#5e574f;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#5e574f"></span></td>
-    </tr>
-
-    <tr>
-      <td style="padding:5px 8px;font-size:0.78rem;color:#c0c0d8;">Mexico</td>
-      <td style="padding:5px 8px;font-size:0.78rem;color:#9090b8;text-align:right;">27</td>
-      <td style="padding:5px 8px;font-size:0.82rem;color:#7c6af7;text-align:right;font-weight:600;">63.8</td>
-      <td style="padding:5px 8px;font-size:0.72rem;color:#7878a0;text-align:right;">2.33</td>
-      <td style="padding:5px 8px;font-size:0.72rem;color:#9090b8;text-align:right;">332</td>
-      <td style="padding:5px 8px;"><span style="display:inline-block;width:13px;height:13px;background:#f8f2ea;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#f8f2ea"></span><span style="display:inline-block;width:13px;height:13px;background:#dde2e7;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#dde2e7"></span><span style="display:inline-block;width:13px;height:13px;background:#4d3f2c;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#4d3f2c"></span><span style="display:inline-block;width:13px;height:13px;background:#8f7252;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#8f7252"></span><span style="display:inline-block;width:13px;height:13px;background:#27211c;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#27211c"></span><span style="display:inline-block;width:13px;height:13px;background:#7b5f41;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#7b5f41"></span></td>
+      <td style="padding:5px 8px;font-size:0.72rem;color:#9090b8;text-align:right;">326</td>
+      <td style="padding:5px 8px;"><span style="display:inline-block;width:13px;height:13px;background:#33342f;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#33342f"></span><span style="display:inline-block;width:13px;height:13px;background:#e3e9ed;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#e3e9ed"></span><span style="display:inline-block;width:13px;height:13px;background:#b1bcc6;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#b1bcc6"></span><span style="display:inline-block;width:13px;height:13px;background:#cadbe2;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#cadbe2"></span><span style="display:inline-block;width:13px;height:13px;background:#625b52;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#625b52"></span><span style="display:inline-block;width:13px;height:13px;background:#8d847f;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#8d847f"></span></td>
     </tr>
 
     <tr>
       <td style="padding:5px 8px;font-size:0.78rem;color:#c0c0d8;">Texas</td>
-      <td style="padding:5px 8px;font-size:0.78rem;color:#9090b8;text-align:right;">18</td>
+      <td style="padding:5px 8px;font-size:0.78rem;color:#9090b8;text-align:right;">17</td>
       <td style="padding:5px 8px;font-size:0.82rem;color:#7c6af7;text-align:right;font-weight:600;">62.3</td>
       <td style="padding:5px 8px;font-size:0.72rem;color:#7878a0;text-align:right;">3.54</td>
       <td style="padding:5px 8px;font-size:0.72rem;color:#9090b8;text-align:right;">321</td>
-      <td style="padding:5px 8px;"><span style="display:inline-block;width:13px;height:13px;background:#2c292a;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#2c292a"></span><span style="display:inline-block;width:13px;height:13px;background:#554f45;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#554f45"></span><span style="display:inline-block;width:13px;height:13px;background:#8dc0bd;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#8dc0bd"></span><span style="display:inline-block;width:13px;height:13px;background:#878c95;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#878c95"></span><span style="display:inline-block;width:13px;height:13px;background:#5e5d60;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#5e5d60"></span><span style="display:inline-block;width:13px;height:13px;background:#c6d8e6;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#c6d8e6"></span></td>
+      <td style="padding:5px 8px;"><span style="display:inline-block;width:13px;height:13px;background:#2c2a2b;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#2c2a2b"></span><span style="display:inline-block;width:13px;height:13px;background:#8bbebb;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#8bbebb"></span><span style="display:inline-block;width:13px;height:13px;background:#636164;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#636164"></span><span style="display:inline-block;width:13px;height:13px;background:#524c43;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#524c43"></span><span style="display:inline-block;width:13px;height:13px;background:#0b1317;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#0b1317"></span><span style="display:inline-block;width:13px;height:13px;background:#9d7f65;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#9d7f65"></span></td>
     </tr>
 
     <tr>
@@ -3232,7 +3228,7 @@ canvas { max-height: 300px; }
       <td style="padding:5px 8px;font-size:0.82rem;color:#7c6af7;text-align:right;font-weight:600;">59.0</td>
       <td style="padding:5px 8px;font-size:0.72rem;color:#7878a0;text-align:right;">1.66</td>
       <td style="padding:5px 8px;font-size:0.72rem;color:#9090b8;text-align:right;">82</td>
-      <td style="padding:5px 8px;"><span style="display:inline-block;width:13px;height:13px;background:#eeede4;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#eeede4"></span><span style="display:inline-block;width:13px;height:13px;background:#918a70;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#918a70"></span><span style="display:inline-block;width:13px;height:13px;background:#656041;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#656041"></span><span style="display:inline-block;width:13px;height:13px;background:#c0ac85;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#c0ac85"></span><span style="display:inline-block;width:13px;height:13px;background:#ded6c9;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#ded6c9"></span><span style="display:inline-block;width:13px;height:13px;background:#7f7857;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#7f7857"></span></td>
+      <td style="padding:5px 8px;"><span style="display:inline-block;width:13px;height:13px;background:#e6e2de;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#e6e2de"></span><span style="display:inline-block;width:13px;height:13px;background:#b09f78;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#b09f78"></span><span style="display:inline-block;width:13px;height:13px;background:#d3bead;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#d3bead"></span><span style="display:inline-block;width:13px;height:13px;background:#75664e;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#75664e"></span><span style="display:inline-block;width:13px;height:13px;background:#7d716c;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#7d716c"></span><span style="display:inline-block;width:13px;height:13px;background:#403c29;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#403c29"></span></td>
     </tr>
 
     <tr>
@@ -3241,16 +3237,25 @@ canvas { max-height: 300px; }
       <td style="padding:5px 8px;font-size:0.82rem;color:#7c6af7;text-align:right;font-weight:600;">67.4</td>
       <td style="padding:5px 8px;font-size:0.72rem;color:#7878a0;text-align:right;">2.53</td>
       <td style="padding:5px 8px;font-size:0.72rem;color:#9090b8;text-align:right;">327</td>
-      <td style="padding:5px 8px;"><span style="display:inline-block;width:13px;height:13px;background:#191413;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#191413"></span><span style="display:inline-block;width:13px;height:13px;background:#2c383c;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#2c383c"></span><span style="display:inline-block;width:13px;height:13px;background:#c69f95;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#c69f95"></span><span style="display:inline-block;width:13px;height:13px;background:#a7dce0;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#a7dce0"></span><span style="display:inline-block;width:13px;height:13px;background:#3d2620;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#3d2620"></span><span style="display:inline-block;width:13px;height:13px;background:#cfbaa4;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#cfbaa4"></span></td>
+      <td style="padding:5px 8px;"><span style="display:inline-block;width:13px;height:13px;background:#191513;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#191513"></span><span style="display:inline-block;width:13px;height:13px;background:#2e3b3f;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#2e3b3f"></span><span style="display:inline-block;width:13px;height:13px;background:#c49b90;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#c49b90"></span><span style="display:inline-block;width:13px;height:13px;background:#a7d9dd;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#a7d9dd"></span><span style="display:inline-block;width:13px;height:13px;background:#9c6a5a;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#9c6a5a"></span><span style="display:inline-block;width:13px;height:13px;background:#d2bda7;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#d2bda7"></span></td>
+    </tr>
+
+    <tr>
+      <td style="padding:5px 8px;font-size:0.78rem;color:#c0c0d8;">Mexico</td>
+      <td style="padding:5px 8px;font-size:0.78rem;color:#9090b8;text-align:right;">9</td>
+      <td style="padding:5px 8px;font-size:0.82rem;color:#7c6af7;text-align:right;font-weight:600;">63.8</td>
+      <td style="padding:5px 8px;font-size:0.72rem;color:#7878a0;text-align:right;">2.33</td>
+      <td style="padding:5px 8px;font-size:0.72rem;color:#9090b8;text-align:right;">320</td>
+      <td style="padding:5px 8px;"><span style="display:inline-block;width:13px;height:13px;background:#f8f2ea;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#f8f2ea"></span><span style="display:inline-block;width:13px;height:13px;background:#dde3e8;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#dde3e8"></span><span style="display:inline-block;width:13px;height:13px;background:#4d3f2c;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#4d3f2c"></span><span style="display:inline-block;width:13px;height:13px;background:#967655;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#967655"></span><span style="display:inline-block;width:13px;height:13px;background:#26211c;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#26211c"></span><span style="display:inline-block;width:13px;height:13px;background:#ebdbc5;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#ebdbc5"></span></td>
     </tr>
 
     <tr>
       <td style="padding:5px 8px;font-size:0.78rem;color:#c0c0d8;">Oregon</td>
-      <td style="padding:5px 8px;font-size:0.78rem;color:#9090b8;text-align:right;">9</td>
+      <td style="padding:5px 8px;font-size:0.78rem;color:#9090b8;text-align:right;">7</td>
       <td style="padding:5px 8px;font-size:0.82rem;color:#7c6af7;text-align:right;font-weight:600;">65.5</td>
       <td style="padding:5px 8px;font-size:0.72rem;color:#7878a0;text-align:right;">3.98</td>
-      <td style="padding:5px 8px;font-size:0.72rem;color:#9090b8;text-align:right;">302</td>
-      <td style="padding:5px 8px;"><span style="display:inline-block;width:13px;height:13px;background:#3d3f32;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#3d3f32"></span><span style="display:inline-block;width:13px;height:13px;background:#dbe5e8;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#dbe5e8"></span><span style="display:inline-block;width:13px;height:13px;background:#666d55;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#666d55"></span><span style="display:inline-block;width:13px;height:13px;background:#1c2933;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#1c2933"></span><span style="display:inline-block;width:13px;height:13px;background:#f4f9fa;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#f4f9fa"></span><span style="display:inline-block;width:13px;height:13px;background:#8e9589;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#8e9589"></span></td>
+      <td style="padding:5px 8px;font-size:0.72rem;color:#9090b8;text-align:right;">318</td>
+      <td style="padding:5px 8px;"><span style="display:inline-block;width:13px;height:13px;background:#3d3e32;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#3d3e32"></span><span style="display:inline-block;width:13px;height:13px;background:#dae4e7;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#dae4e7"></span><span style="display:inline-block;width:13px;height:13px;background:#626951;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#626951"></span><span style="display:inline-block;width:13px;height:13px;background:#899083;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#899083"></span><span style="display:inline-block;width:13px;height:13px;background:#1c2832;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#1c2832"></span><span style="display:inline-block;width:13px;height:13px;background:#a6b0a9;border-radius:2px;margin-right:1px;vertical-align:middle;" title="#a6b0a9"></span></td>
     </tr>
 
     </tbody>
@@ -3335,25 +3340,25 @@ canvas { max-height: 300px; }
 
 
     <div style="flex:1;min-width:80px;text-align:center;background:#13131f;border-radius:8px;padding:0.6rem 0.4rem;">
-      <div style="font-size:1.3rem;font-weight:700;color:#a3e635;">25%</div>
+      <div style="font-size:1.3rem;font-weight:700;color:#a3e635;">26%</div>
       <div style="font-size:0.68rem;color:#7878a0;margin-top:2px;">Within Week</div>
-      <div style="font-size:0.62rem;color:#505068;">1264 images</div>
+      <div style="font-size:0.62rem;color:#505068;">1258 images</div>
     </div>
 
 
 
     <div style="flex:1;min-width:80px;text-align:center;background:#13131f;border-radius:8px;padding:0.6rem 0.4rem;">
-      <div style="font-size:1.3rem;font-weight:700;color:#f59e0b;">43%</div>
+      <div style="font-size:1.3rem;font-weight:700;color:#f59e0b;">45%</div>
       <div style="font-size:0.68rem;color:#7878a0;margin-top:2px;">Within Month</div>
-      <div style="font-size:0.62rem;color:#505068;">2209 images</div>
+      <div style="font-size:0.62rem;color:#505068;">2205 images</div>
     </div>
 
 
 
     <div style="flex:1;min-width:80px;text-align:center;background:#13131f;border-radius:8px;padding:0.6rem 0.4rem;">
-      <div style="font-size:1.3rem;font-weight:700;color:#9090b8;">29%</div>
+      <div style="font-size:1.3rem;font-weight:700;color:#9090b8;">26%</div>
       <div style="font-size:0.68rem;color:#7878a0;margin-top:2px;">Later</div>
-      <div style="font-size:0.62rem;color:#505068;">1503 images</div>
+      <div style="font-size:0.62rem;color:#505068;">1292 images</div>
     </div>
 
   </div>
@@ -3802,7 +3807,7 @@ canvas { max-height: 300px; }
     <div class="stat">
       <div class="stat-l">In Bursts</div>
       <div class="stat-v">1387</div>
-      <div class="stat-s">27.2% of library</div>
+      <div class="stat-s">28.4% of library</div>
     </div>
     <div class="stat">
       <div class="stat-l">Largest</div>
@@ -3858,12 +3863,12 @@ canvas { max-height: 300px; }
 <!-- Quality Issues -->
 
 <div class="card mb">
-  <div class="card-title">Quality Issues <span style="color:#8080aa;font-weight:400;">5107 images · local rule engine</span></div>
+  <div class="card-title">Quality Issues <span style="color:#8080aa;font-weight:400;">4886 images · local rule engine</span></div>
 
 
   <div style="margin-bottom:1rem;">
     <div style="display:flex;align-items:center;gap:0.6rem;margin-bottom:0.25rem;">
-      <span style="font-size:0.85rem;font-weight:700;color:#f59e0b;min-width:38px;flex-shrink:0;">19.0%</span>
+      <span style="font-size:0.85rem;font-weight:700;color:#f59e0b;min-width:38px;flex-shrink:0;">19.9%</span>
       <span style="font-size:0.82rem;color:#c0c0d8;flex:1;">Subject too centered</span>
       <span style="font-size:0.68rem;color:#7878a0;white-space:nowrap;">971 images · people and portraits, nature, architecture</span>
     </div>
@@ -3874,7 +3879,7 @@ canvas { max-height: 300px; }
 
   <div style="margin-bottom:1rem;">
     <div style="display:flex;align-items:center;gap:0.6rem;margin-bottom:0.25rem;">
-      <span style="font-size:0.85rem;font-weight:700;color:#f59e0b;min-width:38px;flex-shrink:0;">19.0%</span>
+      <span style="font-size:0.85rem;font-weight:700;color:#f59e0b;min-width:38px;flex-shrink:0;">19.9%</span>
       <span style="font-size:0.82rem;color:#c0c0d8;flex:1;">Frame too busy — insufficient negative space</span>
       <span style="font-size:0.68rem;color:#7878a0;white-space:nowrap;">971 images · nature, people and portraits, architecture</span>
     </div>
@@ -3885,7 +3890,7 @@ canvas { max-height: 300px; }
 
   <div style="margin-bottom:1rem;">
     <div style="display:flex;align-items:center;gap:0.6rem;margin-bottom:0.25rem;">
-      <span style="font-size:0.85rem;font-weight:700;color:#f59e0b;min-width:38px;flex-shrink:0;">19.0%</span>
+      <span style="font-size:0.85rem;font-weight:700;color:#f59e0b;min-width:38px;flex-shrink:0;">19.8%</span>
       <span style="font-size:0.82rem;color:#c0c0d8;flex:1;">Busy / cluttered foreground</span>
       <span style="font-size:0.68rem;color:#7878a0;white-space:nowrap;">969 images · nature, architecture, travel and landmarks</span>
     </div>
@@ -3896,29 +3901,29 @@ canvas { max-height: 300px; }
 
   <div style="margin-bottom:1rem;">
     <div style="display:flex;align-items:center;gap:0.6rem;margin-bottom:0.25rem;">
-      <span style="font-size:0.85rem;font-weight:700;color:#f59e0b;min-width:38px;flex-shrink:0;">17.9%</span>
+      <span style="font-size:0.85rem;font-weight:700;color:#f59e0b;min-width:38px;flex-shrink:0;">18.7%</span>
       <span style="font-size:0.82rem;color:#c0c0d8;flex:1;">Horizon not level</span>
       <span style="font-size:0.68rem;color:#7878a0;white-space:nowrap;">912 images · people and portraits, nature, architecture</span>
     </div>
     <div style="font-size:0.72rem;color:#7878a0;margin-bottom:0.35rem;line-height:1.5;padding-left:0;">Many shots have a tilted horizon or roofline — even a 1–2° tilt reads as unsteady. Enable your camera&#39;s electronic level while shooting, or use the Crop &amp; Rotate tool in Lightroom to straighten affected images.</div>
-    <div class="dbar-bg"><div class="dbar-fill" style="width:17%;background:#f59e0b;"></div></div>
+    <div class="dbar-bg"><div class="dbar-fill" style="width:18%;background:#f59e0b;"></div></div>
   </div>
 
 
   <div style="margin-bottom:1rem;">
     <div style="display:flex;align-items:center;gap:0.6rem;margin-bottom:0.25rem;">
-      <span style="font-size:0.85rem;font-weight:700;color:#f59e0b;min-width:38px;flex-shrink:0;">14.8%</span>
+      <span style="font-size:0.85rem;font-weight:700;color:#f59e0b;min-width:38px;flex-shrink:0;">15.4%</span>
       <span style="font-size:0.82rem;color:#c0c0d8;flex:1;">Low overall aesthetic score</span>
       <span style="font-size:0.68rem;color:#7878a0;white-space:nowrap;">754 images · people and portraits, nature, abstract</span>
     </div>
     <div style="font-size:0.72rem;color:#7878a0;margin-bottom:0.35rem;line-height:1.5;padding-left:0;">The aesthetic-predictor-v2-5 (trained on human aesthetic ratings) scored this photo below the library floor. Common causes: flat or cluttered composition, poor exposure, heavy noise, or an uninteresting subject. Typical edited photos score 40–60; professional work 60+.</div>
-    <div class="dbar-bg"><div class="dbar-fill" style="width:14%;background:#f59e0b;"></div></div>
+    <div class="dbar-bg"><div class="dbar-fill" style="width:15%;background:#f59e0b;"></div></div>
   </div>
 
 
   <div style="margin-bottom:1rem;">
     <div style="display:flex;align-items:center;gap:0.6rem;margin-bottom:0.25rem;">
-      <span style="font-size:0.85rem;font-weight:700;color:#f59e0b;min-width:38px;flex-shrink:0;">14.3%</span>
+      <span style="font-size:0.85rem;font-weight:700;color:#f59e0b;min-width:38px;flex-shrink:0;">14.9%</span>
       <span style="font-size:0.82rem;color:#c0c0d8;flex:1;">Subject not well isolated from background</span>
       <span style="font-size:0.68rem;color:#7878a0;white-space:nowrap;">729 images · nature, people and portraits, architecture</span>
     </div>
@@ -3929,18 +3934,18 @@ canvas { max-height: 300px; }
 
   <div style="margin-bottom:1rem;">
     <div style="display:flex;align-items:center;gap:0.6rem;margin-bottom:0.25rem;">
-      <span style="font-size:0.85rem;font-weight:700;color:#34d399;min-width:38px;flex-shrink:0;">5.8%</span>
+      <span style="font-size:0.85rem;font-weight:700;color:#34d399;min-width:38px;flex-shrink:0;">6.1%</span>
       <span style="font-size:0.82rem;color:#c0c0d8;flex:1;">Highlight clipping — overexposed areas</span>
       <span style="font-size:0.68rem;color:#7878a0;white-space:nowrap;">296 images · nature, people and portraits, travel and landmarks</span>
     </div>
     <div style="font-size:0.72rem;color:#7878a0;margin-bottom:0.35rem;line-height:1.5;padding-left:0;">More than 3% of pixels are blown to pure white (brightness &gt; 250). Highlight clipping is irreversible — detail in those areas is lost. Dial in −1 to −2 stops of exposure compensation in bright scenes, or use spot metering on the highlights.</div>
-    <div class="dbar-bg"><div class="dbar-fill" style="width:5%;background:#34d399;"></div></div>
+    <div class="dbar-bg"><div class="dbar-fill" style="width:6%;background:#34d399;"></div></div>
   </div>
 
 
   <div style="margin-bottom:1rem;">
     <div style="display:flex;align-items:center;gap:0.6rem;margin-bottom:0.25rem;">
-      <span style="font-size:0.85rem;font-weight:700;color:#34d399;min-width:38px;flex-shrink:0;">4.0%</span>
+      <span style="font-size:0.85rem;font-weight:700;color:#34d399;min-width:38px;flex-shrink:0;">4.2%</span>
       <span style="font-size:0.82rem;color:#c0c0d8;flex:1;">Strong feel, weak technical quality</span>
       <span style="font-size:0.68rem;color:#7878a0;white-space:nowrap;">206 images · nature, people and portraits, abstract</span>
     </div>
@@ -3951,7 +3956,7 @@ canvas { max-height: 300px; }
 
   <div style="margin-bottom:1rem;">
     <div style="display:flex;align-items:center;gap:0.6rem;margin-bottom:0.25rem;">
-      <span style="font-size:0.85rem;font-weight:700;color:#34d399;min-width:38px;flex-shrink:0;">3.4%</span>
+      <span style="font-size:0.85rem;font-weight:700;color:#34d399;min-width:38px;flex-shrink:0;">3.6%</span>
       <span style="font-size:0.82rem;color:#c0c0d8;flex:1;">Low-light shot with low aesthetic score</span>
       <span style="font-size:0.68rem;color:#7878a0;white-space:nowrap;">176 images · people and portraits, night scene, nature</span>
     </div>
@@ -3962,7 +3967,7 @@ canvas { max-height: 300px; }
 
   <div style="margin-bottom:1rem;">
     <div style="display:flex;align-items:center;gap:0.6rem;margin-bottom:0.25rem;">
-      <span style="font-size:0.85rem;font-weight:700;color:#34d399;min-width:38px;flex-shrink:0;">2.2%</span>
+      <span style="font-size:0.85rem;font-weight:700;color:#34d399;min-width:38px;flex-shrink:0;">2.3%</span>
       <span style="font-size:0.82rem;color:#c0c0d8;flex:1;">Shadow clipping — crushed blacks</span>
       <span style="font-size:0.68rem;color:#7878a0;white-space:nowrap;">113 images · people and portraits, night scene, nature</span>
     </div>
@@ -3973,7 +3978,7 @@ canvas { max-height: 300px; }
 
   <div style="margin-bottom:1rem;">
     <div style="display:flex;align-items:center;gap:0.6rem;margin-bottom:0.25rem;">
-      <span style="font-size:0.85rem;font-weight:700;color:#34d399;min-width:38px;flex-shrink:0;">1.0%</span>
+      <span style="font-size:0.85rem;font-weight:700;color:#34d399;min-width:38px;flex-shrink:0;">1.1%</span>
       <span style="font-size:0.82rem;color:#c0c0d8;flex:1;">Portrait with deep depth-of-field</span>
       <span style="font-size:0.68rem;color:#7878a0;white-space:nowrap;">53 images · people and portraits, nature, abstract</span>
     </div>
@@ -4135,7 +4140,7 @@ const _vBarLabels = {
 
 // Hue
 (function() {
-  const hd = {"buckets": [921, 546, 85, 14, 19, 76, 585, 200, 52, 38, 41, 56], "labels": ["Red", "Orange", "Yellow", "Yellow-Green", "Green", "Green-Cyan", "Cyan", "Cyan-Blue", "Blue", "Blue-Violet", "Violet", "Pink-Red"]};
+  const hd = {"buckets": [918, 504, 93, 16, 16, 68, 544, 205, 52, 35, 56, 62], "labels": ["Red", "Orange", "Yellow", "Yellow-Green", "Green", "Green-Cyan", "Cyan", "Cyan-Blue", "Blue", "Blue-Violet", "Violet", "Pink-Red"]};
   if (!hd.buckets) return;
   const hc = ["#ef4444","#f97316","#eab308","#84cc16","#22c55e","#10b981","#06b6d4","#3b82f6","#6366f1","#8b5cf6","#a855f7","#ec4899"];
   new Chart(document.getElementById("hueChart"), {
@@ -4149,7 +4154,7 @@ const _vBarLabels = {
 
 // Shooting hours
 (function() {
-  const sh = {"0": 33, "1": 88, "2": 3, "3": 94, "4": 34, "5": 57, "6": 315, "7": 137, "8": 77, "9": 105, "10": 182, "11": 405, "12": 444, "13": 582, "14": 364, "15": 399, "16": 376, "17": 461, "18": 410, "19": 195, "20": 174, "21": 68, "22": 85, "23": 19};
+  const sh = {"0": 25, "1": 87, "2": 3, "3": 94, "4": 32, "5": 56, "6": 309, "7": 127, "8": 63, "9": 92, "10": 164, "11": 395, "12": 440, "13": 578, "14": 358, "15": 381, "16": 361, "17": 432, "18": 380, "19": 172, "20": 173, "21": 66, "22": 84, "23": 14};
   const labels = Array.from({length:24},(_,i)=>i+"h");
   const data = labels.map((_,i) => sh[String(i)]||0);
   const colors = data.map((_,i) => (i>=5&&i<=7)||(i>=17&&i<=19) ? "#f59e0bbb" : "#7c6af744");
@@ -4162,7 +4167,7 @@ const _vBarLabels = {
 
 // Monthly
 (function() {
-  const ms = {"2019-07": {"total": 2, "golden_hour": 2}, "2019-09": {"total": 1, "golden_hour": 0}, "2019-12": {"total": 4, "golden_hour": 1}, "2020-10": {"total": 3, "golden_hour": 2}, "2020-12": {"total": 19, "golden_hour": 3}, "2021-01": {"total": 6, "golden_hour": 0}, "2021-02": {"total": 1, "golden_hour": 0}, "2021-04": {"total": 10, "golden_hour": 3}, "2021-05": {"total": 4, "golden_hour": 2}, "2021-06": {"total": 3, "golden_hour": 1}, "2021-07": {"total": 28, "golden_hour": 15}, "2021-08": {"total": 1, "golden_hour": 1}, "2021-09": {"total": 8, "golden_hour": 8}, "2021-10": {"total": 11, "golden_hour": 0}, "2021-11": {"total": 43, "golden_hour": 22}, "2021-12": {"total": 7, "golden_hour": 5}, "2022-01": {"total": 2, "golden_hour": 2}, "2022-02": {"total": 6, "golden_hour": 0}, "2022-04": {"total": 70, "golden_hour": 33}, "2022-06": {"total": 2, "golden_hour": 0}, "2022-07": {"total": 26, "golden_hour": 20}, "2022-08": {"total": 125, "golden_hour": 32}, "2022-09": {"total": 139, "golden_hour": 92}, "2022-10": {"total": 17, "golden_hour": 5}, "2022-12": {"total": 15, "golden_hour": 0}, "2023-01": {"total": 30, "golden_hour": 28}, "2023-02": {"total": 58, "golden_hour": 0}, "2023-03": {"total": 261, "golden_hour": 82}, "2023-04": {"total": 226, "golden_hour": 150}, "2023-06": {"total": 42, "golden_hour": 0}, "2023-07": {"total": 64, "golden_hour": 0}, "2023-09": {"total": 54, "golden_hour": 34}, "2023-10": {"total": 225, "golden_hour": 51}, "2023-11": {"total": 172, "golden_hour": 114}, "2023-12": {"total": 438, "golden_hour": 196}, "2024-01": {"total": 1182, "golden_hour": 114}, "2024-02": {"total": 91, "golden_hour": 8}, "2024-03": {"total": 22, "golden_hour": 0}, "2024-04": {"total": 183, "golden_hour": 42}, "2024-05": {"total": 280, "golden_hour": 1}, "2024-06": {"total": 18, "golden_hour": 7}, "2024-07": {"total": 508, "golden_hour": 173}, "2024-08": {"total": 120, "golden_hour": 34}, "2024-09": {"total": 74, "golden_hour": 22}, "2024-10": {"total": 1, "golden_hour": 1}, "2024-12": {"total": 3, "golden_hour": 0}, "2025-01": {"total": 232, "golden_hour": 121}, "2025-02": {"total": 3, "golden_hour": 0}, "2025-03": {"total": 267, "golden_hour": 148}};
+  const ms = {"2019-07": {"total": 2, "golden_hour": 2}, "2019-09": {"total": 1, "golden_hour": 0}, "2019-12": {"total": 4, "golden_hour": 1}, "2020-10": {"total": 3, "golden_hour": 2}, "2020-12": {"total": 19, "golden_hour": 3}, "2021-01": {"total": 6, "golden_hour": 0}, "2021-04": {"total": 5, "golden_hour": 2}, "2021-05": {"total": 1, "golden_hour": 1}, "2021-06": {"total": 3, "golden_hour": 1}, "2021-07": {"total": 26, "golden_hour": 14}, "2021-08": {"total": 1, "golden_hour": 1}, "2021-09": {"total": 2, "golden_hour": 2}, "2021-10": {"total": 11, "golden_hour": 0}, "2021-11": {"total": 19, "golden_hour": 3}, "2021-12": {"total": 5, "golden_hour": 3}, "2022-02": {"total": 6, "golden_hour": 0}, "2022-04": {"total": 44, "golden_hour": 19}, "2022-06": {"total": 2, "golden_hour": 0}, "2022-07": {"total": 6, "golden_hour": 4}, "2022-08": {"total": 62, "golden_hour": 11}, "2022-09": {"total": 82, "golden_hour": 80}, "2022-10": {"total": 17, "golden_hour": 5}, "2022-12": {"total": 15, "golden_hour": 0}, "2023-01": {"total": 30, "golden_hour": 28}, "2023-02": {"total": 58, "golden_hour": 0}, "2023-03": {"total": 261, "golden_hour": 82}, "2023-04": {"total": 226, "golden_hour": 150}, "2023-06": {"total": 42, "golden_hour": 0}, "2023-07": {"total": 64, "golden_hour": 0}, "2023-09": {"total": 54, "golden_hour": 34}, "2023-10": {"total": 224, "golden_hour": 50}, "2023-11": {"total": 172, "golden_hour": 114}, "2023-12": {"total": 437, "golden_hour": 195}, "2024-01": {"total": 1179, "golden_hour": 114}, "2024-02": {"total": 89, "golden_hour": 6}, "2024-03": {"total": 22, "golden_hour": 0}, "2024-04": {"total": 181, "golden_hour": 42}, "2024-05": {"total": 280, "golden_hour": 1}, "2024-06": {"total": 18, "golden_hour": 7}, "2024-07": {"total": 508, "golden_hour": 173}, "2024-08": {"total": 119, "golden_hour": 34}, "2024-09": {"total": 74, "golden_hour": 22}, "2024-10": {"total": 1, "golden_hour": 1}, "2024-12": {"total": 3, "golden_hour": 0}, "2025-01": {"total": 232, "golden_hour": 121}, "2025-02": {"total": 3, "golden_hour": 0}, "2025-03": {"total": 267, "golden_hour": 148}};
   const months = Object.keys(ms).sort();
   if (months.length < 2) return;
   const totals = months.map(m => ms[m].total ?? ms[m]);
@@ -4190,7 +4195,7 @@ const _vBarLabels = {
 // Day-of-week chart
 
 (function(){
-  const dowData = {"0": 533, "1": 117, "2": 85, "3": 601, "4": 350, "5": 1531, "6": 1890};
+  const dowData = {"0": 489, "1": 113, "2": 83, "3": 588, "4": 293, "5": 1480, "6": 1840};
   const dowLabels = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
   const dowCounts = [0,1,2,3,4,5,6].map(i => dowData[String(i)] || 0);
   const weekendColor = "#f59e0b55";
@@ -4214,7 +4219,7 @@ const _vBarLabels = {
 
 // Editing trends — % change over time (single y-axis, all metrics comparable)
 (function() {
-  const trends = {"2019-07": {"count": 2, "avg_aesthetic": 59.39, "avg_saturation": 0.176, "avg_brightness": 0.409, "avg_iq": 68.27, "delta_edit_intensity": null, "delta_aesthetic": null}, "2019-09": {"count": 1, "avg_aesthetic": 60.5, "avg_saturation": 0.0, "avg_brightness": 0.451, "avg_iq": 62.11, "delta_edit_intensity": null, "delta_aesthetic": 1.11}, "2019-12": {"count": 4, "avg_aesthetic": 60.57, "avg_saturation": 0.189, "avg_brightness": 0.606, "avg_iq": 68.31, "delta_edit_intensity": null, "delta_aesthetic": 0.07}, "2020-10": {"count": 3, "avg_aesthetic": 66.53, "avg_saturation": 0.263, "avg_brightness": 0.622, "avg_iq": 70.72, "avg_edit_intensity": 380.6, "delta_edit_intensity": null, "delta_aesthetic": 5.96}, "2020-12": {"count": 19, "avg_aesthetic": 62.5, "avg_saturation": 0.244, "avg_brightness": 0.538, "avg_iq": 68.23, "avg_edit_intensity": 279.3, "delta_edit_intensity": -101.3, "delta_aesthetic": -4.03}, "2021-01": {"count": 6, "avg_aesthetic": 61.92, "avg_saturation": 0.299, "avg_brightness": 0.63, "avg_iq": 71.5, "avg_edit_intensity": 110.9, "delta_edit_intensity": -168.4, "delta_aesthetic": -0.58}, "2021-04": {"count": 5, "avg_aesthetic": 61.42, "avg_saturation": 0.337, "avg_brightness": 0.625, "avg_iq": 67.85, "avg_edit_intensity": 53.9, "delta_edit_intensity": -57.0, "delta_aesthetic": -0.5}, "2021-05": {"count": 1, "avg_aesthetic": 59.78, "avg_saturation": 0.814, "avg_brightness": 0.368, "avg_iq": 53.9, "avg_edit_intensity": 13.3, "delta_edit_intensity": -40.6, "delta_aesthetic": -1.64}, "2021-06": {"count": 3, "avg_aesthetic": 55.5, "avg_saturation": 0.465, "avg_brightness": 0.476, "avg_iq": 60.47, "delta_edit_intensity": null, "delta_aesthetic": -4.28}, "2021-07": {"count": 26, "avg_aesthetic": 64.16, "avg_saturation": 0.221, "avg_brightness": 0.574, "avg_iq": 66.28, "avg_edit_intensity": 106.4, "delta_edit_intensity": null, "delta_aesthetic": 8.66}, "2021-08": {"count": 1, "avg_aesthetic": 60.45, "avg_saturation": 0.171, "avg_brightness": 0.592, "avg_iq": 62.25, "delta_edit_intensity": null, "delta_aesthetic": -3.71}, "2021-09": {"count": 2, "avg_aesthetic": 58.61, "avg_saturation": 0.186, "avg_brightness": 0.552, "avg_iq": 67.8, "avg_edit_intensity": 122.1, "delta_edit_intensity": null, "delta_aesthetic": -1.84}, "2021-10": {"count": 11, "avg_aesthetic": 61.33, "avg_saturation": 0.234, "avg_brightness": 0.492, "avg_iq": 67.0, "avg_edit_intensity": 365.1, "delta_edit_intensity": 243.0, "delta_aesthetic": 2.72}, "2021-11": {"count": 19, "avg_aesthetic": 60.17, "avg_saturation": 0.249, "avg_brightness": 0.502, "avg_iq": 66.99, "avg_edit_intensity": 219.5, "delta_edit_intensity": -145.6, "delta_aesthetic": -1.16}, "2021-12": {"count": 5, "avg_aesthetic": 59.13, "avg_saturation": 0.347, "avg_brightness": 0.351, "avg_iq": 61.77, "avg_edit_intensity": 81.9, "delta_edit_intensity": -137.6, "delta_aesthetic": -1.04}, "2022-02": {"count": 6, "avg_aesthetic": 60.71, "avg_saturation": 0.238, "avg_brightness": 0.488, "avg_iq": 66.25, "avg_edit_intensity": 261.1, "delta_edit_intensity": 179.2, "delta_aesthetic": 1.58}, "2022-04": {"count": 44, "avg_aesthetic": 59.95, "avg_saturation": 0.269, "avg_brightness": 0.569, "avg_iq": 67.1, "avg_edit_intensity": 285.6, "delta_edit_intensity": 24.5, "delta_aesthetic": -0.76}, "2022-06": {"count": 2, "avg_aesthetic": 62.73, "avg_saturation": 0.214, "avg_brightness": 0.455, "avg_iq": 66.18, "avg_edit_intensity": 313.5, "delta_edit_intensity": 27.9, "delta_aesthetic": 2.78}, "2022-07": {"count": 6, "avg_aesthetic": 59.95, "avg_saturation": 0.307, "avg_brightness": 0.476, "avg_iq": 67.82, "avg_edit_intensity": 298.4, "delta_edit_intensity": -15.1, "delta_aesthetic": -2.78}, "2022-08": {"count": 62, "avg_aesthetic": 67.01, "avg_saturation": 0.302, "avg_brightness": 0.574, "avg_iq": 66.54, "avg_edit_intensity": 339.6, "delta_edit_intensity": 41.2, "delta_aesthetic": 7.06}, "2022-09": {"count": 82, "avg_aesthetic": 61.74, "avg_saturation": 0.196, "avg_brightness": 0.511, "avg_iq": 63.32, "avg_edit_intensity": 246.8, "delta_edit_intensity": -92.8, "delta_aesthetic": -5.27}, "2022-10": {"count": 17, "avg_aesthetic": 59.86, "avg_saturation": 0.178, "avg_brightness": 0.394, "avg_iq": 64.86, "avg_edit_intensity": 334.7, "delta_edit_intensity": 87.9, "delta_aesthetic": -1.88}, "2022-12": {"count": 15, "avg_aesthetic": 65.1, "avg_saturation": 0.26, "avg_brightness": 0.467, "avg_iq": 66.75, "avg_edit_intensity": 272.2, "delta_edit_intensity": -62.5, "delta_aesthetic": 5.24}, "2023-01": {"count": 30, "avg_aesthetic": 63.71, "avg_saturation": 0.245, "avg_brightness": 0.541, "avg_iq": 68.25, "avg_edit_intensity": 271.4, "delta_edit_intensity": -0.8, "delta_aesthetic": -1.39}, "2023-02": {"count": 58, "avg_aesthetic": 61.76, "avg_saturation": 0.198, "avg_brightness": 0.38, "avg_iq": 65.03, "avg_edit_intensity": 261.3, "delta_edit_intensity": -10.1, "delta_aesthetic": -1.95}, "2023-03": {"count": 261, "avg_aesthetic": 60.39, "avg_saturation": 0.282, "avg_brightness": 0.516, "avg_iq": 69.47, "avg_edit_intensity": 197.4, "delta_edit_intensity": -63.9, "delta_aesthetic": -1.37}, "2023-04": {"count": 226, "avg_aesthetic": 61.85, "avg_saturation": 0.254, "avg_brightness": 0.483, "avg_iq": 67.4, "avg_edit_intensity": 219.3, "delta_edit_intensity": 21.9, "delta_aesthetic": 1.46}, "2023-06": {"count": 42, "avg_aesthetic": 62.79, "avg_saturation": 0.203, "avg_brightness": 0.431, "avg_iq": 71.07, "avg_edit_intensity": 249.9, "delta_edit_intensity": 30.6, "delta_aesthetic": 0.94}, "2023-07": {"count": 64, "avg_aesthetic": 63.32, "avg_saturation": 0.223, "avg_brightness": 0.451, "avg_iq": 67.76, "avg_edit_intensity": 366.6, "delta_edit_intensity": 116.7, "delta_aesthetic": 0.53}, "2023-09": {"count": 54, "avg_aesthetic": 60.97, "avg_saturation": 0.243, "avg_brightness": 0.588, "avg_iq": 65.43, "avg_edit_intensity": 223.7, "delta_edit_intensity": -142.9, "delta_aesthetic": -2.35}, "2023-10": {"count": 224, "avg_aesthetic": 67.13, "avg_saturation": 0.238, "avg_brightness": 0.483, "avg_iq": 65.68, "avg_edit_intensity": 319.5, "delta_edit_intensity": 95.8, "delta_aesthetic": 6.16}, "2023-11": {"count": 172, "avg_aesthetic": 64.96, "avg_saturation": 0.167, "avg_brightness": 0.49, "avg_iq": 66.1, "avg_edit_intensity": 298.8, "delta_edit_intensity": -20.7, "delta_aesthetic": -2.17}, "2023-12": {"count": 437, "avg_aesthetic": 64.25, "avg_saturation": 0.162, "avg_brightness": 0.407, "avg_iq": 65.64, "avg_edit_intensity": 256.5, "delta_edit_intensity": -42.3, "delta_aesthetic": -0.71}, "2024-01": {"count": 1179, "avg_aesthetic": 62.97, "avg_saturation": 0.261, "avg_brightness": 0.468, "avg_iq": 65.4, "avg_edit_intensity": 254.8, "delta_edit_intensity": -1.7, "delta_aesthetic": -1.28}, "2024-02": {"count": 89, "avg_aesthetic": 59.99, "avg_saturation": 0.153, "avg_brightness": 0.723, "avg_iq": 68.99, "avg_edit_intensity": 332.0, "delta_edit_intensity": 77.2, "delta_aesthetic": -2.98}, "2024-03": {"count": 22, "avg_aesthetic": 61.03, "avg_saturation": 0.24, "avg_brightness": 0.536, "avg_iq": 69.86, "avg_edit_intensity": 313.4, "delta_edit_intensity": -18.6, "delta_aesthetic": 1.04}, "2024-04": {"count": 181, "avg_aesthetic": 58.52, "avg_saturation": 0.354, "avg_brightness": 0.473, "avg_iq": 65.61, "avg_edit_intensity": 314.2, "delta_edit_intensity": 0.8, "delta_aesthetic": -2.51}, "2024-05": {"count": 280, "avg_aesthetic": 62.15, "avg_saturation": 0.166, "avg_brightness": 0.596, "avg_iq": 68.33, "avg_edit_intensity": 289.2, "delta_edit_intensity": -25.0, "delta_aesthetic": 3.63}, "2024-06": {"count": 18, "avg_aesthetic": 63.81, "avg_saturation": 0.222, "avg_brightness": 0.476, "avg_iq": 61.19, "avg_edit_intensity": 206.6, "delta_edit_intensity": -82.6, "delta_aesthetic": 1.66}, "2024-07": {"count": 508, "avg_aesthetic": 64.57, "avg_saturation": 0.198, "avg_brightness": 0.613, "avg_iq": 67.25, "avg_edit_intensity": 334.3, "delta_edit_intensity": 127.7, "delta_aesthetic": 0.76}, "2024-08": {"count": 119, "avg_aesthetic": 62.78, "avg_saturation": 0.124, "avg_brightness": 0.555, "avg_iq": 65.36, "avg_edit_intensity": 325.6, "delta_edit_intensity": -8.7, "delta_aesthetic": -1.79}, "2024-09": {"count": 74, "avg_aesthetic": 63.49, "avg_saturation": 0.187, "avg_brightness": 0.521, "avg_iq": 67.0, "avg_edit_intensity": 334.7, "delta_edit_intensity": 9.1, "delta_aesthetic": 0.71}, "2024-10": {"count": 1, "avg_aesthetic": 68.4, "avg_saturation": 0.227, "avg_brightness": 0.551, "avg_iq": 72.16, "delta_edit_intensity": null, "delta_aesthetic": 4.91}, "2024-12": {"count": 3, "avg_aesthetic": 62.73, "avg_saturation": 0.296, "avg_brightness": 0.524, "avg_iq": 71.45, "avg_edit_intensity": 311.0, "delta_edit_intensity": null, "delta_aesthetic": -5.67}, "2025-01": {"count": 232, "avg_aesthetic": 61.43, "avg_saturation": 0.253, "avg_brightness": 0.514, "avg_iq": 67.24, "avg_edit_intensity": 364.9, "delta_edit_intensity": 53.9, "delta_aesthetic": -1.3}, "2025-02": {"count": 3, "avg_aesthetic": 61.21, "avg_saturation": 0.205, "avg_brightness": 0.569, "avg_iq": 69.35, "avg_edit_intensity": 98.0, "delta_edit_intensity": -266.9, "delta_aesthetic": -0.22}, "2025-03": {"count": 267, "avg_aesthetic": 62.35, "avg_saturation": 0.178, "avg_brightness": 0.569, "avg_iq": 68.31, "avg_edit_intensity": 375.3, "delta_edit_intensity": 277.3, "delta_aesthetic": 1.14}};
+  const trends = {"2019-07": {"count": 2, "avg_aesthetic": 59.39, "avg_saturation": 0.176, "avg_brightness": 0.409, "avg_iq": 68.27, "delta_edit_intensity": null, "delta_aesthetic": null}, "2019-09": {"count": 1, "avg_aesthetic": 60.5, "avg_saturation": 0.0, "avg_brightness": 0.451, "avg_iq": 62.11, "delta_edit_intensity": null, "delta_aesthetic": 1.11}, "2019-12": {"count": 4, "avg_aesthetic": 60.57, "avg_saturation": 0.189, "avg_brightness": 0.606, "avg_iq": 68.31, "delta_edit_intensity": null, "delta_aesthetic": 0.07}, "2020-10": {"count": 3, "avg_aesthetic": 66.53, "avg_saturation": 0.263, "avg_brightness": 0.622, "avg_iq": 70.72, "avg_edit_intensity": 380.6, "delta_edit_intensity": null, "delta_aesthetic": 5.96}, "2020-12": {"count": 19, "avg_aesthetic": 62.5, "avg_saturation": 0.244, "avg_brightness": 0.538, "avg_iq": 68.23, "avg_edit_intensity": 279.3, "delta_edit_intensity": -101.3, "delta_aesthetic": -4.03}, "2021-01": {"count": 6, "avg_aesthetic": 61.92, "avg_saturation": 0.299, "avg_brightness": 0.63, "avg_iq": 71.5, "avg_edit_intensity": 110.9, "delta_edit_intensity": -168.4, "delta_aesthetic": -0.58}, "2021-04": {"count": 5, "avg_aesthetic": 61.42, "avg_saturation": 0.337, "avg_brightness": 0.625, "avg_iq": 67.85, "avg_edit_intensity": 58.6, "delta_edit_intensity": -52.3, "delta_aesthetic": -0.5}, "2021-05": {"count": 1, "avg_aesthetic": 59.78, "avg_saturation": 0.814, "avg_brightness": 0.368, "avg_iq": 53.9, "delta_edit_intensity": null, "delta_aesthetic": -1.64}, "2021-06": {"count": 3, "avg_aesthetic": 55.5, "avg_saturation": 0.465, "avg_brightness": 0.476, "avg_iq": 60.47, "delta_edit_intensity": null, "delta_aesthetic": -4.28}, "2021-07": {"count": 26, "avg_aesthetic": 64.16, "avg_saturation": 0.221, "avg_brightness": 0.574, "avg_iq": 66.28, "avg_edit_intensity": 94.2, "delta_edit_intensity": null, "delta_aesthetic": 8.66}, "2021-08": {"count": 1, "avg_aesthetic": 60.45, "avg_saturation": 0.171, "avg_brightness": 0.592, "avg_iq": 62.25, "delta_edit_intensity": null, "delta_aesthetic": -3.71}, "2021-09": {"count": 2, "avg_aesthetic": 58.61, "avg_saturation": 0.186, "avg_brightness": 0.552, "avg_iq": 67.8, "avg_edit_intensity": 0.1, "delta_edit_intensity": null, "delta_aesthetic": -1.84}, "2021-10": {"count": 11, "avg_aesthetic": 61.33, "avg_saturation": 0.234, "avg_brightness": 0.492, "avg_iq": 67.0, "avg_edit_intensity": 365.1, "delta_edit_intensity": 365.0, "delta_aesthetic": 2.72}, "2021-11": {"count": 19, "avg_aesthetic": 60.17, "avg_saturation": 0.249, "avg_brightness": 0.502, "avg_iq": 66.99, "avg_edit_intensity": 260.7, "delta_edit_intensity": -104.4, "delta_aesthetic": -1.16}, "2021-12": {"count": 5, "avg_aesthetic": 59.13, "avg_saturation": 0.347, "avg_brightness": 0.351, "avg_iq": 61.77, "avg_edit_intensity": 44.2, "delta_edit_intensity": -216.5, "delta_aesthetic": -1.04}, "2022-02": {"count": 6, "avg_aesthetic": 60.71, "avg_saturation": 0.238, "avg_brightness": 0.488, "avg_iq": 66.25, "avg_edit_intensity": 261.1, "delta_edit_intensity": 216.9, "delta_aesthetic": 1.58}, "2022-04": {"count": 44, "avg_aesthetic": 59.95, "avg_saturation": 0.269, "avg_brightness": 0.569, "avg_iq": 67.1, "avg_edit_intensity": 262.8, "delta_edit_intensity": 1.7, "delta_aesthetic": -0.76}, "2022-06": {"count": 2, "avg_aesthetic": 62.73, "avg_saturation": 0.214, "avg_brightness": 0.455, "avg_iq": 66.18, "avg_edit_intensity": 313.5, "delta_edit_intensity": 50.7, "delta_aesthetic": 2.78}, "2022-07": {"count": 6, "avg_aesthetic": 59.95, "avg_saturation": 0.307, "avg_brightness": 0.476, "avg_iq": 67.82, "avg_edit_intensity": 299.2, "delta_edit_intensity": -14.3, "delta_aesthetic": -2.78}, "2022-08": {"count": 62, "avg_aesthetic": 67.01, "avg_saturation": 0.302, "avg_brightness": 0.574, "avg_iq": 66.54, "avg_edit_intensity": 354.9, "delta_edit_intensity": 55.7, "delta_aesthetic": 7.06}, "2022-09": {"count": 82, "avg_aesthetic": 61.74, "avg_saturation": 0.196, "avg_brightness": 0.511, "avg_iq": 63.32, "avg_edit_intensity": 161.3, "delta_edit_intensity": -193.6, "delta_aesthetic": -5.27}, "2022-10": {"count": 17, "avg_aesthetic": 59.86, "avg_saturation": 0.178, "avg_brightness": 0.394, "avg_iq": 64.86, "avg_edit_intensity": 334.7, "delta_edit_intensity": 173.4, "delta_aesthetic": -1.88}, "2022-12": {"count": 15, "avg_aesthetic": 65.1, "avg_saturation": 0.26, "avg_brightness": 0.467, "avg_iq": 66.75, "avg_edit_intensity": 272.2, "delta_edit_intensity": -62.5, "delta_aesthetic": 5.24}, "2023-01": {"count": 30, "avg_aesthetic": 63.71, "avg_saturation": 0.245, "avg_brightness": 0.541, "avg_iq": 68.25, "avg_edit_intensity": 271.4, "delta_edit_intensity": -0.8, "delta_aesthetic": -1.39}, "2023-02": {"count": 58, "avg_aesthetic": 61.76, "avg_saturation": 0.198, "avg_brightness": 0.38, "avg_iq": 65.03, "avg_edit_intensity": 261.3, "delta_edit_intensity": -10.1, "delta_aesthetic": -1.95}, "2023-03": {"count": 261, "avg_aesthetic": 60.39, "avg_saturation": 0.282, "avg_brightness": 0.516, "avg_iq": 69.47, "avg_edit_intensity": 197.4, "delta_edit_intensity": -63.9, "delta_aesthetic": -1.37}, "2023-04": {"count": 226, "avg_aesthetic": 61.85, "avg_saturation": 0.254, "avg_brightness": 0.483, "avg_iq": 67.4, "avg_edit_intensity": 219.3, "delta_edit_intensity": 21.9, "delta_aesthetic": 1.46}, "2023-06": {"count": 42, "avg_aesthetic": 62.79, "avg_saturation": 0.203, "avg_brightness": 0.431, "avg_iq": 71.07, "avg_edit_intensity": 249.9, "delta_edit_intensity": 30.6, "delta_aesthetic": 0.94}, "2023-07": {"count": 64, "avg_aesthetic": 63.32, "avg_saturation": 0.223, "avg_brightness": 0.451, "avg_iq": 67.76, "avg_edit_intensity": 366.6, "delta_edit_intensity": 116.7, "delta_aesthetic": 0.53}, "2023-09": {"count": 54, "avg_aesthetic": 60.97, "avg_saturation": 0.243, "avg_brightness": 0.588, "avg_iq": 65.43, "avg_edit_intensity": 223.7, "delta_edit_intensity": -142.9, "delta_aesthetic": -2.35}, "2023-10": {"count": 224, "avg_aesthetic": 67.13, "avg_saturation": 0.238, "avg_brightness": 0.483, "avg_iq": 65.68, "avg_edit_intensity": 319.5, "delta_edit_intensity": 95.8, "delta_aesthetic": 6.16}, "2023-11": {"count": 172, "avg_aesthetic": 64.96, "avg_saturation": 0.167, "avg_brightness": 0.49, "avg_iq": 66.1, "avg_edit_intensity": 298.8, "delta_edit_intensity": -20.7, "delta_aesthetic": -2.17}, "2023-12": {"count": 437, "avg_aesthetic": 64.25, "avg_saturation": 0.162, "avg_brightness": 0.407, "avg_iq": 65.64, "avg_edit_intensity": 256.5, "delta_edit_intensity": -42.3, "delta_aesthetic": -0.71}, "2024-01": {"count": 1179, "avg_aesthetic": 62.97, "avg_saturation": 0.261, "avg_brightness": 0.468, "avg_iq": 65.4, "avg_edit_intensity": 255.2, "delta_edit_intensity": -1.3, "delta_aesthetic": -1.28}, "2024-02": {"count": 89, "avg_aesthetic": 59.99, "avg_saturation": 0.153, "avg_brightness": 0.723, "avg_iq": 68.99, "avg_edit_intensity": 331.6, "delta_edit_intensity": 76.4, "delta_aesthetic": -2.98}, "2024-03": {"count": 22, "avg_aesthetic": 61.03, "avg_saturation": 0.24, "avg_brightness": 0.536, "avg_iq": 69.86, "avg_edit_intensity": 313.4, "delta_edit_intensity": -18.2, "delta_aesthetic": 1.04}, "2024-04": {"count": 181, "avg_aesthetic": 58.52, "avg_saturation": 0.354, "avg_brightness": 0.473, "avg_iq": 65.61, "avg_edit_intensity": 314.6, "delta_edit_intensity": 1.2, "delta_aesthetic": -2.51}, "2024-05": {"count": 280, "avg_aesthetic": 62.15, "avg_saturation": 0.166, "avg_brightness": 0.596, "avg_iq": 68.33, "avg_edit_intensity": 289.2, "delta_edit_intensity": -25.4, "delta_aesthetic": 3.63}, "2024-06": {"count": 18, "avg_aesthetic": 63.81, "avg_saturation": 0.222, "avg_brightness": 0.476, "avg_iq": 61.19, "avg_edit_intensity": 206.6, "delta_edit_intensity": -82.6, "delta_aesthetic": 1.66}, "2024-07": {"count": 508, "avg_aesthetic": 64.57, "avg_saturation": 0.198, "avg_brightness": 0.613, "avg_iq": 67.25, "avg_edit_intensity": 334.3, "delta_edit_intensity": 127.7, "delta_aesthetic": 0.76}, "2024-08": {"count": 119, "avg_aesthetic": 62.78, "avg_saturation": 0.124, "avg_brightness": 0.555, "avg_iq": 65.36, "avg_edit_intensity": 325.4, "delta_edit_intensity": -8.9, "delta_aesthetic": -1.79}, "2024-09": {"count": 74, "avg_aesthetic": 63.49, "avg_saturation": 0.187, "avg_brightness": 0.521, "avg_iq": 67.0, "avg_edit_intensity": 334.7, "delta_edit_intensity": 9.3, "delta_aesthetic": 0.71}, "2024-10": {"count": 1, "avg_aesthetic": 68.4, "avg_saturation": 0.227, "avg_brightness": 0.551, "avg_iq": 72.16, "delta_edit_intensity": null, "delta_aesthetic": 4.91}, "2024-12": {"count": 3, "avg_aesthetic": 62.73, "avg_saturation": 0.296, "avg_brightness": 0.524, "avg_iq": 71.45, "avg_edit_intensity": 311.0, "delta_edit_intensity": null, "delta_aesthetic": -5.67}, "2025-01": {"count": 232, "avg_aesthetic": 61.43, "avg_saturation": 0.253, "avg_brightness": 0.514, "avg_iq": 67.24, "avg_edit_intensity": 364.9, "delta_edit_intensity": 53.9, "delta_aesthetic": -1.3}, "2025-02": {"count": 3, "avg_aesthetic": 61.21, "avg_saturation": 0.205, "avg_brightness": 0.569, "avg_iq": 69.35, "avg_edit_intensity": 98.0, "delta_edit_intensity": -266.9, "delta_aesthetic": -0.22}, "2025-03": {"count": 267, "avg_aesthetic": 62.35, "avg_saturation": 0.178, "avg_brightness": 0.569, "avg_iq": 68.31, "avg_edit_intensity": 375.3, "delta_edit_intensity": 277.3, "delta_aesthetic": 1.14}};
   const months = Object.keys(trends).sort();
   if (months.length < 2) return;
 
@@ -4270,7 +4275,7 @@ const _vBarLabels = {
 // Editing Journey multi-line chart — % change from each slider's first non-zero value
 
 (function() {
-  const ej = {"2019-07": {"count": 2, "Exposure2012": 0.0, "Highlights2012": 0.0, "Shadows2012": 0.0, "Whites2012": 0.0, "Blacks2012": 0.0, "Contrast2012": 0.0, "Clarity2012": 0.0, "Texture": 0.0, "Dehaze": 0.0, "Saturation": 0.0, "Vibrance": 0.0, "GrainAmount": 0.0, "PostCropVignetteAmount": 0.0, "Sharpness": 0.0, "LuminanceSmoothing": 0.0, "ColorNoiseReduction": 0.0, "hsl_intensity": 0.0, "avg_edit_intensity": 0.0, "toning_pct": 0.0, "crop_pct": 0.0, "custom_curve_pct": 0.0, "lens_profile_pct": 0.0, "auto_wb_pct": 0.0, "automation_score": 0.0}, "2019-09": {"count": 1, "Exposure2012": 0.0, "Highlights2012": 0.0, "Shadows2012": 0.0, "Whites2012": 0.0, "Blacks2012": 0.0, "Contrast2012": 0.0, "Clarity2012": 0.0, "Texture": 0.0, "Dehaze": 0.0, "Saturation": 0.0, "Vibrance": 0.0, "GrainAmount": 0.0, "PostCropVignetteAmount": 0.0, "Sharpness": 0.0, "LuminanceSmoothing": 0.0, "ColorNoiseReduction": 0.0, "hsl_intensity": 0.0, "avg_edit_intensity": 0.0, "toning_pct": 0.0, "crop_pct": 100.0, "custom_curve_pct": 0.0, "lens_profile_pct": 0.0, "auto_wb_pct": 0.0, "automation_score": 0.0}, "2019-12": {"count": 4, "Exposure2012": 0.0, "Highlights2012": 0.0, "Shadows2012": 0.0, "Whites2012": 0.0, "Blacks2012": 0.0, "Contrast2012": 0.0, "Clarity2012": 0.0, "Texture": 0.0, "Dehaze": 0.0, "Saturation": 0.0, "Vibrance": 0.0, "GrainAmount": 0.0, "PostCropVignetteAmount": 0.0, "Sharpness": 0.0, "LuminanceSmoothing": 0.0, "ColorNoiseReduction": 0.0, "hsl_intensity": 0.0, "avg_edit_intensity": 0.0, "toning_pct": 0.0, "crop_pct": 100.0, "custom_curve_pct": 0.0, "lens_profile_pct": 0.0, "auto_wb_pct": 0.0, "automation_score": 0.0}, "2020-10": {"count": 3, "Exposure2012": 0.597, "Highlights2012": -77.0, "Shadows2012": 48.667, "Whites2012": -82.333, "Blacks2012": 1.667, "Contrast2012": -5.333, "Clarity2012": -32.667, "Texture": -24.667, "Dehaze": -6.333, "Saturation": -28.333, "Vibrance": 67.0, "GrainAmount": 0.0, "PostCropVignetteAmount": -30.333, "Sharpness": 33.333, "LuminanceSmoothing": 0.0, "ColorNoiseReduction": 16.667, "hsl_intensity": 403.7, "avg_edit_intensity": 380.6, "toning_pct": 100.0, "crop_pct": 100.0, "custom_curve_pct": 100.0, "lens_profile_pct": 0.0, "auto_wb_pct": 0.0, "automation_score": 0.0}, "2020-12": {"count": 19, "Exposure2012": 0.537, "Highlights2012": -61.684, "Shadows2012": 44.474, "Whites2012": -59.684, "Blacks2012": 3.421, "Contrast2012": -11.895, "Clarity2012": -14.316, "Texture": -12.842, "Dehaze": -1.526, "Saturation": -20.789, "Vibrance": 45.316, "GrainAmount": 0.0, "PostCropVignetteAmount": -18.842, "Sharpness": 20.0, "LuminanceSmoothing": 0.0, "ColorNoiseReduction": 5.263, "hsl_intensity": 317.2, "avg_edit_intensity": 279.3, "toning_pct": 78.9, "crop_pct": 94.7, "custom_curve_pct": 78.9, "lens_profile_pct": 0.0, "auto_wb_pct": 0.0, "automation_score": 0.013}, "2021-01": {"count": 6, "Exposure2012": 0.215, "Highlights2012": -26.333, "Shadows2012": 20.0, "Whites2012": -23.0, "Blacks2012": 1.667, "Contrast2012": -8.0, "Clarity2012": -2.667, "Texture": -3.333, "Dehaze": 0.333, "Saturation": -8.333, "Vibrance": 17.0, "GrainAmount": 0.0, "PostCropVignetteAmount": -6.333, "Sharpness": 6.667, "LuminanceSmoothing": 0.0, "ColorNoiseReduction": 0.0, "hsl_intensity": 133.3, "avg_edit_intensity": 110.9, "toning_pct": 33.3, "crop_pct": 83.3, "custom_curve_pct": 33.3, "lens_profile_pct": 0.0, "auto_wb_pct": 0.0, "automation_score": 0.0}, "2021-02": {"count": 1, "Exposure2012": 0.0, "Highlights2012": 0.0, "Shadows2012": 0.0, "Whites2012": 0.0, "Blacks2012": 0.0, "Contrast2012": 0.0, "Clarity2012": 0.0, "Texture": 0.0, "Dehaze": 0.0, "Saturation": 0.0, "Vibrance": 0.0, "GrainAmount": 0.0, "PostCropVignetteAmount": 0.0, "Sharpness": 0.0, "LuminanceSmoothing": 0.0, "ColorNoiseReduction": 0.0, "hsl_intensity": 0.0, "avg_edit_intensity": 0.0, "toning_pct": 0.0, "crop_pct": 100.0, "custom_curve_pct": 0.0, "lens_profile_pct": 0.0, "auto_wb_pct": 0.0, "automation_score": 0.0}, "2021-04": {"count": 10, "Exposure2012": 0.111, "Highlights2012": -11.7, "Shadows2012": 10.6, "Whites2012": 0.3, "Blacks2012": 3.8, "Contrast2012": 3.6, "Clarity2012": 0.3, "Texture": 1.2, "Dehaze": 2.1, "Saturation": -6.9, "Vibrance": 6.9, "GrainAmount": 0.5, "PostCropVignetteAmount": 0.0, "Sharpness": 0.9, "LuminanceSmoothing": 2.5, "ColorNoiseReduction": 1.2, "hsl_intensity": 99.7, "avg_edit_intensity": 53.9, "toning_pct": 20.0, "crop_pct": 50.0, "custom_curve_pct": 20.0, "lens_profile_pct": 0.0, "auto_wb_pct": 0.0, "automation_score": 0.0}, "2021-05": {"count": 4, "Exposure2012": -0.133, "Highlights2012": 0.0, "Shadows2012": 6.25, "Whites2012": 0.0, "Blacks2012": 1.25, "Contrast2012": 0.0, "Clarity2012": 0.0, "Texture": 0.0, "Dehaze": 0.0, "Saturation": 3.75, "Vibrance": 1.75, "GrainAmount": 0.0, "PostCropVignetteAmount": 0.0, "Sharpness": 30.0, "LuminanceSmoothing": 12.5, "ColorNoiseReduction": 18.75, "hsl_intensity": 244.0, "avg_edit_intensity": 13.3, "toning_pct": 50.0, "crop_pct": 0.0, "custom_curve_pct": 75.0, "lens_profile_pct": 0.0, "auto_wb_pct": 0.0, "automation_score": 0.0}, "2021-06": {"count": 3, "Exposure2012": 0.0, "Highlights2012": 0.0, "Shadows2012": 0.0, "Whites2012": 0.0, "Blacks2012": 0.0, "Contrast2012": 0.0, "Clarity2012": 0.0, "Texture": 0.0, "Dehaze": 0.0, "Saturation": 0.0, "Vibrance": 0.0, "GrainAmount": 0.0, "PostCropVignetteAmount": 0.0, "Sharpness": 26.667, "LuminanceSmoothing": 0.0, "ColorNoiseReduction": 16.667, "hsl_intensity": 180.0, "avg_edit_intensity": 0.0, "toning_pct": 66.7, "crop_pct": 66.7, "custom_curve_pct": 33.3, "lens_profile_pct": 0.0, "auto_wb_pct": 0.0, "automation_score": 0.0}, "2021-07": {"count": 28, "Exposure2012": 0.134, "Highlights2012": -16.393, "Shadows2012": 26.964, "Whites2012": 3.107, "Blacks2012": 13.786, "Contrast2012": 8.821, "Clarity2012": 0.393, "Texture": 2.571, "Dehaze": 2.393, "Saturation": 4.536, "Vibrance": 13.393, "GrainAmount": 1.429, "PostCropVignetteAmount": -10.071, "Sharpness": 19.393, "LuminanceSmoothing": 0.964, "ColorNoiseReduction": 10.607, "hsl_intensity": 132.6, "avg_edit_intensity": 106.4, "toning_pct": 32.1, "crop_pct": 75.0, "custom_curve_pct": 42.9, "lens_profile_pct": 42.9, "auto_wb_pct": 0.0, "automation_score": 0.107}, "2021-08": {"count": 1, "Exposure2012": 0.0, "Highlights2012": 0.0, "Shadows2012": 0.0, "Whites2012": 0.0, "Blacks2012": 0.0, "Contrast2012": 0.0, "Clarity2012": 0.0, "Texture": 0.0, "Dehaze": 0.0, "Saturation": 0.0, "Vibrance": 0.0, "GrainAmount": 0.0, "PostCropVignetteAmount": 0.0, "Sharpness": 0.0, "LuminanceSmoothing": 0.0, "ColorNoiseReduction": 0.0, "hsl_intensity": 0.0, "avg_edit_intensity": 0.0, "toning_pct": 0.0, "crop_pct": 100.0, "custom_curve_pct": 0.0, "lens_profile_pct": 0.0, "auto_wb_pct": 0.0, "automation_score": 0.0}, "2021-09": {"count": 8, "Exposure2012": 0.576, "Highlights2012": -5.375, "Shadows2012": 28.375, "Whites2012": -6.5, "Blacks2012": 22.75, "Contrast2012": 11.875, "Clarity2012": 1.25, "Texture": 1.875, "Dehaze": 0.0, "Saturation": 6.375, "Vibrance": 12.125, "GrainAmount": 0.0, "PostCropVignetteAmount": -14.25, "Sharpness": 30.0, "LuminanceSmoothing": 0.0, "ColorNoiseReduction": 18.75, "hsl_intensity": 190.5, "avg_edit_intensity": 122.1, "toning_pct": 62.5, "crop_pct": 62.5, "custom_curve_pct": 75.0, "lens_profile_pct": 0.0, "auto_wb_pct": 0.0, "automation_score": 0.0}, "2021-10": {"count": 11, "Exposure2012": 0.33, "Highlights2012": -78.182, "Shadows2012": 49.091, "Whites2012": -78.818, "Blacks2012": 2.727, "Contrast2012": -10.182, "Clarity2012": -26.273, "Texture": -20.0, "Dehaze": -2.364, "Saturation": -27.273, "Vibrance": 61.909, "GrainAmount": 0.0, "PostCropVignetteAmount": -26.727, "Sharpness": 29.091, "LuminanceSmoothing": 0.0, "ColorNoiseReduction": 11.364, "hsl_intensity": 444.4, "avg_edit_intensity": 365.1, "toning_pct": 100.0, "crop_pct": 100.0, "custom_curve_pct": 100.0, "lens_profile_pct": 0.0, "auto_wb_pct": 0.0, "automation_score": 0.0}, "2021-11": {"count": 43, "Exposure2012": 0.773, "Highlights2012": -47.651, "Shadows2012": 23.116, "Whites2012": -23.419, "Blacks2012": 5.535, "Contrast2012": -13.814, "Clarity2012": -4.837, "Texture": -4.953, "Dehaze": 0.372, "Saturation": 2.302, "Vibrance": 29.349, "GrainAmount": 0.233, "PostCropVignetteAmount": -20.163, "Sharpness": 32.093, "LuminanceSmoothing": 4.07, "ColorNoiseReduction": 16.86, "hsl_intensity": 248.9, "avg_edit_intensity": 219.5, "toning_pct": 93.0, "crop_pct": 86.0, "custom_curve_pct": 95.3, "lens_profile_pct": 2.3, "auto_wb_pct": 0.0, "automation_score": 0.006}, "2021-12": {"count": 7, "Exposure2012": 0.503, "Highlights2012": -16.714, "Shadows2012": 11.571, "Whites2012": -2.0, "Blacks2012": -2.714, "Contrast2012": -1.286, "Clarity2012": -2.286, "Texture": 0.0, "Dehaze": -0.714, "Saturation": 1.714, "Vibrance": 9.286, "GrainAmount": 0.0, "PostCropVignetteAmount": -12.286, "Sharpness": 22.857, "LuminanceSmoothing": 0.286, "ColorNoiseReduction": 14.286, "hsl_intensity": 218.7, "avg_edit_intensity": 81.9, "toning_pct": 42.9, "crop_pct": 100.0, "custom_curve_pct": 42.9, "lens_profile_pct": 0.0, "auto_wb_pct": 0.0, "automation_score": 0.0}, "2022-01": {"count": 2, "Exposure2012": -0.3, "Highlights2012": -31.0, "Shadows2012": 20.0, "Whites2012": -25.0, "Blacks2012": 24.0, "Contrast2012": -11.0, "Clarity2012": -3.0, "Texture": -0.5, "Dehaze": -4.0, "Saturation": 5.0, "Vibrance": 25.0, "GrainAmount": 0.0, "PostCropVignetteAmount": -40.0, "Sharpness": 40.0, "LuminanceSmoothing": 0.0, "ColorNoiseReduction": 25.0, "hsl_intensity": 309.0, "avg_edit_intensity": 172.0, "toning_pct": 100.0, "crop_pct": 0.0, "custom_curve_pct": 100.0, "lens_profile_pct": 0.0, "auto_wb_pct": 0.0, "automation_score": 0.0}, "2022-02": {"count": 6, "Exposure2012": 0.245, "Highlights2012": -65.833, "Shadows2012": 34.167, "Whites2012": -57.5, "Blacks2012": 4.167, "Contrast2012": -20.0, "Clarity2012": -6.667, "Texture": -8.333, "Dehaze": 0.833, "Saturation": -20.833, "Vibrance": 42.5, "GrainAmount": 0.0, "PostCropVignetteAmount": -15.833, "Sharpness": 16.667, "LuminanceSmoothing": 0.0, "ColorNoiseReduction": 0.0, "hsl_intensity": 320.8, "avg_edit_intensity": 261.1, "toning_pct": 83.3, "crop_pct": 100.0, "custom_curve_pct": 83.3, "lens_profile_pct": 0.0, "auto_wb_pct": 0.0, "automation_score": 0.0}, "2022-04": {"count": 70, "Exposure2012": 0.507, "Highlights2012": -70.314, "Shadows2012": 55.1, "Whites2012": -55.586, "Blacks2012": 29.971, "Contrast2012": 12.5, "Clarity2012": 1.043, "Texture": 5.729, "Dehaze": -0.443, "Saturation": 5.443, "Vibrance": 24.486, "GrainAmount": 0.0, "PostCropVignetteAmount": -13.914, "Sharpness": 40.471, "LuminanceSmoothing": 3.671, "ColorNoiseReduction": 20.829, "hsl_intensity": 355.5, "avg_edit_intensity": 285.6, "toning_pct": 80.0, "crop_pct": 58.6, "custom_curve_pct": 82.9, "lens_profile_pct": 2.9, "auto_wb_pct": 0.0, "automation_score": 0.007}, "2022-06": {"count": 2, "Exposure2012": 0.49, "Highlights2012": -79.0, "Shadows2012": 41.0, "Whites2012": -69.0, "Blacks2012": 5.0, "Contrast2012": -24.0, "Clarity2012": -8.0, "Texture": -10.0, "Dehaze": 1.0, "Saturation": -25.0, "Vibrance": 51.0, "GrainAmount": 0.0, "PostCropVignetteAmount": -19.0, "Sharpness": 20.0, "LuminanceSmoothing": 0.0, "ColorNoiseReduction": 0.0, "hsl_intensity": 385.0, "avg_edit_intensity": 313.5, "toning_pct": 100.0, "crop_pct": 100.0, "custom_curve_pct": 100.0, "lens_profile_pct": 0.0, "auto_wb_pct": 0.0, "automation_score": 0.0}, "2022-07": {"count": 26, "Exposure2012": 0.024, "Highlights2012": -85.308, "Shadows2012": 51.115, "Whites2012": -80.308, "Blacks2012": 14.231, "Contrast2012": 3.231, "Clarity2012": -2.692, "Texture": 3.038, "Dehaze": 2.423, "Saturation": 6.385, "Vibrance": 17.346, "GrainAmount": 0.0, "PostCropVignetteAmount": -25.5, "Sharpness": 40.769, "LuminanceSmoothing": 5.962, "ColorNoiseReduction": 25.846, "hsl_intensity": 333.9, "avg_edit_intensity": 298.4, "toning_pct": 96.2, "crop_pct": 57.7, "custom_curve_pct": 100.0, "lens_profile_pct": 3.8, "auto_wb_pct": 0.0, "automation_score": 0.058}, "2022-08": {"count": 125, "Exposure2012": 0.762, "Highlights2012": -77.28, "Shadows2012": 62.448, "Whites2012": -72.328, "Blacks2012": 23.496, "Contrast2012": 3.088, "Clarity2012": 0.472, "Texture": 7.04, "Dehaze": 3.88, "Saturation": -10.2, "Vibrance": 22.112, "GrainAmount": 0.0, "PostCropVignetteAmount": -17.288, "Sharpness": 43.368, "LuminanceSmoothing": 3.272, "ColorNoiseReduction": 26.296, "hsl_intensity": 370.1, "avg_edit_intensity": 339.6, "toning_pct": 96.0, "crop_pct": 47.2, "custom_curve_pct": 96.0, "lens_profile_pct": 5.6, "auto_wb_pct": 0.0, "automation_score": 0.014}, "2022-09": {"count": 123, "Exposure2012": 0.655, "Highlights2012": -46.561, "Shadows2012": 34.171, "Whites2012": -61.715, "Blacks2012": 12.764, "Contrast2012": -2.65, "Clarity2012": 10.854, "Texture": 9.341, "Dehaze": 6.317, "Saturation": -7.203, "Vibrance": 16.626, "GrainAmount": 0.041, "PostCropVignetteAmount": -7.797, "Sharpness": 42.285, "LuminanceSmoothing": 4.008, "ColorNoiseReduction": 26.106, "hsl_intensity": 178.9, "avg_edit_intensity": 246.8, "toning_pct": 69.1, "crop_pct": 52.0, "custom_curve_pct": 73.2, "lens_profile_pct": 8.9, "auto_wb_pct": 0.0, "automation_score": 0.022}, "2022-10": {"count": 17, "Exposure2012": 0.751, "Highlights2012": -55.176, "Shadows2012": 54.882, "Whites2012": -61.882, "Blacks2012": 17.765, "Contrast2012": -4.118, "Clarity2012": 38.647, "Texture": -5.294, "Dehaze": 11.471, "Saturation": -1.765, "Vibrance": 20.412, "GrainAmount": 0.0, "PostCropVignetteAmount": -14.824, "Sharpness": 47.647, "LuminanceSmoothing": 10.588, "ColorNoiseReduction": 31.647, "hsl_intensity": 316.9, "avg_edit_intensity": 334.7, "toning_pct": 100.0, "crop_pct": 100.0, "custom_curve_pct": 100.0, "lens_profile_pct": 0.0, "auto_wb_pct": 0.0, "automation_score": 0.0}, "2022-12": {"count": 15, "Exposure2012": 0.339, "Highlights2012": -68.467, "Shadows2012": 36.133, "Whites2012": -59.8, "Blacks2012": 4.333, "Contrast2012": -20.8, "Clarity2012": -6.933, "Texture": -8.667, "Dehaze": 0.867, "Saturation": -21.667, "Vibrance": 44.2, "GrainAmount": 0.0, "PostCropVignetteAmount": -16.467, "Sharpness": 17.333, "LuminanceSmoothing": 0.0, "ColorNoiseReduction": 0.0, "hsl_intensity": 333.7, "avg_edit_intensity": 272.2, "toning_pct": 86.7, "crop_pct": 93.3, "custom_curve_pct": 86.7, "lens_profile_pct": 0.0, "auto_wb_pct": 0.0, "automation_score": 0.0}, "2023-01": {"count": 30, "Exposure2012": 0.971, "Highlights2012": -71.933, "Shadows2012": 69.633, "Whites2012": 29.5, "Blacks2012": -17.267, "Contrast2012": -3.233, "Clarity2012": 31.467, "Texture": -1.5, "Dehaze": 2.167, "Saturation": -8.133, "Vibrance": 19.367, "GrainAmount": 0.0, "PostCropVignetteAmount": -14.933, "Sharpness": 67.267, "LuminanceSmoothing": 20.067, "ColorNoiseReduction": 32.6, "hsl_intensity": 203.7, "avg_edit_intensity": 271.4, "toning_pct": 66.7, "crop_pct": 100.0, "custom_curve_pct": 73.3, "lens_profile_pct": 0.0, "auto_wb_pct": 0.0, "automation_score": 0.0}, "2023-02": {"count": 58, "Exposure2012": 0.369, "Highlights2012": -78.138, "Shadows2012": 65.103, "Whites2012": -45.0, "Blacks2012": 6.69, "Contrast2012": 10.017, "Clarity2012": -2.983, "Texture": -6.069, "Dehaze": 1.672, "Saturation": -6.259, "Vibrance": -6.362, "GrainAmount": 0.0, "PostCropVignetteAmount": -10.552, "Sharpness": 42.621, "LuminanceSmoothing": 28.552, "ColorNoiseReduction": 30.983, "hsl_intensity": 218.6, "avg_edit_intensity": 261.3, "toning_pct": 77.6, "crop_pct": 75.9, "custom_curve_pct": 86.2, "lens_profile_pct": 0.0, "auto_wb_pct": 0.0, "automation_score": 0.0}, "2023-03": {"count": 261, "Exposure2012": 0.716, "Highlights2012": -44.885, "Shadows2012": 29.889, "Whites2012": -38.966, "Blacks2012": 2.494, "Contrast2012": 14.253, "Clarity2012": 2.536, "Texture": -3.073, "Dehaze": 4.682, "Saturation": -12.119, "Vibrance": 29.4, "GrainAmount": 0.046, "PostCropVignetteAmount": -7.245, "Sharpness": 41.441, "LuminanceSmoothing": 16.877, "ColorNoiseReduction": 26.67, "hsl_intensity": 189.5, "avg_edit_intensity": 197.4, "toning_pct": 64.0, "crop_pct": 60.9, "custom_curve_pct": 68.2, "lens_profile_pct": 28.4, "auto_wb_pct": 0.0, "automation_score": 0.106}, "2023-04": {"count": 226, "Exposure2012": 0.645, "Highlights2012": -52.155, "Shadows2012": 47.412, "Whites2012": -43.673, "Blacks2012": -0.35, "Contrast2012": 10.509, "Clarity2012": 0.305, "Texture": -1.77, "Dehaze": 3.965, "Saturation": -12.827, "Vibrance": 23.708, "GrainAmount": 0.022, "PostCropVignetteAmount": -9.274, "Sharpness": 48.615, "LuminanceSmoothing": 13.42, "ColorNoiseReduction": 27.673, "hsl_intensity": 205.6, "avg_edit_intensity": 219.3, "toning_pct": 73.0, "crop_pct": 70.4, "custom_curve_pct": 76.5, "lens_profile_pct": 35.8, "auto_wb_pct": 0.0, "automation_score": 0.102}, "2023-06": {"count": 42, "Exposure2012": 0.666, "Highlights2012": -60.381, "Shadows2012": 69.548, "Whites2012": -59.81, "Blacks2012": -4.381, "Contrast2012": 2.024, "Clarity2012": 4.881, "Texture": -2.929, "Dehaze": -2.929, "Saturation": -18.69, "Vibrance": 19.81, "GrainAmount": 0.0, "PostCropVignetteAmount": -19.762, "Sharpness": 49.762, "LuminanceSmoothing": 29.286, "ColorNoiseReduction": 25.0, "hsl_intensity": 290.6, "avg_edit_intensity": 249.9, "toning_pct": 97.6, "crop_pct": 97.6, "custom_curve_pct": 97.6, "lens_profile_pct": 45.2, "auto_wb_pct": 0.0, "automation_score": 0.113}, "2023-07": {"count": 64, "Exposure2012": 0.855, "Highlights2012": -83.969, "Shadows2012": 88.578, "Whites2012": -64.578, "Blacks2012": 35.0, "Contrast2012": 15.797, "Clarity2012": -2.516, "Texture": -8.0, "Dehaze": 15.266, "Saturation": -16.281, "Vibrance": 32.0, "GrainAmount": 0.0, "PostCropVignetteAmount": 0.0, "Sharpness": 66.734, "LuminanceSmoothing": 33.0, "ColorNoiseReduction": 42.0, "hsl_intensity": 323.6, "avg_edit_intensity": 366.6, "toning_pct": 96.9, "crop_pct": 100.0, "custom_curve_pct": 100.0, "lens_profile_pct": 4.7, "auto_wb_pct": 0.0, "automation_score": 0.262}, "2023-09": {"count": 54, "Exposure2012": 0.358, "Highlights2012": -62.333, "Shadows2012": 46.704, "Whites2012": -26.463, "Blacks2012": -4.241, "Contrast2012": 18.167, "Clarity2012": 1.611, "Texture": 3.352, "Dehaze": -0.315, "Saturation": -9.463, "Vibrance": 20.296, "GrainAmount": 0.0, "PostCropVignetteAmount": -6.037, "Sharpness": 52.87, "LuminanceSmoothing": 21.944, "ColorNoiseReduction": 24.537, "hsl_intensity": 125.1, "avg_edit_intensity": 223.7, "toning_pct": 87.0, "crop_pct": 63.0, "custom_curve_pct": 87.0, "lens_profile_pct": 40.7, "auto_wb_pct": 0.0, "automation_score": 0.116}, "2023-10": {"count": 225, "Exposure2012": 0.938, "Highlights2012": -81.711, "Shadows2012": 48.191, "Whites2012": -50.36, "Blacks2012": 13.427, "Contrast2012": 37.92, "Clarity2012": -10.418, "Texture": -8.298, "Dehaze": 8.791, "Saturation": -15.8, "Vibrance": 41.391, "GrainAmount": 0.0, "PostCropVignetteAmount": -18.796, "Sharpness": 46.791, "LuminanceSmoothing": 5.449, "ColorNoiseReduction": 19.689, "hsl_intensity": 249.6, "avg_edit_intensity": 319.5, "toning_pct": 94.7, "crop_pct": 81.8, "custom_curve_pct": 95.6, "lens_profile_pct": 8.9, "auto_wb_pct": 0.0, "automation_score": 0.022}, "2023-11": {"count": 172, "Exposure2012": 0.728, "Highlights2012": -74.82, "Shadows2012": 67.558, "Whites2012": -55.419, "Blacks2012": 2.965, "Contrast2012": 21.058, "Clarity2012": 3.605, "Texture": 1.89, "Dehaze": 4.855, "Saturation": -14.983, "Vibrance": 30.227, "GrainAmount": 0.0, "PostCropVignetteAmount": -20.512, "Sharpness": 68.529, "LuminanceSmoothing": 12.698, "ColorNoiseReduction": 20.936, "hsl_intensity": 358.4, "avg_edit_intensity": 298.8, "toning_pct": 96.5, "crop_pct": 87.2, "custom_curve_pct": 97.1, "lens_profile_pct": 0.0, "auto_wb_pct": 0.0, "automation_score": 0.0}, "2023-12": {"count": 438, "Exposure2012": 1.049, "Highlights2012": -55.027, "Shadows2012": 50.699, "Whites2012": -51.733, "Blacks2012": 2.628, "Contrast2012": 3.922, "Clarity2012": -9.167, "Texture": -9.813, "Dehaze": 10.514, "Saturation": -16.916, "Vibrance": 34.347, "GrainAmount": 0.0, "PostCropVignetteAmount": -22.42, "Sharpness": 41.345, "LuminanceSmoothing": 0.288, "ColorNoiseReduction": 25.0, "hsl_intensity": 436.0, "avg_edit_intensity": 256.5, "toning_pct": 75.3, "crop_pct": 79.0, "custom_curve_pct": 76.9, "lens_profile_pct": 0.0, "auto_wb_pct": 0.0, "automation_score": 0.002}, "2024-01": {"count": 1182, "Exposure2012": 0.613, "Highlights2012": -56.157, "Shadows2012": 52.06, "Whites2012": -57.969, "Blacks2012": 1.375, "Contrast2012": 8.777, "Clarity2012": -1.816, "Texture": -6.9, "Dehaze": -1.972, "Saturation": -19.608, "Vibrance": 36.054, "GrainAmount": 0.0, "PostCropVignetteAmount": -7.787, "Sharpness": 41.21, "LuminanceSmoothing": 0.003, "ColorNoiseReduction": 23.096, "hsl_intensity": 398.1, "avg_edit_intensity": 254.8, "toning_pct": 67.8, "crop_pct": 75.6, "custom_curve_pct": 76.5, "lens_profile_pct": 0.0, "auto_wb_pct": 0.0, "automation_score": 0.002}, "2024-02": {"count": 91, "Exposure2012": 0.124, "Highlights2012": -85.604, "Shadows2012": 59.945, "Whites2012": -81.176, "Blacks2012": -5.33, "Contrast2012": -11.736, "Clarity2012": -11.736, "Texture": -9.78, "Dehaze": 1.956, "Saturation": -15.648, "Vibrance": 48.868, "GrainAmount": 0.0, "PostCropVignetteAmount": -15.571, "Sharpness": 40.022, "LuminanceSmoothing": 0.0, "ColorNoiseReduction": 0.824, "hsl_intensity": 311.9, "avg_edit_intensity": 332.0, "toning_pct": 97.8, "crop_pct": 87.9, "custom_curve_pct": 97.8, "lens_profile_pct": 0.0, "auto_wb_pct": 0.0, "automation_score": 0.0}, "2024-03": {"count": 22, "Exposure2012": 0.528, "Highlights2012": -75.773, "Shadows2012": 61.182, "Whites2012": -82.682, "Blacks2012": 8.545, "Contrast2012": 10.5, "Clarity2012": 10.045, "Texture": -8.364, "Dehaze": 3.455, "Saturation": -19.714, "Vibrance": 35.048, "GrainAmount": 0.0, "PostCropVignetteAmount": -10.909, "Sharpness": 44.682, "LuminanceSmoothing": 0.909, "ColorNoiseReduction": 23.364, "hsl_intensity": 442.5, "avg_edit_intensity": 313.4, "toning_pct": 86.4, "crop_pct": 86.4, "custom_curve_pct": 86.4, "lens_profile_pct": 9.1, "auto_wb_pct": 0.0, "automation_score": 0.023}, "2024-04": {"count": 183, "Exposure2012": 1.329, "Highlights2012": -61.727, "Shadows2012": 47.852, "Whites2012": -79.803, "Blacks2012": 14.246, "Contrast2012": -0.803, "Clarity2012": -2.732, "Texture": -1.071, "Dehaze": 3.344, "Saturation": -18.186, "Vibrance": 42.005, "GrainAmount": 0.0, "PostCropVignetteAmount": -6.88, "Sharpness": 45.388, "LuminanceSmoothing": 0.0, "ColorNoiseReduction": 24.863, "hsl_intensity": 307.2, "avg_edit_intensity": 314.2, "toning_pct": 87.4, "crop_pct": 93.4, "custom_curve_pct": 88.0, "lens_profile_pct": 0.0, "auto_wb_pct": 0.0, "automation_score": 0.004}, "2024-05": {"count": 280, "Exposure2012": 0.622, "Highlights2012": -79.229, "Shadows2012": 49.054, "Whites2012": -62.761, "Blacks2012": 6.875, "Contrast2012": 20.011, "Clarity2012": -4.725, "Texture": -5.532, "Dehaze": 3.682, "Saturation": -14.536, "Vibrance": 40.782, "GrainAmount": 0.0, "PostCropVignetteAmount": -11.979, "Sharpness": 40.757, "LuminanceSmoothing": 0.0, "ColorNoiseReduction": 20.357, "hsl_intensity": 418.2, "avg_edit_intensity": 289.2, "toning_pct": 96.8, "crop_pct": 79.3, "custom_curve_pct": 96.8, "lens_profile_pct": 0.0, "auto_wb_pct": 0.0, "automation_score": 0.013}, "2024-06": {"count": 18, "Exposure2012": 0.203, "Highlights2012": -50.778, "Shadows2012": 36.333, "Whites2012": -50.778, "Blacks2012": 2.278, "Contrast2012": 11.556, "Clarity2012": -9.056, "Texture": -5.833, "Dehaze": -2.222, "Saturation": -8.111, "Vibrance": 26.556, "GrainAmount": 0.889, "PostCropVignetteAmount": -11.833, "Sharpness": 52.444, "LuminanceSmoothing": 1.278, "ColorNoiseReduction": 26.111, "hsl_intensity": 230.8, "avg_edit_intensity": 206.6, "toning_pct": 50.0, "crop_pct": 100.0, "custom_curve_pct": 55.6, "lens_profile_pct": 0.0, "auto_wb_pct": 0.0, "automation_score": 0.014}, "2024-07": {"count": 508, "Exposure2012": 0.466, "Highlights2012": -84.862, "Shadows2012": 51.378, "Whites2012": -83.882, "Blacks2012": 6.565, "Contrast2012": 28.78, "Clarity2012": -6.596, "Texture": -5.988, "Dehaze": 2.742, "Saturation": -15.77, "Vibrance": 43.319, "GrainAmount": 0.0, "PostCropVignetteAmount": -13.406, "Sharpness": 40.719, "LuminanceSmoothing": 0.146, "ColorNoiseReduction": 13.209, "hsl_intensity": 339.5, "avg_edit_intensity": 334.3, "toning_pct": 92.3, "crop_pct": 94.1, "custom_curve_pct": 94.7, "lens_profile_pct": 0.0, "auto_wb_pct": 0.0, "automation_score": 0.005}, "2024-08": {"count": 120, "Exposure2012": 0.886, "Highlights2012": -70.425, "Shadows2012": 60.667, "Whites2012": -72.175, "Blacks2012": 6.25, "Contrast2012": 45.025, "Clarity2012": -5.175, "Texture": -6.817, "Dehaze": 1.0, "Saturation": -14.975, "Vibrance": 42.058, "GrainAmount": 0.0, "PostCropVignetteAmount": -6.817, "Sharpness": 40.0, "LuminanceSmoothing": 0.0, "ColorNoiseReduction": 0.625, "hsl_intensity": 438.1, "avg_edit_intensity": 325.6, "toning_pct": 100.0, "crop_pct": 98.3, "custom_curve_pct": 100.0, "lens_profile_pct": 0.0, "auto_wb_pct": 0.0, "automation_score": 0.04}, "2024-09": {"count": 74, "Exposure2012": 0.598, "Highlights2012": -86.365, "Shadows2012": 62.405, "Whites2012": -74.041, "Blacks2012": 6.068, "Contrast2012": 32.878, "Clarity2012": -6.838, "Texture": -7.054, "Dehaze": 1.0, "Saturation": -15.081, "Vibrance": 42.243, "GrainAmount": 0.0, "PostCropVignetteAmount": -7.392, "Sharpness": 40.0, "LuminanceSmoothing": 0.0, "ColorNoiseReduction": 0.0, "hsl_intensity": 417.7, "avg_edit_intensity": 334.7, "toning_pct": 100.0, "crop_pct": 100.0, "custom_curve_pct": 100.0, "lens_profile_pct": 0.0, "auto_wb_pct": 0.0, "automation_score": 0.034}, "2024-10": {"count": 1, "Exposure2012": 0.0, "Highlights2012": 0.0, "Shadows2012": 0.0, "Whites2012": 0.0, "Blacks2012": 0.0, "Contrast2012": 0.0, "Clarity2012": 0.0, "Texture": 0.0, "Dehaze": 0.0, "Saturation": 0.0, "Vibrance": 0.0, "GrainAmount": 0.0, "PostCropVignetteAmount": 0.0, "Sharpness": 0.0, "LuminanceSmoothing": 0.0, "ColorNoiseReduction": 0.0, "hsl_intensity": 0.0, "avg_edit_intensity": 0.0, "toning_pct": 0.0, "crop_pct": 100.0, "custom_curve_pct": 0.0, "lens_profile_pct": 0.0, "auto_wb_pct": 0.0, "automation_score": 0.0}, "2024-12": {"count": 3, "Exposure2012": 0.36, "Highlights2012": -92.0, "Shadows2012": 33.667, "Whites2012": -72.0, "Blacks2012": 12.667, "Contrast2012": 8.333, "Clarity2012": -7.667, "Texture": 1.667, "Dehaze": 2.0, "Saturation": -15.0, "Vibrance": 62.333, "GrainAmount": 0.0, "PostCropVignetteAmount": -14.667, "Sharpness": 40.0, "LuminanceSmoothing": 0.0, "ColorNoiseReduction": 0.0, "hsl_intensity": 411.3, "avg_edit_intensity": 311.0, "toning_pct": 100.0, "crop_pct": 100.0, "custom_curve_pct": 100.0, "lens_profile_pct": 0.0, "auto_wb_pct": 0.0, "automation_score": 0.0}, "2025-01": {"count": 232, "Exposure2012": 1.178, "Highlights2012": -85.453, "Shadows2012": 74.047, "Whites2012": -93.073, "Blacks2012": 4.194, "Contrast2012": 17.289, "Clarity2012": -3.573, "Texture": 6.366, "Dehaze": 1.703, "Saturation": -17.263, "Vibrance": 51.849, "GrainAmount": 0.0, "PostCropVignetteAmount": -5.746, "Sharpness": 46.237, "LuminanceSmoothing": 0.0, "ColorNoiseReduction": 0.97, "hsl_intensity": 285.9, "avg_edit_intensity": 364.9, "toning_pct": 100.0, "crop_pct": 97.4, "custom_curve_pct": 100.0, "lens_profile_pct": 0.0, "auto_wb_pct": 0.0, "automation_score": 0.013}, "2025-02": {"count": 3, "Exposure2012": 0.71, "Highlights2012": -25.667, "Shadows2012": 12.333, "Whites2012": -1.667, "Blacks2012": 0.0, "Contrast2012": -4.0, "Clarity2012": -7.0, "Texture": -3.333, "Dehaze": -4.0, "Saturation": -5.333, "Vibrance": 18.667, "GrainAmount": 0.0, "PostCropVignetteAmount": 0.0, "Sharpness": 0.0, "LuminanceSmoothing": 3.0, "ColorNoiseReduction": 3.0, "hsl_intensity": 124.3, "avg_edit_intensity": 98.0, "toning_pct": 33.3, "crop_pct": 100.0, "custom_curve_pct": 100.0, "lens_profile_pct": 0.0, "auto_wb_pct": 0.0, "automation_score": 0.083}, "2025-03": {"count": 267, "Exposure2012": 0.402, "Highlights2012": -87.449, "Shadows2012": 70.326, "Whites2012": -87.749, "Blacks2012": 17.487, "Contrast2012": 28.281, "Clarity2012": -0.363, "Texture": -3.449, "Dehaze": 2.225, "Saturation": -22.904, "Vibrance": 48.59, "GrainAmount": 0.15, "PostCropVignetteAmount": 1.296, "Sharpness": 42.719, "LuminanceSmoothing": 2.73, "ColorNoiseReduction": 12.978, "hsl_intensity": 365.0, "avg_edit_intensity": 375.3, "toning_pct": 73.8, "crop_pct": 100.0, "custom_curve_pct": 95.1, "lens_profile_pct": 0.0, "auto_wb_pct": 0.0, "automation_score": 0.015}};
+  const ej = {"2019-07": {"count": 2, "Exposure2012": 0.0, "Highlights2012": 0.0, "Shadows2012": 0.0, "Whites2012": 0.0, "Blacks2012": 0.0, "Contrast2012": 0.0, "Clarity2012": 0.0, "Texture": 0.0, "Dehaze": 0.0, "Saturation": 0.0, "Vibrance": 0.0, "GrainAmount": 0.0, "PostCropVignetteAmount": 0.0, "Sharpness": 0.0, "LuminanceSmoothing": 0.0, "ColorNoiseReduction": 0.0, "hsl_intensity": 0.0, "avg_edit_intensity": 0.0, "toning_pct": 0.0, "crop_pct": 0.0, "custom_curve_pct": 0.0, "lens_profile_pct": 0.0, "auto_wb_pct": 0.0, "automation_score": 0.0}, "2019-09": {"count": 1, "Exposure2012": 0.0, "Highlights2012": 0.0, "Shadows2012": 0.0, "Whites2012": 0.0, "Blacks2012": 0.0, "Contrast2012": 0.0, "Clarity2012": 0.0, "Texture": 0.0, "Dehaze": 0.0, "Saturation": 0.0, "Vibrance": 0.0, "GrainAmount": 0.0, "PostCropVignetteAmount": 0.0, "Sharpness": 0.0, "LuminanceSmoothing": 0.0, "ColorNoiseReduction": 0.0, "hsl_intensity": 0.0, "avg_edit_intensity": 0.0, "toning_pct": 0.0, "crop_pct": 100.0, "custom_curve_pct": 0.0, "lens_profile_pct": 0.0, "auto_wb_pct": 0.0, "automation_score": 0.0}, "2019-12": {"count": 4, "Exposure2012": 0.0, "Highlights2012": 0.0, "Shadows2012": 0.0, "Whites2012": 0.0, "Blacks2012": 0.0, "Contrast2012": 0.0, "Clarity2012": 0.0, "Texture": 0.0, "Dehaze": 0.0, "Saturation": 0.0, "Vibrance": 0.0, "GrainAmount": 0.0, "PostCropVignetteAmount": 0.0, "Sharpness": 0.0, "LuminanceSmoothing": 0.0, "ColorNoiseReduction": 0.0, "hsl_intensity": 0.0, "avg_edit_intensity": 0.0, "toning_pct": 0.0, "crop_pct": 100.0, "custom_curve_pct": 0.0, "lens_profile_pct": 0.0, "auto_wb_pct": 0.0, "automation_score": 0.0}, "2020-10": {"count": 3, "Exposure2012": 0.597, "Highlights2012": -77.0, "Shadows2012": 48.667, "Whites2012": -82.333, "Blacks2012": 1.667, "Contrast2012": -5.333, "Clarity2012": -32.667, "Texture": -24.667, "Dehaze": -6.333, "Saturation": -28.333, "Vibrance": 67.0, "GrainAmount": 0.0, "PostCropVignetteAmount": -30.333, "Sharpness": 33.333, "LuminanceSmoothing": 0.0, "ColorNoiseReduction": 16.667, "hsl_intensity": 403.7, "avg_edit_intensity": 380.6, "toning_pct": 100.0, "crop_pct": 100.0, "custom_curve_pct": 100.0, "lens_profile_pct": 0.0, "auto_wb_pct": 0.0, "automation_score": 0.0}, "2020-12": {"count": 19, "Exposure2012": 0.537, "Highlights2012": -61.684, "Shadows2012": 44.474, "Whites2012": -59.684, "Blacks2012": 3.421, "Contrast2012": -11.895, "Clarity2012": -14.316, "Texture": -12.842, "Dehaze": -1.526, "Saturation": -20.789, "Vibrance": 45.316, "GrainAmount": 0.0, "PostCropVignetteAmount": -18.842, "Sharpness": 20.0, "LuminanceSmoothing": 0.0, "ColorNoiseReduction": 5.263, "hsl_intensity": 317.2, "avg_edit_intensity": 279.3, "toning_pct": 78.9, "crop_pct": 94.7, "custom_curve_pct": 78.9, "lens_profile_pct": 0.0, "auto_wb_pct": 0.0, "automation_score": 0.013}, "2021-01": {"count": 6, "Exposure2012": 0.215, "Highlights2012": -26.333, "Shadows2012": 20.0, "Whites2012": -23.0, "Blacks2012": 1.667, "Contrast2012": -8.0, "Clarity2012": -2.667, "Texture": -3.333, "Dehaze": 0.333, "Saturation": -8.333, "Vibrance": 17.0, "GrainAmount": 0.0, "PostCropVignetteAmount": -6.333, "Sharpness": 6.667, "LuminanceSmoothing": 0.0, "ColorNoiseReduction": 0.0, "hsl_intensity": 133.3, "avg_edit_intensity": 110.9, "toning_pct": 33.3, "crop_pct": 83.3, "custom_curve_pct": 33.3, "lens_profile_pct": 0.0, "auto_wb_pct": 0.0, "automation_score": 0.0}, "2021-04": {"count": 5, "Exposure2012": 0.2, "Highlights2012": -15.2, "Shadows2012": 10.6, "Whites2012": 6.0, "Blacks2012": 5.0, "Contrast2012": 1.8, "Clarity2012": 1.6, "Texture": 1.4, "Dehaze": 2.0, "Saturation": -7.2, "Vibrance": 7.6, "GrainAmount": 1.0, "PostCropVignetteAmount": 0.0, "Sharpness": 1.8, "LuminanceSmoothing": 5.0, "ColorNoiseReduction": 2.4, "hsl_intensity": 67.6, "avg_edit_intensity": 58.6, "toning_pct": 20.0, "crop_pct": 60.0, "custom_curve_pct": 20.0, "lens_profile_pct": 0.0, "auto_wb_pct": 0.0, "automation_score": 0.0}, "2021-05": {"count": 1, "Exposure2012": 0.0, "Highlights2012": 0.0, "Shadows2012": 0.0, "Whites2012": 0.0, "Blacks2012": 0.0, "Contrast2012": 0.0, "Clarity2012": 0.0, "Texture": 0.0, "Dehaze": 0.0, "Saturation": 0.0, "Vibrance": 0.0, "GrainAmount": 0.0, "PostCropVignetteAmount": 0.0, "Sharpness": 0.0, "LuminanceSmoothing": 0.0, "ColorNoiseReduction": 0.0, "hsl_intensity": 0.0, "avg_edit_intensity": 0.0, "toning_pct": 0.0, "crop_pct": 0.0, "custom_curve_pct": 0.0, "lens_profile_pct": 0.0, "auto_wb_pct": 0.0, "automation_score": 0.0}, "2021-06": {"count": 3, "Exposure2012": 0.0, "Highlights2012": 0.0, "Shadows2012": 0.0, "Whites2012": 0.0, "Blacks2012": 0.0, "Contrast2012": 0.0, "Clarity2012": 0.0, "Texture": 0.0, "Dehaze": 0.0, "Saturation": 0.0, "Vibrance": 0.0, "GrainAmount": 0.0, "PostCropVignetteAmount": 0.0, "Sharpness": 26.667, "LuminanceSmoothing": 0.0, "ColorNoiseReduction": 16.667, "hsl_intensity": 180.0, "avg_edit_intensity": 0.0, "toning_pct": 66.7, "crop_pct": 66.7, "custom_curve_pct": 33.3, "lens_profile_pct": 0.0, "auto_wb_pct": 0.0, "automation_score": 0.0}, "2021-07": {"count": 26, "Exposure2012": 0.12, "Highlights2012": -13.808, "Shadows2012": 24.731, "Whites2012": 3.038, "Blacks2012": 11.577, "Contrast2012": 7.615, "Clarity2012": 0.269, "Texture": 2.423, "Dehaze": 1.077, "Saturation": 3.846, "Vibrance": 11.923, "GrainAmount": 1.346, "PostCropVignetteAmount": -9.423, "Sharpness": 17.808, "LuminanceSmoothing": 1.038, "ColorNoiseReduction": 9.5, "hsl_intensity": 122.6, "avg_edit_intensity": 94.2, "toning_pct": 30.8, "crop_pct": 73.1, "custom_curve_pct": 38.5, "lens_profile_pct": 38.5, "auto_wb_pct": 0.0, "automation_score": 0.096}, "2021-08": {"count": 1, "Exposure2012": 0.0, "Highlights2012": 0.0, "Shadows2012": 0.0, "Whites2012": 0.0, "Blacks2012": 0.0, "Contrast2012": 0.0, "Clarity2012": 0.0, "Texture": 0.0, "Dehaze": 0.0, "Saturation": 0.0, "Vibrance": 0.0, "GrainAmount": 0.0, "PostCropVignetteAmount": 0.0, "Sharpness": 0.0, "LuminanceSmoothing": 0.0, "ColorNoiseReduction": 0.0, "hsl_intensity": 0.0, "avg_edit_intensity": 0.0, "toning_pct": 0.0, "crop_pct": 100.0, "custom_curve_pct": 0.0, "lens_profile_pct": 0.0, "auto_wb_pct": 0.0, "automation_score": 0.0}, "2021-09": {"count": 2, "Exposure2012": 0.05, "Highlights2012": 0.0, "Shadows2012": 0.0, "Whites2012": 0.0, "Blacks2012": 0.0, "Contrast2012": 0.0, "Clarity2012": 0.0, "Texture": 0.0, "Dehaze": 0.0, "Saturation": 0.0, "Vibrance": 0.0, "GrainAmount": 0.0, "PostCropVignetteAmount": 0.0, "Sharpness": 0.0, "LuminanceSmoothing": 0.0, "ColorNoiseReduction": 0.0, "hsl_intensity": 0.0, "avg_edit_intensity": 0.1, "toning_pct": 0.0, "crop_pct": 50.0, "custom_curve_pct": 0.0, "lens_profile_pct": 0.0, "auto_wb_pct": 0.0, "automation_score": 0.0}, "2021-10": {"count": 11, "Exposure2012": 0.33, "Highlights2012": -78.182, "Shadows2012": 49.091, "Whites2012": -78.818, "Blacks2012": 2.727, "Contrast2012": -10.182, "Clarity2012": -26.273, "Texture": -20.0, "Dehaze": -2.364, "Saturation": -27.273, "Vibrance": 61.909, "GrainAmount": 0.0, "PostCropVignetteAmount": -26.727, "Sharpness": 29.091, "LuminanceSmoothing": 0.0, "ColorNoiseReduction": 11.364, "hsl_intensity": 444.4, "avg_edit_intensity": 365.1, "toning_pct": 100.0, "crop_pct": 100.0, "custom_curve_pct": 100.0, "lens_profile_pct": 0.0, "auto_wb_pct": 0.0, "automation_score": 0.0}, "2021-11": {"count": 19, "Exposure2012": 0.385, "Highlights2012": -65.947, "Shadows2012": 26.053, "Whites2012": -53.368, "Blacks2012": -0.632, "Contrast2012": -10.263, "Clarity2012": -7.158, "Texture": -7.421, "Dehaze": 0.053, "Saturation": -11.947, "Vibrance": 39.632, "GrainAmount": 0.0, "PostCropVignetteAmount": -16.211, "Sharpness": 24.211, "LuminanceSmoothing": 3.684, "ColorNoiseReduction": 7.895, "hsl_intensity": 329.8, "avg_edit_intensity": 260.7, "toning_pct": 89.5, "crop_pct": 89.5, "custom_curve_pct": 89.5, "lens_profile_pct": 5.3, "auto_wb_pct": 0.0, "automation_score": 0.013}, "2021-12": {"count": 5, "Exposure2012": 0.05, "Highlights2012": -14.4, "Shadows2012": 9.4, "Whites2012": 4.2, "Blacks2012": -5.4, "Contrast2012": -2.8, "Clarity2012": -0.6, "Texture": 0.0, "Dehaze": 0.0, "Saturation": 3.4, "Vibrance": 4.0, "GrainAmount": 0.0, "PostCropVignetteAmount": -5.2, "Sharpness": 16.0, "LuminanceSmoothing": 0.4, "ColorNoiseReduction": 10.0, "hsl_intensity": 35.2, "avg_edit_intensity": 44.2, "toning_pct": 20.0, "crop_pct": 100.0, "custom_curve_pct": 20.0, "lens_profile_pct": 0.0, "auto_wb_pct": 0.0, "automation_score": 0.0}, "2022-02": {"count": 6, "Exposure2012": 0.245, "Highlights2012": -65.833, "Shadows2012": 34.167, "Whites2012": -57.5, "Blacks2012": 4.167, "Contrast2012": -20.0, "Clarity2012": -6.667, "Texture": -8.333, "Dehaze": 0.833, "Saturation": -20.833, "Vibrance": 42.5, "GrainAmount": 0.0, "PostCropVignetteAmount": -15.833, "Sharpness": 16.667, "LuminanceSmoothing": 0.0, "ColorNoiseReduction": 0.0, "hsl_intensity": 320.8, "avg_edit_intensity": 261.1, "toning_pct": 83.3, "crop_pct": 100.0, "custom_curve_pct": 83.3, "lens_profile_pct": 0.0, "auto_wb_pct": 0.0, "automation_score": 0.0}, "2022-04": {"count": 44, "Exposure2012": 0.619, "Highlights2012": -65.023, "Shadows2012": 55.25, "Whites2012": -56.273, "Blacks2012": 19.727, "Contrast2012": 12.659, "Clarity2012": 0.432, "Texture": 4.477, "Dehaze": -0.114, "Saturation": -1.614, "Vibrance": 23.455, "GrainAmount": 0.0, "PostCropVignetteAmount": -15.5, "Sharpness": 41.227, "LuminanceSmoothing": 1.25, "ColorNoiseReduction": 17.841, "hsl_intensity": 305.8, "avg_edit_intensity": 262.8, "toning_pct": 70.5, "crop_pct": 65.9, "custom_curve_pct": 75.0, "lens_profile_pct": 0.0, "auto_wb_pct": 0.0, "automation_score": 0.0}, "2022-06": {"count": 2, "Exposure2012": 0.49, "Highlights2012": -79.0, "Shadows2012": 41.0, "Whites2012": -69.0, "Blacks2012": 5.0, "Contrast2012": -24.0, "Clarity2012": -8.0, "Texture": -10.0, "Dehaze": 1.0, "Saturation": -25.0, "Vibrance": 51.0, "GrainAmount": 0.0, "PostCropVignetteAmount": -19.0, "Sharpness": 20.0, "LuminanceSmoothing": 0.0, "ColorNoiseReduction": 0.0, "hsl_intensity": 385.0, "avg_edit_intensity": 313.5, "toning_pct": 100.0, "crop_pct": 100.0, "custom_curve_pct": 100.0, "lens_profile_pct": 0.0, "auto_wb_pct": 0.0, "automation_score": 0.0}, "2022-07": {"count": 6, "Exposure2012": 0.103, "Highlights2012": -87.667, "Shadows2012": 49.333, "Whites2012": -77.667, "Blacks2012": 0.0, "Contrast2012": -1.667, "Clarity2012": 0.833, "Texture": 5.833, "Dehaze": 4.0, "Saturation": 5.167, "Vibrance": 17.833, "GrainAmount": 0.0, "PostCropVignetteAmount": -19.167, "Sharpness": 43.333, "LuminanceSmoothing": 14.167, "ColorNoiseReduction": 25.667, "hsl_intensity": 298.3, "avg_edit_intensity": 299.2, "toning_pct": 100.0, "crop_pct": 50.0, "custom_curve_pct": 100.0, "lens_profile_pct": 16.7, "auto_wb_pct": 0.0, "automation_score": 0.042}, "2022-08": {"count": 62, "Exposure2012": 0.755, "Highlights2012": -81.935, "Shadows2012": 62.919, "Whites2012": -72.823, "Blacks2012": 23.742, "Contrast2012": 3.935, "Clarity2012": 0.79, "Texture": 6.726, "Dehaze": 4.371, "Saturation": -11.0, "Vibrance": 24.177, "GrainAmount": 0.0, "PostCropVignetteAmount": -17.565, "Sharpness": 42.952, "LuminanceSmoothing": 3.113, "ColorNoiseReduction": 25.984, "hsl_intensity": 392.4, "avg_edit_intensity": 354.9, "toning_pct": 98.4, "crop_pct": 41.9, "custom_curve_pct": 98.4, "lens_profile_pct": 1.6, "auto_wb_pct": 0.0, "automation_score": 0.004}, "2022-09": {"count": 66, "Exposure2012": 0.832, "Highlights2012": -33.621, "Shadows2012": 24.091, "Whites2012": -45.864, "Blacks2012": 8.636, "Contrast2012": -2.879, "Clarity2012": 3.788, "Texture": -1.53, "Dehaze": 4.333, "Saturation": -6.258, "Vibrance": 14.788, "GrainAmount": 0.0, "PostCropVignetteAmount": -5.803, "Sharpness": 43.455, "LuminanceSmoothing": 3.515, "ColorNoiseReduction": 26.348, "hsl_intensity": 118.4, "avg_edit_intensity": 161.3, "toning_pct": 50.0, "crop_pct": 48.5, "custom_curve_pct": 50.0, "lens_profile_pct": 4.5, "auto_wb_pct": 0.0, "automation_score": 0.011}, "2022-10": {"count": 17, "Exposure2012": 0.751, "Highlights2012": -55.176, "Shadows2012": 54.882, "Whites2012": -61.882, "Blacks2012": 17.765, "Contrast2012": -4.118, "Clarity2012": 38.647, "Texture": -5.294, "Dehaze": 11.471, "Saturation": -1.765, "Vibrance": 20.412, "GrainAmount": 0.0, "PostCropVignetteAmount": -14.824, "Sharpness": 47.647, "LuminanceSmoothing": 10.588, "ColorNoiseReduction": 31.647, "hsl_intensity": 316.9, "avg_edit_intensity": 334.7, "toning_pct": 100.0, "crop_pct": 100.0, "custom_curve_pct": 100.0, "lens_profile_pct": 0.0, "auto_wb_pct": 0.0, "automation_score": 0.0}, "2022-12": {"count": 15, "Exposure2012": 0.339, "Highlights2012": -68.467, "Shadows2012": 36.133, "Whites2012": -59.8, "Blacks2012": 4.333, "Contrast2012": -20.8, "Clarity2012": -6.933, "Texture": -8.667, "Dehaze": 0.867, "Saturation": -21.667, "Vibrance": 44.2, "GrainAmount": 0.0, "PostCropVignetteAmount": -16.467, "Sharpness": 17.333, "LuminanceSmoothing": 0.0, "ColorNoiseReduction": 0.0, "hsl_intensity": 333.7, "avg_edit_intensity": 272.2, "toning_pct": 86.7, "crop_pct": 93.3, "custom_curve_pct": 86.7, "lens_profile_pct": 0.0, "auto_wb_pct": 0.0, "automation_score": 0.0}, "2023-01": {"count": 30, "Exposure2012": 0.971, "Highlights2012": -71.933, "Shadows2012": 69.633, "Whites2012": 29.5, "Blacks2012": -17.267, "Contrast2012": -3.233, "Clarity2012": 31.467, "Texture": -1.5, "Dehaze": 2.167, "Saturation": -8.133, "Vibrance": 19.367, "GrainAmount": 0.0, "PostCropVignetteAmount": -14.933, "Sharpness": 67.267, "LuminanceSmoothing": 20.067, "ColorNoiseReduction": 32.6, "hsl_intensity": 203.7, "avg_edit_intensity": 271.4, "toning_pct": 66.7, "crop_pct": 100.0, "custom_curve_pct": 73.3, "lens_profile_pct": 0.0, "auto_wb_pct": 0.0, "automation_score": 0.0}, "2023-02": {"count": 58, "Exposure2012": 0.369, "Highlights2012": -78.138, "Shadows2012": 65.103, "Whites2012": -45.0, "Blacks2012": 6.69, "Contrast2012": 10.017, "Clarity2012": -2.983, "Texture": -6.069, "Dehaze": 1.672, "Saturation": -6.259, "Vibrance": -6.362, "GrainAmount": 0.0, "PostCropVignetteAmount": -10.552, "Sharpness": 42.621, "LuminanceSmoothing": 28.552, "ColorNoiseReduction": 30.983, "hsl_intensity": 218.6, "avg_edit_intensity": 261.3, "toning_pct": 77.6, "crop_pct": 75.9, "custom_curve_pct": 86.2, "lens_profile_pct": 0.0, "auto_wb_pct": 0.0, "automation_score": 0.0}, "2023-03": {"count": 261, "Exposure2012": 0.716, "Highlights2012": -44.885, "Shadows2012": 29.889, "Whites2012": -38.966, "Blacks2012": 2.494, "Contrast2012": 14.253, "Clarity2012": 2.536, "Texture": -3.073, "Dehaze": 4.682, "Saturation": -12.119, "Vibrance": 29.4, "GrainAmount": 0.046, "PostCropVignetteAmount": -7.245, "Sharpness": 41.441, "LuminanceSmoothing": 16.877, "ColorNoiseReduction": 26.67, "hsl_intensity": 189.5, "avg_edit_intensity": 197.4, "toning_pct": 64.0, "crop_pct": 60.9, "custom_curve_pct": 68.2, "lens_profile_pct": 28.4, "auto_wb_pct": 0.0, "automation_score": 0.106}, "2023-04": {"count": 226, "Exposure2012": 0.645, "Highlights2012": -52.155, "Shadows2012": 47.412, "Whites2012": -43.673, "Blacks2012": -0.35, "Contrast2012": 10.509, "Clarity2012": 0.305, "Texture": -1.77, "Dehaze": 3.965, "Saturation": -12.827, "Vibrance": 23.708, "GrainAmount": 0.022, "PostCropVignetteAmount": -9.274, "Sharpness": 48.615, "LuminanceSmoothing": 13.42, "ColorNoiseReduction": 27.673, "hsl_intensity": 205.6, "avg_edit_intensity": 219.3, "toning_pct": 73.0, "crop_pct": 70.4, "custom_curve_pct": 76.5, "lens_profile_pct": 35.8, "auto_wb_pct": 0.0, "automation_score": 0.102}, "2023-06": {"count": 42, "Exposure2012": 0.666, "Highlights2012": -60.381, "Shadows2012": 69.548, "Whites2012": -59.81, "Blacks2012": -4.381, "Contrast2012": 2.024, "Clarity2012": 4.881, "Texture": -2.929, "Dehaze": -2.929, "Saturation": -18.69, "Vibrance": 19.81, "GrainAmount": 0.0, "PostCropVignetteAmount": -19.762, "Sharpness": 49.762, "LuminanceSmoothing": 29.286, "ColorNoiseReduction": 25.0, "hsl_intensity": 290.6, "avg_edit_intensity": 249.9, "toning_pct": 97.6, "crop_pct": 97.6, "custom_curve_pct": 97.6, "lens_profile_pct": 45.2, "auto_wb_pct": 0.0, "automation_score": 0.113}, "2023-07": {"count": 64, "Exposure2012": 0.855, "Highlights2012": -83.969, "Shadows2012": 88.578, "Whites2012": -64.578, "Blacks2012": 35.0, "Contrast2012": 15.797, "Clarity2012": -2.516, "Texture": -8.0, "Dehaze": 15.266, "Saturation": -16.281, "Vibrance": 32.0, "GrainAmount": 0.0, "PostCropVignetteAmount": 0.0, "Sharpness": 66.734, "LuminanceSmoothing": 33.0, "ColorNoiseReduction": 42.0, "hsl_intensity": 323.6, "avg_edit_intensity": 366.6, "toning_pct": 96.9, "crop_pct": 100.0, "custom_curve_pct": 100.0, "lens_profile_pct": 4.7, "auto_wb_pct": 0.0, "automation_score": 0.262}, "2023-09": {"count": 54, "Exposure2012": 0.358, "Highlights2012": -62.333, "Shadows2012": 46.704, "Whites2012": -26.463, "Blacks2012": -4.241, "Contrast2012": 18.167, "Clarity2012": 1.611, "Texture": 3.352, "Dehaze": -0.315, "Saturation": -9.463, "Vibrance": 20.296, "GrainAmount": 0.0, "PostCropVignetteAmount": -6.037, "Sharpness": 52.87, "LuminanceSmoothing": 21.944, "ColorNoiseReduction": 24.537, "hsl_intensity": 125.1, "avg_edit_intensity": 223.7, "toning_pct": 87.0, "crop_pct": 63.0, "custom_curve_pct": 87.0, "lens_profile_pct": 40.7, "auto_wb_pct": 0.0, "automation_score": 0.116}, "2023-10": {"count": 224, "Exposure2012": 0.938, "Highlights2012": -81.679, "Shadows2012": 48.228, "Whites2012": -50.366, "Blacks2012": 13.424, "Contrast2012": 37.902, "Clarity2012": -10.415, "Texture": -8.304, "Dehaze": 8.786, "Saturation": -15.804, "Vibrance": 41.397, "GrainAmount": 0.0, "PostCropVignetteAmount": -18.79, "Sharpness": 46.821, "LuminanceSmoothing": 5.473, "ColorNoiseReduction": 19.777, "hsl_intensity": 249.6, "avg_edit_intensity": 319.5, "toning_pct": 94.6, "crop_pct": 82.1, "custom_curve_pct": 95.5, "lens_profile_pct": 8.9, "auto_wb_pct": 0.0, "automation_score": 0.022}, "2023-11": {"count": 172, "Exposure2012": 0.728, "Highlights2012": -74.82, "Shadows2012": 67.558, "Whites2012": -55.419, "Blacks2012": 2.965, "Contrast2012": 21.058, "Clarity2012": 3.605, "Texture": 1.89, "Dehaze": 4.855, "Saturation": -14.983, "Vibrance": 30.227, "GrainAmount": 0.0, "PostCropVignetteAmount": -20.512, "Sharpness": 68.529, "LuminanceSmoothing": 12.698, "ColorNoiseReduction": 20.936, "hsl_intensity": 358.4, "avg_edit_intensity": 298.8, "toning_pct": 96.5, "crop_pct": 87.2, "custom_curve_pct": 97.1, "lens_profile_pct": 0.0, "auto_wb_pct": 0.0, "automation_score": 0.0}, "2023-12": {"count": 437, "Exposure2012": 1.046, "Highlights2012": -55.007, "Shadows2012": 50.65, "Whites2012": -51.778, "Blacks2012": 2.622, "Contrast2012": 3.915, "Clarity2012": -9.176, "Texture": -9.824, "Dehaze": 10.526, "Saturation": -16.922, "Vibrance": 34.332, "GrainAmount": 0.0, "PostCropVignetteAmount": -22.444, "Sharpness": 41.348, "LuminanceSmoothing": 0.288, "ColorNoiseReduction": 25.0, "hsl_intensity": 435.7, "avg_edit_intensity": 256.5, "toning_pct": 75.3, "crop_pct": 78.9, "custom_curve_pct": 76.9, "lens_profile_pct": 0.0, "auto_wb_pct": 0.0, "automation_score": 0.002}, "2024-01": {"count": 1179, "Exposure2012": 0.613, "Highlights2012": -56.229, "Shadows2012": 52.142, "Whites2012": -58.041, "Blacks2012": 1.375, "Contrast2012": 8.795, "Clarity2012": -1.82, "Texture": -6.918, "Dehaze": -1.977, "Saturation": -19.646, "Vibrance": 36.111, "GrainAmount": 0.0, "PostCropVignetteAmount": -7.807, "Sharpness": 41.213, "LuminanceSmoothing": 0.003, "ColorNoiseReduction": 23.092, "hsl_intensity": 398.7, "avg_edit_intensity": 255.2, "toning_pct": 67.9, "crop_pct": 75.7, "custom_curve_pct": 76.6, "lens_profile_pct": 0.0, "auto_wb_pct": 0.0, "automation_score": 0.002}, "2024-02": {"count": 89, "Exposure2012": 0.126, "Highlights2012": -85.461, "Shadows2012": 59.876, "Whites2012": -81.135, "Blacks2012": -5.337, "Contrast2012": -11.73, "Clarity2012": -11.73, "Texture": -9.775, "Dehaze": 1.955, "Saturation": -15.64, "Vibrance": 48.798, "GrainAmount": 0.0, "PostCropVignetteAmount": -15.562, "Sharpness": 40.022, "LuminanceSmoothing": 0.0, "ColorNoiseReduction": 0.843, "hsl_intensity": 311.7, "avg_edit_intensity": 331.6, "toning_pct": 97.8, "crop_pct": 87.6, "custom_curve_pct": 97.8, "lens_profile_pct": 0.0, "auto_wb_pct": 0.0, "automation_score": 0.0}, "2024-03": {"count": 22, "Exposure2012": 0.528, "Highlights2012": -75.773, "Shadows2012": 61.182, "Whites2012": -82.682, "Blacks2012": 8.545, "Contrast2012": 10.5, "Clarity2012": 10.045, "Texture": -8.364, "Dehaze": 3.455, "Saturation": -19.714, "Vibrance": 35.048, "GrainAmount": 0.0, "PostCropVignetteAmount": -10.909, "Sharpness": 44.682, "LuminanceSmoothing": 0.909, "ColorNoiseReduction": 23.364, "hsl_intensity": 442.5, "avg_edit_intensity": 313.4, "toning_pct": 86.4, "crop_pct": 86.4, "custom_curve_pct": 86.4, "lens_profile_pct": 9.1, "auto_wb_pct": 0.0, "automation_score": 0.023}, "2024-04": {"count": 181, "Exposure2012": 1.306, "Highlights2012": -62.077, "Shadows2012": 48.26, "Whites2012": -79.702, "Blacks2012": 14.249, "Contrast2012": -0.68, "Clarity2012": -3.05, "Texture": -1.337, "Dehaze": 3.193, "Saturation": -18.21, "Vibrance": 42.006, "GrainAmount": 0.0, "PostCropVignetteAmount": -6.956, "Sharpness": 45.448, "LuminanceSmoothing": 0.0, "ColorNoiseReduction": 24.862, "hsl_intensity": 306.6, "avg_edit_intensity": 314.6, "toning_pct": 87.3, "crop_pct": 93.4, "custom_curve_pct": 87.8, "lens_profile_pct": 0.0, "auto_wb_pct": 0.0, "automation_score": 0.004}, "2024-05": {"count": 280, "Exposure2012": 0.622, "Highlights2012": -79.229, "Shadows2012": 49.054, "Whites2012": -62.761, "Blacks2012": 6.875, "Contrast2012": 20.011, "Clarity2012": -4.725, "Texture": -5.532, "Dehaze": 3.682, "Saturation": -14.536, "Vibrance": 40.782, "GrainAmount": 0.0, "PostCropVignetteAmount": -11.979, "Sharpness": 40.757, "LuminanceSmoothing": 0.0, "ColorNoiseReduction": 20.357, "hsl_intensity": 418.2, "avg_edit_intensity": 289.2, "toning_pct": 96.8, "crop_pct": 79.3, "custom_curve_pct": 96.8, "lens_profile_pct": 0.0, "auto_wb_pct": 0.0, "automation_score": 0.013}, "2024-06": {"count": 18, "Exposure2012": 0.203, "Highlights2012": -50.778, "Shadows2012": 36.333, "Whites2012": -50.778, "Blacks2012": 2.278, "Contrast2012": 11.556, "Clarity2012": -9.056, "Texture": -5.833, "Dehaze": -2.222, "Saturation": -8.111, "Vibrance": 26.556, "GrainAmount": 0.889, "PostCropVignetteAmount": -11.833, "Sharpness": 52.444, "LuminanceSmoothing": 1.278, "ColorNoiseReduction": 26.111, "hsl_intensity": 230.8, "avg_edit_intensity": 206.6, "toning_pct": 50.0, "crop_pct": 100.0, "custom_curve_pct": 55.6, "lens_profile_pct": 0.0, "auto_wb_pct": 0.0, "automation_score": 0.014}, "2024-07": {"count": 508, "Exposure2012": 0.466, "Highlights2012": -84.862, "Shadows2012": 51.378, "Whites2012": -83.882, "Blacks2012": 6.565, "Contrast2012": 28.78, "Clarity2012": -6.596, "Texture": -5.988, "Dehaze": 2.742, "Saturation": -15.77, "Vibrance": 43.319, "GrainAmount": 0.0, "PostCropVignetteAmount": -13.406, "Sharpness": 40.719, "LuminanceSmoothing": 0.146, "ColorNoiseReduction": 13.209, "hsl_intensity": 339.5, "avg_edit_intensity": 334.3, "toning_pct": 92.3, "crop_pct": 94.1, "custom_curve_pct": 94.7, "lens_profile_pct": 0.0, "auto_wb_pct": 0.0, "automation_score": 0.005}, "2024-08": {"count": 119, "Exposure2012": 0.889, "Highlights2012": -70.277, "Shadows2012": 60.773, "Whites2012": -72.176, "Blacks2012": 6.252, "Contrast2012": 44.899, "Clarity2012": -5.176, "Texture": -6.824, "Dehaze": 1.0, "Saturation": -14.975, "Vibrance": 42.059, "GrainAmount": 0.0, "PostCropVignetteAmount": -6.773, "Sharpness": 40.0, "LuminanceSmoothing": 0.0, "ColorNoiseReduction": 0.42, "hsl_intensity": 438.1, "avg_edit_intensity": 325.4, "toning_pct": 100.0, "crop_pct": 98.3, "custom_curve_pct": 100.0, "lens_profile_pct": 0.0, "auto_wb_pct": 0.0, "automation_score": 0.04}, "2024-09": {"count": 74, "Exposure2012": 0.598, "Highlights2012": -86.365, "Shadows2012": 62.405, "Whites2012": -74.041, "Blacks2012": 6.068, "Contrast2012": 32.878, "Clarity2012": -6.838, "Texture": -7.054, "Dehaze": 1.0, "Saturation": -15.081, "Vibrance": 42.243, "GrainAmount": 0.0, "PostCropVignetteAmount": -7.392, "Sharpness": 40.0, "LuminanceSmoothing": 0.0, "ColorNoiseReduction": 0.0, "hsl_intensity": 417.7, "avg_edit_intensity": 334.7, "toning_pct": 100.0, "crop_pct": 100.0, "custom_curve_pct": 100.0, "lens_profile_pct": 0.0, "auto_wb_pct": 0.0, "automation_score": 0.034}, "2024-10": {"count": 1, "Exposure2012": 0.0, "Highlights2012": 0.0, "Shadows2012": 0.0, "Whites2012": 0.0, "Blacks2012": 0.0, "Contrast2012": 0.0, "Clarity2012": 0.0, "Texture": 0.0, "Dehaze": 0.0, "Saturation": 0.0, "Vibrance": 0.0, "GrainAmount": 0.0, "PostCropVignetteAmount": 0.0, "Sharpness": 0.0, "LuminanceSmoothing": 0.0, "ColorNoiseReduction": 0.0, "hsl_intensity": 0.0, "avg_edit_intensity": 0.0, "toning_pct": 0.0, "crop_pct": 100.0, "custom_curve_pct": 0.0, "lens_profile_pct": 0.0, "auto_wb_pct": 0.0, "automation_score": 0.0}, "2024-12": {"count": 3, "Exposure2012": 0.36, "Highlights2012": -92.0, "Shadows2012": 33.667, "Whites2012": -72.0, "Blacks2012": 12.667, "Contrast2012": 8.333, "Clarity2012": -7.667, "Texture": 1.667, "Dehaze": 2.0, "Saturation": -15.0, "Vibrance": 62.333, "GrainAmount": 0.0, "PostCropVignetteAmount": -14.667, "Sharpness": 40.0, "LuminanceSmoothing": 0.0, "ColorNoiseReduction": 0.0, "hsl_intensity": 411.3, "avg_edit_intensity": 311.0, "toning_pct": 100.0, "crop_pct": 100.0, "custom_curve_pct": 100.0, "lens_profile_pct": 0.0, "auto_wb_pct": 0.0, "automation_score": 0.0}, "2025-01": {"count": 232, "Exposure2012": 1.178, "Highlights2012": -85.453, "Shadows2012": 74.047, "Whites2012": -93.073, "Blacks2012": 4.194, "Contrast2012": 17.289, "Clarity2012": -3.573, "Texture": 6.366, "Dehaze": 1.703, "Saturation": -17.263, "Vibrance": 51.849, "GrainAmount": 0.0, "PostCropVignetteAmount": -5.746, "Sharpness": 46.237, "LuminanceSmoothing": 0.0, "ColorNoiseReduction": 0.97, "hsl_intensity": 285.9, "avg_edit_intensity": 364.9, "toning_pct": 100.0, "crop_pct": 97.4, "custom_curve_pct": 100.0, "lens_profile_pct": 0.0, "auto_wb_pct": 0.0, "automation_score": 0.013}, "2025-02": {"count": 3, "Exposure2012": 0.71, "Highlights2012": -25.667, "Shadows2012": 12.333, "Whites2012": -1.667, "Blacks2012": 0.0, "Contrast2012": -4.0, "Clarity2012": -7.0, "Texture": -3.333, "Dehaze": -4.0, "Saturation": -5.333, "Vibrance": 18.667, "GrainAmount": 0.0, "PostCropVignetteAmount": 0.0, "Sharpness": 0.0, "LuminanceSmoothing": 3.0, "ColorNoiseReduction": 3.0, "hsl_intensity": 124.3, "avg_edit_intensity": 98.0, "toning_pct": 33.3, "crop_pct": 100.0, "custom_curve_pct": 100.0, "lens_profile_pct": 0.0, "auto_wb_pct": 0.0, "automation_score": 0.083}, "2025-03": {"count": 267, "Exposure2012": 0.402, "Highlights2012": -87.449, "Shadows2012": 70.326, "Whites2012": -87.749, "Blacks2012": 17.487, "Contrast2012": 28.281, "Clarity2012": -0.363, "Texture": -3.449, "Dehaze": 2.225, "Saturation": -22.904, "Vibrance": 48.59, "GrainAmount": 0.15, "PostCropVignetteAmount": 1.296, "Sharpness": 42.719, "LuminanceSmoothing": 2.73, "ColorNoiseReduction": 12.978, "hsl_intensity": 365.0, "avg_edit_intensity": 375.3, "toning_pct": 73.8, "crop_pct": 100.0, "custom_curve_pct": 95.1, "lens_profile_pct": 0.0, "auto_wb_pct": 0.0, "automation_score": 0.015}};
   const months = Object.keys(ej).sort();
   const elJ = document.getElementById("editingJourneyChart");
   if (!elJ) return;
