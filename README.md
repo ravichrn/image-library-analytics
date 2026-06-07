@@ -13,12 +13,12 @@ Supports local folders and [Adobe Lightroom](https://lightroom.adobe.com) cloud 
 | What | Number | Context |
 |---|---|---|
 | Sequential peak memory | **1.74 GB** | vs 9.04 GB naive (all models at once + SO400M for all photos) |
-| RMBG cascade gate | **87% filtered** | 659 / 5,107 photos actually run through RMBG-2.0 |
+| RMBG cascade gate | **87% filtered** | 659 / 4,886 photos actually run through RMBG-2.0 |
 | Aesthetic regressor coverage | **~93%** | of photos scored at <1% of SigLIP compute |
 | Decode bottleneck (before fix) | **35 img/s** | image decode dominated GPU idle time |
 | Decode throughput (after fix) | **247 img/s** | PIL draft mode + background prefetch + 4 decode threads |
 | YOLO pre-decode speedup | **42 → 64 img/s** | bypassing YOLO's internal OpenCV path |
-| Incremental run | **~30 s** | vs ~8.5 min full run (5,107-photo library, M3 Pro) |
+| Incremental run | **~30 s** | vs ~8.5 min full run (4,886-photo library, M3 Pro) |
 | Cache hit rate (warm) | **100%** | zero model loads on unchanged photos |
 
 ---
@@ -27,7 +27,6 @@ Supports local folders and [Adobe Lightroom](https://lightroom.adobe.com) cloud 
 
 **GPU (MPS)**
 - Sequential model loading: each pass loads, runs, and fully unloads with a device cache flush — peak memory 1.74 GB vs 9.04 GB naive
-- `torch.float16` for all MPS forward passes
 
 **Batch sizing — benchmark-driven scheduler**
 - Microbenchmark finds the smallest batch reaching ≥99% peak throughput per model; UCB bandit adapts per-machine at runtime
@@ -38,18 +37,15 @@ Supports local folders and [Adobe Lightroom](https://lightroom.adobe.com) cloud 
 - 1 background thread prefetches batch N+1 while GPU runs batch N; 4 decode threads within each batch — GPU idle time eliminated
 - PIL draft mode on every JPEG: libjpeg-turbo downscales before full decode — 35 → 247 img/s
 - YOLO receives pre-decoded PIL images, bypassing its internal OpenCV path: 42 → 64 img/s end-to-end
-- Pass 1 (EXIF · color · composition · JPEG quality) runs `min(CPU, 6)` threads across photos
-- Lightroom renditions: 16-worker parallel download completes before any ML pass begins
 
 **Aesthetic scoring — warm-start**
-- k-means selects K=`5×√N` diverse seeds (≤1,500); only seeds run through the aesthetic predictor; a Ridge regressor predicts the remaining N−K. Incremental runs: OOD check per new photo — zero SigLIP calls when in-distribution.
+- k-means selects K=`5×√N` diverse seeds (≤1,500)  only seeds run through the aesthetic predictor, and a Ridge regressor predicts the remaining N−K. Incremental runs: OOD check per new photo — zero SigLIP calls when in-distribution.
 
 **Scene / VQA**
-- Multi-label: `scene_types` includes all labels within 85% of the top cosine score — relative thresholding avoids the absolute sigmoid collapse at high logit_scale
-- `time_of_day` and `season` derived from EXIF timestamp only — no visual inference
+- Multi-label: `scene_types` includes all labels within 85% of the top cosine score — relative thresholding avoids the absolute sigmoid collapse at high logit_scale. `time_of_day` and `season` derived from EXIF timestamp only — no visual inference
 
 **RMBG-2.0 — subject filtering**
-- Saliency only runs on photos with an isolatable subject: `has_person = yes` from VQA, or `{people and portraits, animals, food, interior}` scoring ≥ 0.35 cosine similarity — cuts candidates from 5,107 → ~660 on this library (~75 s vs ~495 s without filtering; count is library-dependent)
+- Saliency only runs on photos with an isolatable subject: `has_person = yes` from VQA, or `{people and portraits, animals, food, interior}` scoring ≥ 0.35 cosine similarity — cuts candidates from 4,886 → ~660 on this library (~75 s vs ~495 s without filtering; count is library-dependent)
 
 **Cache**
 - SHA-256 content-addressed SQLite cache; passes with 100% hit rate are skipped without loading any model
@@ -67,24 +63,23 @@ Supports local folders and [Adobe Lightroom](https://lightroom.adobe.com) cloud 
 | ARNIQA | Technical IQ score — blur, noise, exposure; self-supervised ResNet-50, fewer MACs than CLIP-based models | Pass 4b: bs=16 |
 | RMBG-2.0 | Subject mask → area, centroid, fg/bg palette | Pass 5: 256 px input; filtered to photos with subject signal (library-dependent) |
 | YOLO26n-pose | Object detection + pose estimation | Pass 6: portraits only; +7.2% mAP50-95 vs YOLO11n; PIL input |
-| JPEG quant tables | Quality factor (0–100) from quantization tables; `quant_table_nonstandard` flag distinguishes camera-original from software re-exports | Pass 1: CPU, alongside EXIF/color/composition |
 | SigLIP2-base (224 px) | Multi-label scene classification + VQA | Pass 3: all photos; 87.7 img/s at bs=16 on MPS |
 
 ---
 
 ## Pipeline
 
-**Measured timings** (M3 Pro 18 GB, 5,107-photo library, last full run):
+**Measured timings** (M3 Pro 18 GB, 4,886-photo library, last full run):
 
 | Pass | Model | Photos | Time | img/s | Peak mem |
 |---|---|---:|---:|---:|---:|
-| 1 | EXIF · Color · Composition · JPEG Quality | 5,107 | cached | — | — |
-| 2 | DINOv3-B | 5,107 | 91 s | 56.1 | 171 MB |
-| 3 | SigLIP2-base | 5,107 | 77 s | 66.2 | 922 MB |
-| 4a | aesthetic-predictor on K=357 seeds | 5,107 | 99 s | 51.7 | 1,781 MB |
-| 4a | Ridge regressor on remainder | ~4,750 | < 1 s | — | — |
+| 1 | EXIF · Color · Composition · JPEG Quality | 4,886 | cached | — | — |
+| 2 | DINOv3-B | 4,886 | 91 s | 56.1 | 171 MB |
+| 3 | SigLIP2-base | 4,886 | 77 s | 66.2 | 922 MB |
+| 4a | aesthetic-predictor on K=357 seeds | 4,886 | 99 s | 51.7 | 1,781 MB |
+| 4a | Ridge regressor on remainder | ~4,529 | < 1 s | — | — |
 | 4a | OOD check + regressor *(incremental)* | new photos | < 1 s + seeds | — | — |
-| 4b | ARNIQA | 5,107 | — | — | — |
+| 4b | ARNIQA | 4,886 | pending | — | — |
 | 5 | RMBG-2.0 @ 256 px | library-dep. ¹ | 76 s ¹ | 8.6 | 1,366 MB |
 | 6 | YOLO26n-pose | library-dep. ¹ | 9 s ¹ | 75.5 | 922 MB |
 
