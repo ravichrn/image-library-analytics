@@ -589,6 +589,27 @@ def main() -> None:
                 todo.append(r)
         return todo
 
+    # ── Per-pass content gates ────────────────────────────────────────────────
+    # Each gate decides, given a record, whether it needs the expensive pass.
+    # Centralised here so adding a new gated pass doesn't require hunting for
+    # the predicate buried inside the pass block.
+    _RMBG_SUBJECT_SCENES = {"people and portraits", "animals", "food", "interior"}
+    _RMBG_SCORE_THRESHOLD = 0.35  # raw cosine similarity; clear matches score 0.4–0.7
+
+    def _gate_saliency(r: dict) -> bool:
+        scores = (r.get("scene") or {}).get("scene_scores") or {}
+        if any(scores.get(lbl, 0) >= _RMBG_SCORE_THRESHOLD for lbl in _RMBG_SUBJECT_SCENES):
+            return True
+        return (r.get("caption") or {}).get("has_person") == "yes"
+
+    def _gate_pose(r: dict) -> bool:
+        return r.get("caption", {}).get("has_person", "").startswith("yes")
+
+    PASS_GATES: dict[str, object] = {
+        "saliency": _gate_saliency,
+        "pose": _gate_pose,
+    }
+
     # ── Pass 1 — cheap extractors (parallel, single image open per photo) ─────
     todo = [
         r
@@ -1095,24 +1116,10 @@ def main() -> None:
             _flush_pass_profile()
 
     # ── Pass 5 — RMBG 2.0 saliency (batched) ──────────────────────────────────
-    # Only run on photos likely to have an isolatable subject.
-    # has_person VQA catches portraits regardless of scene label (minimalist,
-    # outdoor, studio). scene_types covers non-person subjects: animals, food,
-    # interior. scene_types comes from heads or SigLIP and is already filtered
-    # (>0.5 sigmoid or top head class), so it's reliable across both paths.
-    _RMBG_SUBJECT_SCENES = {"people and portraits", "animals", "food", "interior"}
-    _RMBG_SCORE_THRESHOLD = 0.35  # raw cosine similarity; clear matches score 0.4–0.7
-
-    def _needs_saliency(r: dict) -> bool:
-        scores = (r.get("scene") or {}).get("scene_scores") or {}
-        if any(scores.get(lbl, 0) >= _RMBG_SCORE_THRESHOLD for lbl in _RMBG_SUBJECT_SCENES):
-            return True
-        return (r.get("caption") or {}).get("has_person") == "yes"
-
     sal_batch = pick_batch_size("RMBG-2.0")
     _log_scheduler("RMBG-2.0", sal_batch)
     _saliency_candidates = needs_path("saliency")
-    todo = [r for r in _saliency_candidates if _needs_saliency(r)]
+    todo = [r for r in _saliency_candidates if PASS_GATES["saliency"](r)]
     if "saliency" in _skip_passes:
         console.print("[bold]Pass 5/7:[/bold] skipped (--skip saliency)\n")
         _pass_stats.append({"name": "Pass 5: RMBG-2.0", "skipped": True})
@@ -1172,7 +1179,7 @@ def main() -> None:
 
     # ── Pass 6 — YOLO11-Pose: object detection + pose (portrait photos) ────────
     _pose_eligible = needs_path("pose_data")
-    todo = [r for r in _pose_eligible if r.get("caption", {}).get("has_person", "").startswith("yes")]
+    todo = [r for r in _pose_eligible if PASS_GATES["pose"](r)]
     if "pose" in _skip_passes:
         console.print("[bold]Pass 6/7:[/bold] skipped (--skip pose)\n")
         _pass_stats.append({"name": "Pass 6: YOLO26n-pose", "skipped": True})

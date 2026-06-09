@@ -23,6 +23,19 @@ Supports local folders and [Adobe Lightroom](https://lightroom.adobe.com) cloud 
 
 ---
 
+## Architecture
+
+The pipeline is built around a **single-backbone, multi-head** pattern:
+
+1. **DINOv3-B runs once** (Pass 2) and produces 768-dim L2-normalised embeddings for every photo. These are cached by SHA-256 and never recomputed for unchanged files.
+2. **Specialist models act as labelers, not inference engines.** `aesthetic-predictor-v2-5` (SigLIP SO400M) and the SigLIP2 scene model run on a k-means-selected seed subset — K = `5×√N`, capped at 1,500 photos — to produce ground-truth labels.
+3. **Lightweight heads run on embeddings for the full library.** A Ridge regressor trained on DINOv3-B embeddings predicts aesthetic scores for the remaining ~93% of photos at near-zero cost. Trained LogReg heads replace SigLIP SO400M for scene classification entirely — 90.8% accuracy at ~5 ms per batch vs 22 min for full-library SO400M.
+4. **Expensive specialist passes (RMBG-2.0, YOLO) are gated** on signals produced by the cheap backbone-and-heads passes: RMBG-2.0 runs only on photos with subject signal (87% filtered), YOLO only on portraits.
+
+The result is that only 2–3 models are ever resident in memory at once (sequential unloading, 1.74 GB peak vs 9.04 GB naive).
+
+---
+
 ## Features/Optimisations
 
 **GPU (MPS)**
